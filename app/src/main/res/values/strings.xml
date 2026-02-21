@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">NetArchive</string>
+    <string name="empty_field">Не задано</string>
 </resources>
