@@ -33,7 +33,6 @@ fun AppNavHost(
 
         composable<ContactDetail> { backStackEntry ->
             val contactId = backStackEntry.arguments?.getInt("contactId")
-
 //            ContactDetailScreen(
 //                contactId = contactId,
 //                onBackClick = {
