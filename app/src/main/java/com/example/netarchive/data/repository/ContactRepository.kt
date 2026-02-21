@@ -6,19 +6,20 @@ import com.example.netarchive.data.mapper.toEntity
 import com.example.netarchive.domain.model.Contact
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
-class ContactRepository(
+class ContactRepository @Inject constructor(
     private val contactDao: ContactDao
-){
-    suspend fun addContact(contact : Contact){
+) {
+    suspend fun addContact(contact: Contact) {
         contactDao.addContact(contact.toEntity())
     }
 
-    suspend fun updateContact(contact: Contact){
+    suspend fun updateContact(contact: Contact) {
         contactDao.updateContact(contact.toEntity())
     }
 
-    suspend fun deleteContact(contact: Contact){
+    suspend fun deleteContact(contact: Contact) {
         contactDao.deleteContact(contact.toEntity())
     }
 
@@ -27,7 +28,7 @@ class ContactRepository(
             .map { it?.toDomain() }
     }
 
-    fun getAllContacts() : Flow<List<Contact>> {
+    fun getAllContacts(): Flow<List<Contact>> {
         return contactDao.getAllContacts()
             .map { entities -> entities.map { it.toDomain() } }
     }
