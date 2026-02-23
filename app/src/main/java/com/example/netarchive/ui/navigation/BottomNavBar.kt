@@ -1,10 +1,16 @@
 package com.example.netarchive.ui.navigation
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,9 +22,11 @@ import androidx.navigation.NavHostController
 import com.example.netarchive.R
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 sealed class BottomNavItem(
     val icon: Int,
@@ -34,7 +42,7 @@ sealed class BottomNavItem(
 
     object Add : BottomNavItem(
         icon = R.drawable.add_circle,
-        route = com.example.netarchive.ui.navigation.AddButt,
+        route = AddButt,
         label = "Добавить",
         isPlusButton = true
     )
@@ -58,17 +66,14 @@ sealed class AddMenuItem(
         label = "Контакт",
         route = com.example.netarchive.ui.navigation.CreateContact
     )
-
     object CreateConnection : AddMenuItem(
         label = "Связь",
         route = com.example.netarchive.ui.navigation.CreateConnection
     )
-
     object CreateRemind : AddMenuItem(
         label = "Напоминание",
         route = com.example.netarchive.ui.navigation.CreateRemind
     )
-
     companion object {
         val entries = listOf(CreateContact, CreateConnection, CreateRemind)
     }
@@ -81,17 +86,17 @@ fun BottomNavBar(
     var showAddMenu by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableIntStateOf(0) }
 
-    Column {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         if (showAddMenu) {
-            Column(modifier = Modifier.padding(bottom = 100.dp)) {
-                Button(onClick = { navController.navigate(CreateContact) }) {
-                    Text("Контакт")
-                }
-                Button(onClick = { navController.navigate(CreateConnection) }) {
-                    Text("Связь")
-                }
-                Button(onClick = { navController.navigate(CreateRemind) }) {
-                    Text("Напоминание")
+            Column(
+                modifier = Modifier.padding(bottom = 25.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                AddMenuItem.entries.forEachIndexed{index, item ->
+                    AddButtonItem(
+                        item.label
+                    ) { navController.navigate(item.route) }
                 }
             }
         }
@@ -101,11 +106,12 @@ fun BottomNavBar(
                 if (item.isPlusButton) {
                     NavigationBarItem(
                         selected = false,
-                        onClick = { showAddMenu = true },
+                        onClick = { showAddMenu = !showAddMenu },
                         icon = {
                             Icon(
                                 painter = painterResource(item.icon),
-                                contentDescription = item.label
+                                contentDescription = item.label,
+                                modifier = Modifier.size(38.dp)
                             )
                         }
                     )
@@ -114,7 +120,8 @@ fun BottomNavBar(
                         icon = {
                             Icon(
                                 painter = painterResource(item.icon),
-                                contentDescription = item.label
+                                contentDescription = item.label,
+                                modifier = Modifier.size(32.dp)
                             )
                         },
                         selected = selectedTab == index,
@@ -134,5 +141,35 @@ fun BottomNavBar(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun AddButtonItem(
+    label: String,
+    onClick:()->Unit
+){
+    val colorScheme = MaterialTheme.colorScheme
+
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = colorScheme.primaryContainer.copy(alpha = 0.85f),
+            contentColor = colorScheme.onPrimaryContainer
+        ),
+        shape = RoundedCornerShape(50),
+        modifier = Modifier
+            .widthIn(min = 180.dp)
+            .height(48.dp),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 1.dp
+        )
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontSize = 20.sp
+            )
+        )
     }
 }

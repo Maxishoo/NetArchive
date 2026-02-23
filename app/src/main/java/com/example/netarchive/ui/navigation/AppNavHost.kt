@@ -1,8 +1,11 @@
 package com.example.netarchive.ui.navigation
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import kotlinx.serialization.Serializable
 import androidx.navigation.compose.NavHost
@@ -44,16 +47,28 @@ fun AppNavHost(
         startDestination = Contacts
     ){
         composable<Contacts> {
-            Text("Contacts")
+            Text("Contacts", modifier = Modifier.padding(top=100.dp), fontSize = 40.sp)
 //            ContactsScreen(
 //                onContactClick = { id: Int ->
 //                    navController.navigate(ContactDetail(id))
 //                }
 //            )
         }
+        composable<Profile> {
+            Text("Profile", modifier = Modifier.padding(top=100.dp), fontSize = 40.sp)
+        }
+        composable<CreateContact> {
+            Text("CreateContact", modifier = Modifier.padding(top=100.dp), fontSize = 40.sp)
+        }
+        composable<CreateConnection> {
+            Text("CreateConnection", modifier = Modifier.padding(top=100.dp), fontSize = 40.sp)
+        }
+        composable<CreateRemind> {
+            Text("CreateRemind", modifier = Modifier.padding(top=100.dp), fontSize = 40.sp)
+        }
 
         composable<ContactDetail> { backStackEntry ->
-            val contactId = backStackEntry.arguments?.getInt("contactId")
+//            val contactId = backStackEntry.arguments?.getInt("contactId")
 //            ContactDetailScreen(
 //                contactId = contactId,
 //                onBackClick = {
