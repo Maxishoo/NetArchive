@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import com.example.netarchive.data.local.db.dao.ContactDao
 import com.example.netarchive.data.local.db.entity.ContactEntity
 
-@Database(entities = [(ContactEntity::class)], version = 2)
+@Database(entities = [(ContactEntity::class)], version = 1, exportSchema = false)
 abstract class AppDatabase: RoomDatabase(){
     abstract fun contactDao() : ContactDao
 }
