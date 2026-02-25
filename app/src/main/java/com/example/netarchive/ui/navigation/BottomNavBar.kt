@@ -96,7 +96,11 @@ fun BottomNavBar(
                 AddMenuItem.entries.forEachIndexed{index, item ->
                     AddButtonItem(
                         item.label
-                    ) { navController.navigate(item.route) }
+                    )
+                    {
+                        showAddMenu = false
+                        navController.navigate(item.route)
+                    }
                 }
             }
         }
