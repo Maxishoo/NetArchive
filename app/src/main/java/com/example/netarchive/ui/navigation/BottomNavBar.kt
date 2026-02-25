@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.currentBackStackEntryAsState
 
 sealed class BottomNavItem(
     val icon: Int,
@@ -87,9 +86,7 @@ fun BottomNavBar(
     navController: NavHostController
 ) {
     var showAddMenu by remember { mutableStateOf(false) }
-
-    val currentBackStackEntry = navController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStackEntry.value?.destination?.route
+    var selectedTab by remember { mutableStateOf(BottomNavItem.entries[0]) }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         if (showAddMenu) {
@@ -106,6 +103,7 @@ fun BottomNavBar(
                             launchSingleTop = true
                         }
                         showAddMenu = false
+                        selectedTab = BottomNavItem.Add
                     }
                 }
             }
@@ -115,7 +113,7 @@ fun BottomNavBar(
             BottomNavItem.entries.forEachIndexed { index, item ->
                 if (item.isPlusButton) {
                     NavigationBarItem(
-                        selected = (currentRoute == item.route),
+                        selected = (selectedTab == item),
                         onClick = { showAddMenu = !showAddMenu },
                         icon = {
                             Icon(
@@ -134,14 +132,15 @@ fun BottomNavBar(
                                 modifier = Modifier.size(32.dp)
                             )
                         },
-                        selected = (currentRoute == item.route),
+                        selected = (selectedTab == item),
                         onClick = {
-                            if (currentRoute != item.route) {
+                            if (selectedTab != item) {
                                 navController.navigate(item.route){
                                     launchSingleTop = true
                                 }
+                                showAddMenu = false
+                                selectedTab = item
                             }
-                            showAddMenu = false
                         }
                     )
                 }
