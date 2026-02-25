@@ -14,7 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -66,14 +65,17 @@ sealed class AddMenuItem(
         label = "Контакт",
         route = com.example.netarchive.ui.navigation.CreateContact
     )
+
     object CreateConnection : AddMenuItem(
         label = "Связь",
         route = com.example.netarchive.ui.navigation.CreateConnection
     )
+
     object CreateRemind : AddMenuItem(
         label = "Напоминание",
         route = com.example.netarchive.ui.navigation.CreateRemind
     )
+
     companion object {
         val entries = listOf(CreateContact, CreateConnection, CreateRemind)
     }
@@ -84,7 +86,7 @@ fun BottomNavBar(
     navController: NavHostController
 ) {
     var showAddMenu by remember { mutableStateOf(false) }
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by remember { mutableStateOf(BottomNavItem.entries[0]) }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         if (showAddMenu) {
@@ -93,10 +95,16 @@ fun BottomNavBar(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                AddMenuItem.entries.forEachIndexed{index, item ->
+                AddMenuItem.entries.forEachIndexed { index, item ->
                     AddButtonItem(
                         item.label
-                    ) { navController.navigate(item.route) }
+                    ) {
+                        navController.navigate(item.route){
+                            launchSingleTop = true
+                        }
+                        showAddMenu = false
+                        selectedTab = BottomNavItem.Add
+                    }
                 }
             }
         }
@@ -105,7 +113,7 @@ fun BottomNavBar(
             BottomNavItem.entries.forEachIndexed { index, item ->
                 if (item.isPlusButton) {
                     NavigationBarItem(
-                        selected = false,
+                        selected = (selectedTab == item),
                         onClick = { showAddMenu = !showAddMenu },
                         icon = {
                             Icon(
@@ -124,17 +132,14 @@ fun BottomNavBar(
                                 modifier = Modifier.size(32.dp)
                             )
                         },
-                        selected = selectedTab == index,
+                        selected = (selectedTab == item),
                         onClick = {
-                            if (selectedTab != index) {
-                                navController.navigate(item.route) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
+                            if (selectedTab != item) {
+                                navController.navigate(item.route){
                                     launchSingleTop = true
-                                    restoreState = true
                                 }
-                                selectedTab = index
+                                showAddMenu = false
+                                selectedTab = item
                             }
                         }
                     )
@@ -147,8 +152,8 @@ fun BottomNavBar(
 @Composable
 fun AddButtonItem(
     label: String,
-    onClick:()->Unit
-){
+    onClick: () -> Unit
+) {
     val colorScheme = MaterialTheme.colorScheme
 
     Button(
