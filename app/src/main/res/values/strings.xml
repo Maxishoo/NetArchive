@@ -1,6 +1,4 @@
 <resources>
     <string name="app_name">NetArchive</string>
     <string name="empty_field">Не задано</string>
-    <string name="error_contacts_load">Ошибка загрузки контактов</string>
-    <string name="contacts_empty">Нет контактов</string>
 </resources>
