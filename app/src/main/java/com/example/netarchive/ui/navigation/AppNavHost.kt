@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.netarchive.ui.screens.add_contact_screen.AddContactScreen
+import com.example.netarchive.ui.screens.contacts_list_screen.ContactListScreen
 
 @Serializable
 object AddButt
@@ -48,12 +49,7 @@ fun AppNavHost(
         startDestination = Contacts
     ){
         composable<Contacts> {
-            Text("Contacts", modifier = Modifier.padding(top=100.dp), fontSize = 40.sp)
-//            ContactsScreen(
-//                onContactClick = { id: Int ->
-//                    navController.navigate(ContactDetail(id))
-//                }
-//            )
+            ContactListScreen()
         }
         composable<Profile> {
             Text("Profile", modifier = Modifier.padding(top=100.dp), fontSize = 40.sp)
