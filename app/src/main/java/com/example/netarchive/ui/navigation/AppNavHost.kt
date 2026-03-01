@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.netarchive.ui.screens.add_contact_screen.AddContactScreen
 import com.example.netarchive.ui.screens.contacts_list_screen.ContactListScreen
+import com.example.netarchive.ui.screens.contact_view_screen.ContactViewScreen
 
 @Serializable
 object AddButt
@@ -49,7 +50,11 @@ fun AppNavHost(
         startDestination = Contacts
     ){
         composable<Contacts> {
-            ContactListScreen()
+            ContactListScreen(
+                onContactClick = { contact ->
+                    navController.navigate(ContactDetail(contact.id))
+                }
+            )
         }
         composable<Profile> {
             Text("Profile", modifier = Modifier.padding(top=100.dp), fontSize = 40.sp)
@@ -72,6 +77,12 @@ fun AppNavHost(
         }
 
         composable<ContactDetail> { backStackEntry ->
+            val contactId = backStackEntry.arguments?.getInt("contactId") ?: 0
+            ContactViewScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
 //            val contactId = backStackEntry.arguments?.getInt("contactId")
 //            ContactDetailScreen(
 //                contactId = contactId,
