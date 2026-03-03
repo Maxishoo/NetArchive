@@ -3,6 +3,7 @@ package com.example.netarchive.ui.screens.contact_view_screen
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -19,17 +20,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.netarchive.domain.model.Note
+import com.example.netarchive.ui.components.cards.NoteCard
 import com.example.netarchive.ui.theme.NetArchiveTheme
+import kotlin.text.get
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactViewScreen(
     viewModel: ContactViewViewModel = hiltViewModel(),
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onAddNoteClick: (Int, String) -> Unit = { _, _ -> }
 ) {
     val viewState by viewModel.viewState.collectAsState()
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("Информация", "Заметки")
+    val contactId = viewState.contactId
+    val contactName = viewState.username
 
 
     Scaffold(
@@ -104,7 +111,12 @@ fun ContactViewScreen(
                         viewState = viewState,
                         viewModel = viewModel
                     )
-                    1 -> NotesTab()
+                    1 -> NotesTab(
+                        notes = viewState.notes,
+                        onAddNoteClick = {
+                            onAddNoteClick(contactId, contactName)
+                        }
+                    )
                 }
             }
         }
@@ -324,19 +336,52 @@ private fun ContactInfoTab(
 }
 
 @Composable
-private fun NotesTab() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Нет заметок",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+private fun NotesTab(
+    notes: List<Note>,
+    onAddNoteClick: () -> Unit
+) {
+    if (notes.isEmpty()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Нет заметок",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = onAddNoteClick) {
+                Text("Добавить заметку")
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .padding(bottom = 80.dp),  // <-- Добавь эту строку!
+        ) {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(count = notes.size) { index ->
+                    NoteCard(note = notes[index])
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onAddNoteClick,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Добавить заметку")
+            }
+        }
     }
 }
 

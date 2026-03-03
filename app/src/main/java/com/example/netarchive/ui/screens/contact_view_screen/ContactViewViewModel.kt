@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.example.netarchive.data.repository.NoteRepository
+import com.example.netarchive.domain.model.Note
+import kotlinx.coroutines.flow.flatMapLatest
 
 data class ContactViewState(
     val contactId: Int = 0,
@@ -21,6 +24,7 @@ data class ContactViewState(
     val email: String = "",
     val job: String = "",
     val avatar: String = "",
+    val notes: List<Note> = emptyList(),
     val isLoading: Boolean = false,
     val isEditMode: Boolean = false,
     val hasChanges: Boolean = false,
@@ -31,6 +35,7 @@ data class ContactViewState(
 @HiltViewModel
 class ContactViewViewModel @Inject constructor(
     private val repository: ContactRepository,
+    private val noteRepository: NoteRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -43,15 +48,18 @@ class ContactViewViewModel @Inject constructor(
 
     init {
         loadContact()
+        loadNotes()
     }
 
     private fun loadContact() {
         viewModelScope.launch {
-            _viewState.value = _viewState.value.copy(isLoading = true)
+            _viewState.value = _viewState.value.copy(isLoading = true, notes = emptyList())
             try {
                 repository.getContactById(contactId).collect { contact ->
                     contact?.let {
-                        val state = ContactViewState(
+                        // Вместо создания нового state — используем copy!
+                        _viewState.value = _viewState.value.copy(
+                            isLoading = false,
                             contactId = it.id,
                             username = it.username,
                             phone = it.phone ?: "",
@@ -60,21 +68,28 @@ class ContactViewViewModel @Inject constructor(
                             email = it.email ?: "",
                             job = it.job ?: "",
                             avatar = it.avatar ?: ""
+                            // notes НЕ трогаем — остаётся как было!
                         )
-                        _viewState.value = state
-                        originalState.value = state
+                        originalState.value = _viewState.value.copy(isLoading = false)
                     } ?: run {
                         _viewState.value = _viewState.value.copy(
+                            isLoading = false,
                             error = "Контакт не найден"
                         )
                     }
-                    _viewState.value = _viewState.value.copy(isLoading = false)
                 }
             } catch (e: Exception) {
                 _viewState.value = _viewState.value.copy(
                     isLoading = false,
                     error = "Ошибка при загрузке: ${e.message}"
                 )
+            }
+        }
+    }
+    private fun loadNotes() {
+        viewModelScope.launch {
+            noteRepository.getNotesByContactId(contactId).collect { notes ->
+                _viewState.value = _viewState.value.copy(notes = notes)
             }
         }
     }

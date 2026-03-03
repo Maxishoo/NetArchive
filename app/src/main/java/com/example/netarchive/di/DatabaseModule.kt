@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.netarchive.data.local.db.AppDatabase
 import com.example.netarchive.data.local.db.dao.ContactDao
+import com.example.netarchive.data.local.db.dao.NoteDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,5 +34,10 @@ object DatabaseModule {
     @Singleton
     fun provideContactDao(database: AppDatabase): ContactDao {
         return database.contactDao()
+    }
+    @Provides
+    @Singleton
+    fun provideNoteDao(database: AppDatabase): NoteDao {  // <-- Добавь это
+        return database.noteDao()
     }
 }
