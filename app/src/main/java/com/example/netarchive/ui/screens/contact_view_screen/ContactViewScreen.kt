@@ -8,15 +8,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -30,14 +33,16 @@ import kotlin.text.get
 fun ContactViewScreen(
     viewModel: ContactViewViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
-    onAddNoteClick: (Int, String) -> Unit = { _, _ -> }
+    onAddNoteClick: (Int, String, Int, String, Long,String,Int) -> Unit = { _, _, _, _, _, _, _ -> },
+    initialTab: Int = 0
 ) {
     val viewState by viewModel.viewState.collectAsState()
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by rememberSaveable  { mutableStateOf(initialTab) }
     val tabs = listOf("Информация", "Заметки")
     val contactId = viewState.contactId
     val contactName = viewState.username
-
+    var isNotesEditMode by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -49,26 +54,28 @@ fun ContactViewScreen(
                     }
                 },
                 actions = {
-                    if (viewState.isEditMode) {
-                        IconButton(
-                            onClick = { viewModel.saveContact() },
-                            enabled = viewState.hasChanges && !viewState.isLoading && viewState.username.isNotBlank()
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Save,
-                                contentDescription = "Сохранить",
-                                tint = if (viewState.hasChanges)
-                                    MaterialTheme.colorScheme.primary
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    } else {
-                        IconButton(onClick = { viewModel.enableEditMode() }) {
-                            Icon(
-                                imageVector = Icons.Filled.Edit,
-                                contentDescription = "Редактировать"
-                            )
+                    if (selectedTab == 0) {
+                        if (viewState.isEditMode) {
+                            IconButton(
+                                onClick = { viewModel.saveContact() },
+                                enabled = viewState.hasChanges && !viewState.isLoading && viewState.username.isNotBlank()
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Save,
+                                    contentDescription = "Сохранить",
+                                    tint = if (viewState.hasChanges)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        } else {
+                            IconButton(onClick = { viewModel.enableEditMode() }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Edit,
+                                    contentDescription = "Редактировать"
+                                )
+                            }
                         }
                     }
                 }
@@ -109,13 +116,37 @@ fun ContactViewScreen(
                 when (selectedTab) {
                     0 -> ContactInfoTab(
                         viewState = viewState,
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        showDeleteDialog = showDeleteDialog,           // <-- Передай
+                        onShowDeleteDialog = { showDeleteDialog = true },  // <-- Передай
+                        onDeleteContact = {
+                            showDeleteDialog = false
+                            viewModel.deleteContact(onBackClick)
+                        }                                              // <-- Передай
                     )
                     1 -> NotesTab(
                         notes = viewState.notes,
+                        contactName = viewState.username,
+                        isEditMode = isNotesEditMode,  // <-- Передай
                         onAddNoteClick = {
-                            onAddNoteClick(contactId, contactName)
-                        }
+                            onAddNoteClick(viewState.contactId, viewState.username, 0, "", 0L,"contact_view",selectedTab)
+                        },
+                        onNoteClick = { note ->
+                            // Навигация на редактирование заметки
+                            onAddNoteClick(
+                                viewState.contactId,
+                                viewState.username,
+                                note.id,
+                                note.text,
+                                note.date,
+                                "contact_view",
+                                selectedTab
+                            )
+                        },
+                        onDeleteNoteClick = { note ->
+                            viewModel.deleteNote(note)
+                        },
+                        onToggleEditMode = { isNotesEditMode = !isNotesEditMode }  // <-- Передай
                     )
                 }
             }
@@ -127,13 +158,52 @@ fun ContactViewScreen(
             viewModel.clearError()
         }
     }
+    // Диалог подтверждения удаления
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Удалить контакт?") },
+            text = {
+                Column {
+                    Text("Вы уверены что хотите удалить контакт \"${viewState.username}\"?")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Все связанные заметки будут безвозвратно удалены",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteDialog = false
+                        viewModel.deleteContact(onBackClick)
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Удалить")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Отмена")
+                }
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ContactInfoTab(
     viewState: ContactViewState,
-    viewModel: ContactViewViewModel
+    viewModel: ContactViewViewModel,
+    showDeleteDialog: Boolean,                    // <-- Добавь
+    onShowDeleteDialog: () -> Unit,               // <-- Добавь
+    onDeleteContact: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -332,13 +402,46 @@ private fun ContactInfoTab(
                 )
             }
         }
+        // Кнопка удаления контакта
+        if (!viewState.isEditMode) {
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = onShowDeleteDialog,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                ),
+                enabled = !viewState.isLoading
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Text("Удалить контакт")
+            }
+
+            Text(
+                text = "Все заметки этого контакта будут удалены",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp),
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 
 @Composable
 private fun NotesTab(
     notes: List<Note>,
-    onAddNoteClick: () -> Unit
+    contactName: String,
+    isEditMode: Boolean = false,
+    onAddNoteClick: () -> Unit,
+    onNoteClick: (Note) -> Unit = {},
+    onDeleteNoteClick: (Note) -> Unit = {},
+    onToggleEditMode: () -> Unit = {}
 ) {
     if (notes.isEmpty()) {
         Column(
@@ -363,14 +466,37 @@ private fun NotesTab(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
-                .padding(bottom = 80.dp),  // <-- Добавь эту строку!
+                .padding(bottom = 80.dp),
         ) {
+            // Заголовок с кнопкой редактирования
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Заметки о $contactName",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                // Кнопка переключения режима редактирования
+                TextButton(onClick = onToggleEditMode) {
+                    Text(if (isEditMode) "Готово" else "Удалить")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(count = notes.size) { index ->
-                    NoteCard(note = notes[index])
+                    NoteCard(note = notes[index],
+                        isEditMode = isEditMode,  // <-- Передай
+                        onNoteClick = { onNoteClick(notes[index]) },  // <-- Передай
+                        onDeleteClick = { onDeleteNoteClick(notes[index]) }  // <-- Передай
+                    )
                 }
             }
 

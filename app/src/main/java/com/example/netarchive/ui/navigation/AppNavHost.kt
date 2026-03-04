@@ -24,7 +24,10 @@ object AddButt
 object Contacts
 
 @Serializable
-data class ContactDetail(val contactId: Int)
+data class ContactDetail(
+    val contactId: Int,
+    val selectedTab: Int = 0  // 0 = Информация, 1 = Заметки
+)
 
 @Serializable
 data class EditContact(val contactId: Int?)
@@ -43,7 +46,15 @@ object CreateConnection
 object CreateRemind
 
 @Serializable
-data class CreateNoteRoute(val contactId: Int, val contactName: String)
+data class CreateNoteRoute(
+    val contactId: Int,
+    val contactName: String,
+    val noteId: Int = 0,
+    val noteText: String = "",
+    val noteDate: Long = 0L,
+    val fromScreen: String = "contact_view",
+    val returnTab: Int = 0
+)
 
 
 
@@ -77,17 +88,28 @@ fun AppNavHost(
             )
         }
         composable<CreateNoteRoute> { backStackEntry ->
-            // Извлекаем параметры из маршрута
             val contactId = backStackEntry.arguments?.getInt("contactId") ?: 0
             val contactName = backStackEntry.arguments?.getString("contactName") ?: ""
+            val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
+            val noteText = backStackEntry.arguments?.getString("noteText") ?: ""
+            val noteDate = backStackEntry.arguments?.getLong("noteDate") ?: 0L
+            val fromScreen = backStackEntry.arguments?.getString("fromScreen") ?: "contact_view"
 
             CreateNoteScreen(
                 contactId = contactId,
                 contactName = contactName,
+                noteId = noteId,
+                noteText = noteText,
+                noteDate = noteDate,
                 onBackClick = { navController.popBackStack() },
                 onNoteCreated = {
-                    navController.popBackStack()
-                    navController.popBackStack()
+                    navController.popBackStack() // Закрыть CreateNoteScreen
+
+                    // Если пришли из выбора контакта → закрыть и его
+                    if (fromScreen == "select_contact") {
+                        navController.popBackStack()
+                    }
+                    // Если fromScreen == "contact_view" → остаёмся на ContactViewScreen ✅
                 }
             )
         }
@@ -97,7 +119,7 @@ fun AppNavHost(
                 onContactClick = { contact ->
                     // Навигируем сразу с параметрами!
                     navController.navigate(
-                        CreateNoteRoute(contactId = contact.id, contactName = contact.username)
+                        CreateNoteRoute(contactId = contact.id, contactName = contact.username,fromScreen = "select_contact")
                     )
                 },
                 onBackClick = {
@@ -112,13 +134,24 @@ fun AppNavHost(
 
         composable<ContactDetail> { backStackEntry ->
             val contactId = backStackEntry.arguments?.getInt("contactId") ?: 0
+            val selectedTab = backStackEntry.arguments?.getInt("selectedTab") ?: 0
             ContactViewScreen(
+                initialTab = selectedTab,
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onAddNoteClick = { id, name ->
-                    // Сразу переходим на создание заметки с этим контактом!
-                    navController.navigate(CreateNoteRoute(contactId = id, contactName = name))
+                onAddNoteClick = { id, name, noteId, noteText, noteDate,fromScreen,tab ->
+                    navController.navigate(
+                        CreateNoteRoute(
+                            contactId = id,
+                            contactName = name,
+                            noteId = noteId,
+                            noteText = noteText,
+                            noteDate = noteDate,
+                            fromScreen = fromScreen,
+                            returnTab = tab
+                        )
+                    )
                 }
             )
 //            val contactId = backStackEntry.arguments?.getInt("contactId")

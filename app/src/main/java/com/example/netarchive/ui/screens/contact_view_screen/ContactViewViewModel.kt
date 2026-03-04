@@ -176,8 +176,42 @@ class ContactViewViewModel @Inject constructor(
         }
     }
 
+    fun deleteNote(note: Note) {
+        viewModelScope.launch {
+            noteRepository.deleteNote(note)
+        }
+    }
     fun clearError() {
         _viewState.value = _viewState.value.copy(error = null)
+    }
+    fun deleteContact(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _viewState.value = _viewState.value.copy(isLoading = true)
+            try {
+                val currentState = _viewState.value
+                val contact = Contact(
+                    id = currentState.contactId,
+                    username = currentState.username,
+                    phone = currentState.phone,
+                    telegram = currentState.telegram,
+                    max = currentState.max,
+                    email = currentState.email,
+                    job = currentState.job,
+                    avatar = currentState.avatar
+                )
+
+                repository.deleteContact(contact)
+                // Заметки удалятся автоматически благодаря CASCADE
+
+                _viewState.value = _viewState.value.copy(isLoading = false)
+                onSuccess() // Вызываем навигацию назад
+            } catch (e: Exception) {
+                _viewState.value = _viewState.value.copy(
+                    isLoading = false,
+                    error = "Ошибка при удалении: ${e.message}"
+                )
+            }
+        }
     }
 
 }

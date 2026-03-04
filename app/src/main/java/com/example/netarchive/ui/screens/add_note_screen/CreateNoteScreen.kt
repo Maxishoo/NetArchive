@@ -21,21 +21,60 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.netarchive.ui.theme.NetArchiveTheme
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Event
+import android.app.DatePickerDialog
+import androidx.compose.ui.platform.LocalContext
+import java.util.Calendar
+
+
+
+@Composable
+private fun ShowDatePickerDialog(
+    initialDate: Long,
+    onDateSelected: (Long) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val calendar = Calendar.getInstance().apply {
+        timeInMillis = initialDate
+    }
+
+    val year = calendar.get(Calendar.YEAR)
+    val month = calendar.get(Calendar.MONTH)
+    val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+    val dialog = DatePickerDialog(
+        LocalContext.current,
+        { _, selectedYear, selectedMonth, selectedDay ->
+            val selectedCalendar = Calendar.getInstance().apply {
+                set(selectedYear, selectedMonth, selectedDay)
+            }
+            onDateSelected(selectedCalendar.timeInMillis)
+        },
+        year,
+        month,
+        day
+    )
+
+    dialog.setOnDismissListener { onDismiss() }
+    dialog.show()
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateNoteScreen(
     contactId: Int,
     contactName: String,
+    noteId: Int = 0,              // <-- Добавь
+    noteText: String = "",        // <-- Добавь
+    noteDate: Long = 0L,
     viewModel: CreateNoteViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onNoteCreated: () -> Unit
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.setContactData(contactId, contactName)
-    }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showDatePicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
@@ -53,7 +92,9 @@ fun CreateNoteScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Добавьте запись") },
+                title = {
+                    Text(if (state.isEditMode) "Редактировать запись" else "Добавьте запись")
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Text("✕", style = MaterialTheme.typography.titleLarge)
@@ -120,14 +161,43 @@ fun CreateNoteScreen(
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Дата") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.Default.Person, // Можно заменить на Calendar
+                        imageVector = Icons.Filled.CalendarToday,
                         contentDescription = null
                     )
-                }
+                },
+                trailingIcon = {
+                    IconButton(onClick = { showDatePicker = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.Event,
+                            contentDescription = "Выбрать дату",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                )
             )
+
+// DatePicker Dialog
+            if (showDatePicker) {
+                ShowDatePickerDialog(
+                    initialDate = state.date,
+                    onDateSelected = { selectedDate ->
+                        viewModel.onDateChange(selectedDate)
+                        showDatePicker = false
+                    },
+                    onDismiss = {
+                        showDatePicker = false
+                    }
+                )
+            }
 
             // Текст заметки
             OutlinedTextField(
@@ -159,7 +229,13 @@ fun CreateNoteScreen(
                 }
 
                 Button(
-                    onClick = { viewModel.saveNote() },
+                    onClick = {
+                        if (state.isEditMode) {
+                            viewModel.saveNote()  // Обновит заметку
+                        } else {
+                            viewModel.saveNote()  // Создаст новую
+                        }
+                    },
                     modifier = Modifier.weight(1f),
                     enabled = !state.isLoading && state.noteText.isNotBlank()
                 ) {
@@ -169,7 +245,7 @@ fun CreateNoteScreen(
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                     } else {
-                        Text("Сохранить")
+                        Text(if (state.isEditMode) "Сохранить" else "Создать")
                     }
                 }
             }
