@@ -7,6 +7,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -25,44 +28,56 @@ fun ContactListScreen(
     onContactClick: (Contact) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var searchQuery by remember { mutableStateOf("") }
 
-    Box(
-        modifier = modifier.fillMaxSize()
-    ) {
-        when (state) {
-            is LoadState.Loading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
+    Column(){
+        ContactsTopBar(
+            query = searchQuery,
+            onQueryChange = {
+                searchQuery = it
+                viewModel.onSearchQueryChange(it)
             }
-            is LoadState.Error -> {
-                Text(
-                    text = stringResource(R.string.error_contacts_load),
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-            is LoadState.Empty -> {
-                Text(
-                    text = stringResource(R.string.contacts_empty),
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-            is LoadState.Success -> {
-                val contacts = (state as LoadState.Success<List<Contact>>).data
+        )
 
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(contentPadding),
-                    contentPadding = PaddingValues(16.dp),
+        Box(
+            modifier = modifier.fillMaxSize()
+        ) {
+            when (state) {
+                is LoadState.Loading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                is LoadState.Error -> {
+                    Text(
+                        text = stringResource(R.string.error_contacts_load),
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                is LoadState.Empty -> {
 
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(contacts) { contact ->
-                        ContactCard(
-                            contact = contact,
-                            onClick = { onContactClick(contact) }
-                        )
+                    Text(
+                        text = stringResource(R.string.contacts_empty),
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                is LoadState.Success -> {
+                    val contacts = (state as LoadState.Success<List<Contact>>).data
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(contentPadding),
+                        contentPadding = PaddingValues(1.dp),
+
+                        verticalArrangement = Arrangement.spacedBy(1.dp)
+                    ) {
+                        items(contacts, key = { contact -> contact.id }) {contact ->
+                            ContactCard(
+                                contact = contact,
+                                onClick = { onContactClick(contact) }
+                            )
+                        }
                     }
                 }
             }

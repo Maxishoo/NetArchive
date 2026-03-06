@@ -27,7 +27,7 @@ fun AddContactScreen(
                 title = { Text("Добавить контакт") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Text("✕", style = MaterialTheme.typography.titleLarge)
+                        Text("✕", style = MaterialTheme.typography.headlineLarge)
                     }
                 }
             )
@@ -77,7 +77,7 @@ fun AddContactScreen(
             OutlinedTextField(
                 value = formState.max,
                 onValueChange = viewModel::onMaxChange,
-                label = { Text("Max") },
+                label = { Text("MAX") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )

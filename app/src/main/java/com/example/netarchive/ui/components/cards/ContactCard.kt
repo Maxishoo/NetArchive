@@ -22,7 +22,7 @@ import com.example.netarchive.ui.theme.*
 
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-
+import androidx.compose.ui.unit.sp
 
 
 @Composable
@@ -35,7 +35,7 @@ fun ContactCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(0.dp),
         colors = CardDefaults.cardColors(containerColor = CardBackground),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -45,28 +45,22 @@ fun ContactCard(
                 .height(IntrinsicSize.Min) // чтобы полоска растянулась по высоте контента
         ) {
             // Красная полоска слева — вплотную к краю
-            Box(
+            /*Box(
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(19.dp)
                     .background(PinkLetCard)
-            )
+            )*/
 
             // Контейнер для основного контента с внутренними отступами
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(8.dp) // отступы для контента
+                    .padding(16.dp) // отступы для контента
                     .height(IntrinsicSize.Min),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Имя контакта
-                Text(
-                    text = contact.username,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
-                )
-
                 // Аватар или инициал справа
                 if (contact.avatar != null) {
                     Image(
@@ -77,20 +71,28 @@ fun ContactCard(
                             .clip(CircleShape)
                     )
                 } else {
+                    // аватарка
                     Box(
                         modifier = Modifier
                             .size(56.dp)
                             .clip(CircleShape)
-                            .background(Purple200),
+                            .background(color = Color(0xFFDBE0F7)),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = contact.username.firstOrNull()?.toString() ?: "?",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color.White
+                            text = contact.username.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                            style = MaterialTheme.typography.titleLarge
                         )
                     }
                 }
+                // Имя контакта
+                Text(
+                    text = contact.username,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontSize = 18.sp
+                    ),
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }

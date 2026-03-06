@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.netarchive.ui.theme.LightBlue
 
 sealed class BottomNavItem(
     val icon: Int,
@@ -119,7 +120,7 @@ fun BottomNavBar(
                             Icon(
                                 painter = painterResource(item.icon),
                                 contentDescription = item.label,
-                                modifier = Modifier.size(38.dp)
+                                modifier = Modifier.size(32.dp)
                             )
                         }
                     )
@@ -159,7 +160,7 @@ fun AddButtonItem(
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = colorScheme.primaryContainer.copy(alpha = 0.85f),
+            containerColor = LightBlue.copy(alpha = 0.95f),
             contentColor = colorScheme.onPrimaryContainer
         ),
         shape = RoundedCornerShape(50),

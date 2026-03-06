@@ -50,6 +50,13 @@ fun Main() {
             }
         }
     ) { innerPadding ->
+//        Image(
+//            painter = painterResource(R.drawable.background_photo),
+//            contentDescription = null,
+//            modifier = Modifier.fillMaxSize(),
+//            contentScale = ContentScale.Crop
+//        )
+//        Box(modifier = Modifier.fillMaxSize().background(color = Color.White))
         AppNavHost(
             navController = navController,
             modifier = Modifier.fillMaxSize().padding(paddingValues = innerPadding)

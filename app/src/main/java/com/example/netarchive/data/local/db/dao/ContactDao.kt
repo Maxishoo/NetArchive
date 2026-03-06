@@ -24,4 +24,11 @@ interface ContactDao{
 
     @Query("SELECT * FROM Contacts")
     fun getAllContacts() : Flow<List<ContactEntity>>
+
+    @Query("SELECT * FROM Contacts " +
+            "WHERE " +
+            "username LIKE '%'||:query||'%'" +
+            "OR phone LIKE '%'||:query||'%'" +
+            "OR job LIKE '%'||:query||'%'")
+    fun getContacts(query : String) : Flow<List<ContactEntity>>
 }

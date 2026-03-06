@@ -29,5 +29,8 @@ val CategoryColleague = Color(0xFF5D81A4)
 val CategoryDefault = Color(0xFF7A9C50)
 
 val PinkLetCard = Color(0xFFFFC1AB)
-val CardBackground = Color(0xFFE1EDEE)
+val CardBackground = Color.White
 val AddButton = Color(0xFF5162E5)
+val NoAvatar = Color(0xFFDBE0F7)
+
+val LightBlue = Color(color = 0xFFD6EBFE)
