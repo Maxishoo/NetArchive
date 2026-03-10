@@ -3,9 +3,11 @@ package com.example.netarchive.ui.screens.contacts_list_screen
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,7 +32,58 @@ fun ContactListScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
 
-    Column(){
+    val listState = rememberLazyListState()
+
+    val topBarHeight = 100.dp
+
+    Box(
+        modifier = modifier.fillMaxSize()
+    ) {
+        when (state) {
+            is LoadState.Loading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            is LoadState.Error -> {
+                Text(
+                    text = stringResource(R.string.error_contacts_load),
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            is LoadState.Empty -> {
+                Text(
+                    text = stringResource(R.string.contacts_empty),
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            is LoadState.Success -> {
+                val contacts = (state as LoadState.Success<List<Contact>>).data
+
+                LaunchedEffect(contacts.size) {
+                    listState.scrollToItem(0)
+                }
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    state = listState,
+                    contentPadding = PaddingValues(
+                        top = topBarHeight
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(1.dp)
+                ) {
+                    items(contacts, key = { contact -> contact.id }) { contact ->
+                        ContactCard(
+                            contact = contact,
+                            onClick = { onContactClick(contact) }
+                        )
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(100.dp))
+                    }
+                }
+            }
+        }
         ContactsTopBar(
             query = searchQuery,
             onQueryChange = {
@@ -38,49 +91,5 @@ fun ContactListScreen(
                 viewModel.onSearchQueryChange(it)
             }
         )
-
-        Box(
-            modifier = modifier.fillMaxSize()
-        ) {
-            when (state) {
-                is LoadState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-                is LoadState.Error -> {
-                    Text(
-                        text = stringResource(R.string.error_contacts_load),
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-                is LoadState.Empty -> {
-
-                    Text(
-                        text = stringResource(R.string.contacts_empty),
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-                is LoadState.Success -> {
-                    val contacts = (state as LoadState.Success<List<Contact>>).data
-
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(contentPadding),
-                        contentPadding = PaddingValues(1.dp),
-
-                        verticalArrangement = Arrangement.spacedBy(1.dp)
-                    ) {
-                        items(contacts, key = { contact -> contact.id }) {contact ->
-                            ContactCard(
-                                contact = contact,
-                                onClick = { onContactClick(contact) }
-                            )
-                        }
-                    }
-                }
-            }
-        }
     }
 }

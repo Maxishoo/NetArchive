@@ -23,6 +23,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -110,7 +111,7 @@ fun BottomNavBar(
             }
         }
 
-        NavigationBar {
+        NavigationBar(containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f)) {
             BottomNavItem.entries.forEachIndexed { index, item ->
                 if (item.isPlusButton) {
                     NavigationBarItem(
