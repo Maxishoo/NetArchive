@@ -32,4 +32,9 @@ class ContactRepository @Inject constructor(
         return contactDao.getAllContacts()
             .map { entities -> entities.map { it.toDomain() } }
     }
+
+    fun getContacts(query: String): Flow<List<Contact>> {
+        return contactDao.getContacts(query)
+            .map { entities -> entities.map { it.toDomain() } }
+    }
 }
