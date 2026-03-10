@@ -24,10 +24,10 @@ fun AddContactScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Добавить контакт") },
+                title = { Text("Добавить контакт", style = MaterialTheme.typography.headlineLarge) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Text("✕", style = MaterialTheme.typography.headlineLarge)
+                        Text("X", style = MaterialTheme.typography.headlineLarge)
                     }
                 }
             )
