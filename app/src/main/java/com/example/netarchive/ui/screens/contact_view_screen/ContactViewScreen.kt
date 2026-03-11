@@ -210,7 +210,7 @@ private fun ContactInfoTab(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp)
-            .padding(bottom = 80.dp),
+            .padding(bottom = 80.dp, top = 10.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Аватар
@@ -231,7 +231,7 @@ private fun ContactInfoTab(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+//        Spacer(modifier = Modifier.height(16.dp))
 
         // Категория (dropdown)
         var categoryExpanded by remember { mutableStateOf(false) }

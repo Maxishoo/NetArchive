@@ -14,6 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AddCircleOutline
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -69,7 +73,7 @@ fun ContactsTopBar(
                     onValueChange = onQueryChange,
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(R.drawable.search),
+                            imageVector = Icons.Outlined.Search,
                             contentDescription = "Поиск"
                         )
                     },
@@ -79,7 +83,7 @@ fun ContactsTopBar(
                             onQueryChange("")
                         }) {
                             Icon(
-                                painter = painterResource(R.drawable.close),
+                                imageVector = Icons.Outlined.Close,
                                 contentDescription = "Закрыть"
                             )
                         }
@@ -109,7 +113,7 @@ fun ContactsTopBar(
                     )
                     IconButton(onClick = { showSearchField = true }) {
                         Icon(
-                            painter = painterResource(R.drawable.search),
+                            imageVector = Icons.Outlined.Search,
                             contentDescription = "Поиск",
                             tint = Color.Black
                         )

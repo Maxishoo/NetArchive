@@ -115,15 +115,11 @@ fun AppNavHost(
         }
         composable<CreateConnection> {
             ContactListScreen(
-                isSelectionMode = true,
                 onContactClick = { contact ->
                     // Навигируем сразу с параметрами!
                     navController.navigate(
                         CreateNoteRoute(contactId = contact.id, contactName = contact.username,fromScreen = "select_contact")
                     )
-                },
-                onBackClick = {
-                    navController.popBackStack()
                 }
             )
         }
