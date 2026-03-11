@@ -15,6 +15,7 @@ import javax.inject.Inject
 data class CreateNoteState(
     val contactId: Int = 0,
     val contactName: String = "",
+    val contactAvatar: String? = null,
     val noteId: Int = 0,
     val noteText: String = "",
     val date: Long = System.currentTimeMillis(),
@@ -32,6 +33,7 @@ class CreateNoteViewModel @Inject constructor(
 
     private val contactId: Int = checkNotNull(savedStateHandle["contactId"])
     private val contactName: String = checkNotNull(savedStateHandle["contactName"])
+    private val contactAvatar: String? = savedStateHandle["contactAvatar"]
 
     private val noteId: Int? = savedStateHandle["noteId"]
     private val noteText: String? = savedStateHandle["noteText"]
@@ -40,6 +42,7 @@ class CreateNoteViewModel @Inject constructor(
         CreateNoteState(
             contactId = contactId,
             contactName = contactName,
+            contactAvatar = contactAvatar,
             noteId = noteId ?: 0,           // <-- Используем из savedStateHandle
             noteText = noteText ?: "",      // <-- Используем из savedStateHandle
             date = if (noteDate == null || noteDate == 0L) {
@@ -91,10 +94,11 @@ class CreateNoteViewModel @Inject constructor(
             }
         }
     }
-    fun setContactData(contactId: Int, contactName: String) {
+    fun setContactData(contactId: Int, contactName: String, contactAvatar: String? = null) {
         _state.value = _state.value.copy(
             contactId = contactId,
-            contactName = contactName
+            contactName = contactName,
+            contactAvatar = contactAvatar
         )
     }
     fun setNoteData(noteId: Int, noteText: String, noteDate: Long) {

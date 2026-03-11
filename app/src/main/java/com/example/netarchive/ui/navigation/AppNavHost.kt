@@ -6,17 +6,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import kotlinx.serialization.Serializable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.example.netarchive.ui.screens.add_contact_screen.AddContactScreen
 import com.example.netarchive.ui.screens.contacts_list_screen.ContactListScreen
 import com.example.netarchive.ui.screens.contact_view_screen.ContactViewScreen
 import com.example.netarchive.ui.screens.add_note_screen.CreateNoteScreen
-import com.example.netarchive.ui.screens.add_note_screen.CreateNoteViewModel
-import com.example.netarchive.ui.screens.contacts_list_screen.ContactListScreen
 @Serializable
 object AddButt
 
@@ -49,6 +47,7 @@ object CreateRemind
 data class CreateNoteRoute(
     val contactId: Int,
     val contactName: String,
+    val contactAvatar: String?,
     val noteId: Int = 0,
     val noteText: String = "",
     val noteDate: Long = 0L,
@@ -88,37 +87,34 @@ fun AppNavHost(
             )
         }
         composable<CreateNoteRoute> { backStackEntry ->
-            val contactId = backStackEntry.arguments?.getInt("contactId") ?: 0
-            val contactName = backStackEntry.arguments?.getString("contactName") ?: ""
-            val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
-            val noteText = backStackEntry.arguments?.getString("noteText") ?: ""
-            val noteDate = backStackEntry.arguments?.getLong("noteDate") ?: 0L
-            val fromScreen = backStackEntry.arguments?.getString("fromScreen") ?: "contact_view"
+            val route = backStackEntry.toRoute<CreateNoteRoute>()
 
             CreateNoteScreen(
-                contactId = contactId,
-                contactName = contactName,
-                noteId = noteId,
-                noteText = noteText,
-                noteDate = noteDate,
+                contactId = route.contactId,
+                contactName = route.contactName,
+                contactAvatar = route.contactAvatar,
+                noteId = route.noteId,
+                noteText = route.noteText,
+                noteDate = route.noteDate,
                 onBackClick = { navController.popBackStack() },
                 onNoteCreated = {
-                    navController.popBackStack() // Закрыть CreateNoteScreen
-
-                    // Если пришли из выбора контакта → закрыть и его
-                    if (fromScreen == "select_contact") {
+                    navController.popBackStack()
+                    if (route.fromScreen == "select_contact") {
                         navController.popBackStack()
                     }
-                    // Если fromScreen == "contact_view" → остаёмся на ContactViewScreen ✅
                 }
             )
         }
+
         composable<CreateConnection> {
             ContactListScreen(
                 onContactClick = { contact ->
-                    // Навигируем сразу с параметрами!
                     navController.navigate(
-                        CreateNoteRoute(contactId = contact.id, contactName = contact.username,fromScreen = "select_contact")
+                        CreateNoteRoute(
+                            contactId = contact.id,
+                            contactName = contact.username,
+                            contactAvatar = contact.avatar,
+                            fromScreen = "select_contact")
                     )
                 }
             )
@@ -136,11 +132,12 @@ fun AppNavHost(
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onAddNoteClick = { id, name, noteId, noteText, noteDate,fromScreen,tab ->
+                onAddNoteClick = { id, name, contactAvatar, noteId, noteText, noteDate,fromScreen,tab ->
                     navController.navigate(
                         CreateNoteRoute(
                             contactId = id,
                             contactName = name,
+                            contactAvatar = contactAvatar,
                             noteId = noteId,
                             noteText = noteText,
                             noteDate = noteDate,

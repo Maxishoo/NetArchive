@@ -104,11 +104,11 @@ fun BottomNavBar(
                     AddButtonItem(
                         item.label
                     ) {
+                        showAddMenu = false
+                        selectedTab = BottomNavItem.Add
                         navController.navigate(item.route){
                             launchSingleTop = true
                         }
-                        showAddMenu = false
-                        selectedTab = BottomNavItem.Add
                     }
                 }
             }

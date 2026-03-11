@@ -1,15 +1,20 @@
 package com.example.netarchive.ui.screens.contact_view_screen
 
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,11 +23,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.netarchive.domain.model.Note
 import com.example.netarchive.ui.components.cards.NoteCard
 import com.example.netarchive.ui.theme.NetArchiveTheme
@@ -33,7 +41,7 @@ import kotlin.text.get
 fun ContactViewScreen(
     viewModel: ContactViewViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
-    onAddNoteClick: (Int, String, Int, String, Long,String,Int) -> Unit = { _, _, _, _, _, _, _ -> },
+    onAddNoteClick: (Int, String, String?, Int, String, Long,String,Int) -> Unit = { _,_, _, _, _, _, _, _ -> },
     initialTab: Int = 0
 ) {
     val viewState by viewModel.viewState.collectAsState()
@@ -43,6 +51,14 @@ fun ContactViewScreen(
     val contactName = viewState.username
     var isNotesEditMode by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: android.net.Uri? ->
+        uri?.let {
+            viewModel.onAvatarSelected(it)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -122,20 +138,26 @@ fun ContactViewScreen(
                         onDeleteContact = {
                             showDeleteDialog = false
                             viewModel.deleteContact(onBackClick)
-                        }                                              // <-- Передай
+                        },
+                        onAvatarClick = {
+                            if (viewState.isEditMode) {
+                                imagePickerLauncher.launch("image/*")  // <-- Открываем галерею
+                            }
+                        }
                     )
                     1 -> NotesTab(
                         notes = viewState.notes,
                         contactName = viewState.username,
                         isEditMode = isNotesEditMode,  // <-- Передай
                         onAddNoteClick = {
-                            onAddNoteClick(viewState.contactId, viewState.username, 0, "", 0L,"contact_view",selectedTab)
+                            onAddNoteClick(viewState.contactId, viewState.username, viewState.avatar, 0, "", 0L,"contact_view",selectedTab)
                         },
                         onNoteClick = { note ->
                             // Навигация на редактирование заметки
                             onAddNoteClick(
                                 viewState.contactId,
                                 viewState.username,
+                                viewState.avatar,
                                 note.id,
                                 note.text,
                                 note.date,
@@ -203,7 +225,8 @@ private fun ContactInfoTab(
     viewModel: ContactViewViewModel,
     showDeleteDialog: Boolean,                    // <-- Добавь
     onShowDeleteDialog: () -> Unit,               // <-- Добавь
-    onDeleteContact: () -> Unit
+    onDeleteContact: () -> Unit,
+    onAvatarClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -217,18 +240,51 @@ private fun ContactInfoTab(
         Box(
             modifier = Modifier
                 .size(100.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .align(Alignment.CenterHorizontally),
-            contentAlignment = Alignment.Center
+                .align(Alignment.CenterHorizontally)
+                .then(
+                    if (viewState.isEditMode) {
+                        Modifier.clickable(onClick = onAvatarClick)
+                    } else {
+                        Modifier
+                    }
+                )
         ) {
-            Text(
-                text = if (viewState.username.isNotEmpty())
-                    viewState.username.first().uppercaseChar().toString()
-                else "?",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                if (viewState.avatar.isNotBlank()) {
+                    AsyncImage(
+                        model = viewState.avatar,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.Center,
+                        error = null
+                    )
+                } else {
+                    Text(
+                        text = viewState.username.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                        style = MaterialTheme.typography.titleLarge.copy(fontSize = 30.sp)
+                    )
+                }
+            }
+            if (viewState.isEditMode){
+                Icon(
+                    imageVector = Icons.Default.AddPhotoAlternate,
+                    contentDescription = "Change Avatar",
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(32.dp)
+                        .offset(x = 4.dp, y = 4.dp)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                        .padding(4.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
 
 //        Spacer(modifier = Modifier.height(16.dp))
