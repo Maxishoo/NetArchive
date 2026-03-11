@@ -120,7 +120,8 @@ fun AppNavHost(
                     navController.navigate(
                         CreateNoteRoute(contactId = contact.id, contactName = contact.username,fromScreen = "select_contact")
                     )
-                }
+                },
+                isSelectionMode = true
             )
         }
 

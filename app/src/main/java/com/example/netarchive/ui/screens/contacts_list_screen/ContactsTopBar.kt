@@ -41,7 +41,8 @@ import com.example.netarchive.ui.theme.LightBlue
 @Composable
 fun ContactsTopBar(
     query: String,
-    onQueryChange: (String) -> Unit
+    onQueryChange: (String) -> Unit,
+    isSelectionMode: Boolean = false
 ) {
     var showSearchField by remember { mutableStateOf(false) }
 
@@ -106,11 +107,20 @@ fun ContactsTopBar(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = "Контакты",
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = Color.Black
-                    )
+                    if (isSelectionMode){
+                        Text(
+                            text = "Выберите контакт",
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = Color.Black
+                        )
+                    }
+                    else {
+                        Text(
+                            text = "Контакты",
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = Color.Black
+                        )
+                    }
                     IconButton(onClick = { showSearchField = true }) {
                         Icon(
                             imageVector = Icons.Outlined.Search,

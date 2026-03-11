@@ -27,7 +27,8 @@ fun ContactListScreen(
     modifier: Modifier = Modifier,
     viewModel: ContactListViewModel = hiltViewModel(),
     contentPadding: PaddingValues = PaddingValues(0.dp),
-    onContactClick: (Contact) -> Unit = {}
+    onContactClick: (Contact) -> Unit = {},
+    isSelectionMode: Boolean = false
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
@@ -89,7 +90,8 @@ fun ContactListScreen(
             onQueryChange = {
                 searchQuery = it
                 viewModel.onSearchQueryChange(it)
-            }
+            },
+            isSelectionMode = isSelectionMode
         )
     }
 }
