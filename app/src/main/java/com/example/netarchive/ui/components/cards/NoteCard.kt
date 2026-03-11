@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.example.netarchive.domain.model.Note
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.ui.tooling.preview.Preview
 
 
 @Composable
@@ -92,3 +93,5 @@ fun NoteCard(
         }
     }
 }
+
+
