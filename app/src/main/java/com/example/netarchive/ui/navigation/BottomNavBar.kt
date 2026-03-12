@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.netarchive.ui.theme.LightBlue
 
 sealed class BottomNavItem(
@@ -91,6 +92,8 @@ fun BottomNavBar(
     navController: NavHostController
 ) {
     var showAddMenu by remember { mutableStateOf(false) }
+    //используйте, чтобы отслеживать бекстек
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
     var selectedTab by remember { mutableStateOf(BottomNavItem.entries[0]) }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
