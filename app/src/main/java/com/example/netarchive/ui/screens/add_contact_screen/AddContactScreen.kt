@@ -1,5 +1,8 @@
 package com.example.netarchive.ui.screens.add_contact_screen
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -21,6 +24,14 @@ fun AddContactScreen(
 ) {
     val formState by viewModel.formState.collectAsState()
 
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            viewModel.onAvatarChange(it)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -39,8 +50,14 @@ fun AddContactScreen(
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            AvatarSelector(
+                avatarUri = formState.avatar,
+                onClick = { imagePickerLauncher.launch("image/*") }
+            )
+
             OutlinedTextField(
                 value = formState.username,
                 onValueChange = viewModel::onUsernameChange,

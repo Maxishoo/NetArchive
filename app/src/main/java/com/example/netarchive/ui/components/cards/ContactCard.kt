@@ -22,8 +22,10 @@ import com.example.netarchive.ui.theme.*
 
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
-
+import coil.compose.AsyncImage
 
 @Composable
 fun ContactCard(
@@ -63,12 +65,13 @@ fun ContactCard(
             ) {
                 // Аватар или инициал справа
                 if (contact.avatar != null) {
-                    Image(
-                        painter = rememberAsyncImagePainter(contact.avatar),
-                        contentDescription = null,
+                    AsyncImage(
+                        model = contact.avatar,
+                        contentDescription = "Avatar of ${contact.username}",
                         modifier = Modifier
                             .size(56.dp)
-                            .clip(CircleShape)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
                     )
                 } else {
                     // аватарка
