@@ -15,7 +15,6 @@ import javax.inject.Inject
 import com.example.netarchive.data.repository.NoteRepository
 import com.example.netarchive.domain.model.Note
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.flatMapLatest
 import java.io.File
 
 data class ContactViewState(

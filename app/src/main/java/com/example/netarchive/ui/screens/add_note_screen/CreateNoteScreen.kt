@@ -21,6 +21,7 @@ import java.util.*
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Event
 import android.app.DatePickerDialog
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -97,8 +98,10 @@ fun CreateNoteScreen(
                     Text(if (state.isEditMode) "Редактировать запись" else "Добавьте запись")
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Text("✕", style = MaterialTheme.typography.titleLarge)
+                    IconButton(onClick = onBackClick){
+                        Icon(imageVector = Icons.Default.Close,
+                            contentDescription = "Закрыть"
+                        )
                     }
                 }
             )
