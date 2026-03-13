@@ -3,15 +3,19 @@ package com.example.netarchive.data.local.db.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.example.netarchive.data.local.db.entity.ContactEntity
+import com.example.netarchive.data.local.db.entity.ContactCategoryCrossRef
+import com.example.netarchive.data.local.db.entity.ContactWithCategories
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ContactDao{
     @Insert
-    suspend fun addContact(contact: ContactEntity)
+    suspend fun addContact(contact: ContactEntity):Long
 
     @Update
     suspend fun updateContact(contact: ContactEntity)
@@ -31,4 +35,81 @@ interface ContactDao{
             "OR phone LIKE '%'||:query||'%'" +
             "OR job LIKE '%'||:query||'%'")
     fun getContacts(query : String) : Flow<List<ContactEntity>>
+
+    @Transaction
+    @Query("SELECT * FROM contacts WHERE id = :contactId")
+    fun getContactWithCategories(contactId: Int): Flow<ContactWithCategories?>
+
+    @Transaction
+    @Query("SELECT * FROM contacts")
+    fun getAllContactsWithCategories(): Flow<List<ContactWithCategories>>
+
+    @Transaction
+    @Query("""
+    SELECT * FROM contacts 
+    WHERE id IN (
+        SELECT contactId FROM contact_category_cross_ref 
+        WHERE categoryId = :categoryId
+    )
+""")
+    fun getContactsByCategory(categoryId: Int): Flow<List<ContactWithCategories>>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertContactCategoryCrossRef(ref: ContactCategoryCrossRef):Long
+
+    @Delete
+    suspend fun deleteContactCategoryCrossRef(ref: ContactCategoryCrossRef)
+
+    @Query("DELETE FROM contact_category_cross_ref WHERE contactId = :contactId")
+    suspend fun deleteAllCategoriesForContact(contactId: Int)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertContact(contact: ContactEntity): Long
+
+    @Transaction
+    @Query("""
+    SELECT * FROM contacts 
+    WHERE 
+        (username LIKE '%' || :query || '%' 
+        OR phone LIKE '%' || :query || '%' 
+        OR job LIKE '%' || :query || '%'
+        OR id IN (
+            SELECT contactId FROM contact_category_cross_ref 
+            WHERE categoryId IN (
+                SELECT id FROM categories 
+                WHERE name LIKE '%' || :query || '%'
+            )
+        ))
+        AND (:categoryId IS NULL OR id IN (
+            SELECT contactId FROM contact_category_cross_ref 
+            WHERE categoryId = :categoryId
+        ))
+    ORDER BY username ASC
+""")
+    fun getContactsByQueryAndCategory(query: String, categoryId: Int?): Flow<List<ContactEntity>>
+
+    @Transaction
+    @Query("""
+    SELECT * FROM contacts 
+    WHERE 
+        (username LIKE '%' || :query || '%' 
+        OR phone LIKE '%' || :query || '%' 
+        OR job LIKE '%' || :query || '%'
+        OR id IN (
+            SELECT contactId FROM contact_category_cross_ref 
+            WHERE categoryId IN (
+                SELECT id FROM categories 
+                WHERE name LIKE '%' || :query || '%'
+            )
+        ))
+        AND (:categoryId IS NULL OR id IN (
+            SELECT contactId FROM contact_category_cross_ref 
+            WHERE categoryId = :categoryId
+        ))
+    ORDER BY username ASC
+""")
+    fun getContactsByQueryAndCategoryWithCategories(
+        query: String,
+        categoryId: Int?
+    ): Flow<List<ContactWithCategories>>
 }

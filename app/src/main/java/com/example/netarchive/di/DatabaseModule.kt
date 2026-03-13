@@ -3,8 +3,10 @@ package com.example.netarchive.di
 import android.content.Context
 import androidx.room.Room
 import com.example.netarchive.data.local.db.AppDatabase
+import com.example.netarchive.data.local.db.dao.CategoryDao
 import com.example.netarchive.data.local.db.dao.ContactDao
 import com.example.netarchive.data.local.db.dao.NoteDao
+import com.example.netarchive.data.repository.CategoryRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,7 +39,20 @@ object DatabaseModule {
     }
     @Provides
     @Singleton
-    fun provideNoteDao(database: AppDatabase): NoteDao {  // <-- Добавь это
+    fun provideNoteDao(database: AppDatabase): NoteDao {
         return database.noteDao()
+    }
+    @Provides
+    @Singleton
+    fun provideCategoryDao(database: AppDatabase): CategoryDao {
+        return database.categoryDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideCategoryRepository(
+        categoryDao: CategoryDao
+    ): CategoryRepository {
+        return CategoryRepository(categoryDao)
     }
 }

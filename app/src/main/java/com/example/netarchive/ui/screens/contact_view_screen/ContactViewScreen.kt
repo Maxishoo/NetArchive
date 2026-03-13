@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.netarchive.domain.model.Note
+import com.example.netarchive.ui.components.CategorySelector
 import com.example.netarchive.ui.components.cards.NoteCard
 import com.example.netarchive.ui.theme.NetArchiveTheme
 
@@ -51,6 +52,8 @@ fun ContactViewScreen(
     val viewState by viewModel.viewState.collectAsState()
     var selectedTab by rememberSaveable  { mutableIntStateOf(initialTab) }
     val tabs = listOf("Информация", "Заметки")
+    val contactId = viewState.contactId
+    val contactName = viewState.username
     var isNotesEditMode by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -194,7 +197,6 @@ fun ContactViewScreen(
             viewModel.clearError()
         }
     }
-    // Диалог подтверждения удаления
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -301,54 +303,55 @@ private fun ContactInfoTab(
             }
         }
 
-//        Spacer(modifier = Modifier.height(16.dp))
 
-        // Категория (dropdown)
-        var categoryExpanded by remember { mutableStateOf(false) }
-        var selectedCategory by remember { mutableStateOf("Друзья") }
 
-        ExposedDropdownMenuBox(
-            expanded = categoryExpanded,
-            onExpandedChange = { categoryExpanded = it && viewState.isEditMode },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            OutlinedTextField(
-                value = selectedCategory,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Категории") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(),
-                enabled = viewState.isEditMode,
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF64B5F6),  // Голубой при фокусе
-                    unfocusedBorderColor = Color(0xFF90CAF9), // Голубой без фокуса
-                    disabledBorderColor = Color(0xFF90CAF9),
-                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    focusedLabelColor = Color(0xFF64B5F6),
-                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+        if (viewState.isEditMode) {
+            val allCategories by viewModel.allCategories.collectAsState()
+            val selectedCategories by viewModel.selectedCategories.collectAsState()
+
+            CategorySelector(
+                allCategories = allCategories,
+                selectedCategories = selectedCategories,
+                onCategoriesChanged = { categories ->
+                    viewModel.setSelectedCategories(categories)
+                },
+                onCreateCategory = { name ->
+                    viewModel.createCategory(name)
+                },
+                modifier = Modifier.padding(vertical = 8.dp)
             )
-            ExposedDropdownMenu(
-                expanded = categoryExpanded,
-                onDismissRequest = { categoryExpanded = false }
-            ) {
-                listOf("Друзья", "Коллеги", "Семья", "Знакомые").forEach { category ->
-                    DropdownMenuItem(
-                        text = { Text(category) },
-                        onClick = {
-                            selectedCategory = category
-                            categoryExpanded = false
-                        }
-                    )
+        } else {
+            val selectedCategories by viewModel.selectedCategories.collectAsState()
+            if (selectedCategories.isNotEmpty()) {
+                Text(
+                    text = "Категории:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    selectedCategories.forEach { category ->
+                        AssistChip(
+                            onClick = { },
+                            label = { Text(category.name) },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = if (category.isDefault) {
+                                    MaterialTheme.colorScheme.primaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.secondaryContainer
+                                }
+                            ),
+                            enabled = false
+                        )
+                    }
                 }
+                Spacer(modifier = Modifier.height(12.dp))
             }
         }
 
-        // Поля контакта с голубой обводкой
         OutlinedTextField(
             value = viewState.username,
             onValueChange = { viewModel.onUsernameChange(it) },
@@ -538,7 +541,6 @@ private fun NotesTab(
                 .padding(16.dp)
                 .padding(bottom = 80.dp),
         ) {
-            // Заголовок с кнопкой редактирования
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -550,7 +552,6 @@ private fun NotesTab(
                     fontWeight = FontWeight.Bold
                 )
 
-                // Кнопка переключения режима редактирования
                 TextButton(onClick = onToggleEditMode) {
                     Text(if (isEditMode) "Готово" else "Удалить")
                 }
@@ -563,9 +564,9 @@ private fun NotesTab(
             ) {
                 items(count = notes.size) { index ->
                     NoteCard(note = notes[index],
-                        isEditMode = isEditMode,  // <-- Передай
-                        onNoteClick = { onNoteClick(notes[index]) },  // <-- Передай
-                        onDeleteClick = { onDeleteNoteClick(notes[index]) }  // <-- Передай
+                        isEditMode = isEditMode,
+                        onNoteClick = { onNoteClick(notes[index]) },
+                        onDeleteClick = { onDeleteNoteClick(notes[index]) }
                     )
                 }
             }

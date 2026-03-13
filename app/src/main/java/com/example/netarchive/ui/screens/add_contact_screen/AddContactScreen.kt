@@ -1,5 +1,6 @@
 package com.example.netarchive.ui.screens.add_contact_screen
 
+import android.util.Log
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,7 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.netarchive.ui.components.CategorySelector
 import com.example.netarchive.ui.theme.NetArchiveTheme
+import kotlinx.coroutines.flow.map
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,7 +26,28 @@ fun AddContactScreen(
     onContactCreated: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    val formState by viewModel.formState.collectAsState()
+
+    val isLoading by viewModel.formState
+        .map { it.isLoading }
+        .collectAsState(initial = false)
+
+    val isSuccess by viewModel.formState
+        .map { it.isSuccess }
+        .collectAsState(initial = false)
+
+    val error by viewModel.formState
+        .map { it.error }
+        .collectAsState(initial = null)
+
+    val username by viewModel.formState
+        .map { it.username }
+        .collectAsState(initial = "")
+    val avatar by viewModel.formState
+        .map { it.avatar }
+        .collectAsState(initial = "")
+
+    val selectedCategories by viewModel.selectedCategories.collectAsStateWithLifecycle()
+    val allCategories by viewModel.allCategories.collectAsStateWithLifecycle()
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -54,63 +79,31 @@ fun AddContactScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AvatarSelector(
-                avatarUri = formState.avatar,
+                avatarUri = avatar,
                 onClick = { imagePickerLauncher.launch("image/*") }
             )
-
-            OutlinedTextField(
-                value = formState.username,
-                onValueChange = viewModel::onUsernameChange,
-                label = { Text("Имя *") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                isError = formState.error != null && formState.username.isBlank()
+            CategorySelector(
+                allCategories = allCategories,
+                selectedCategories = selectedCategories,
+                onCategoriesChanged = { categories ->
+                    viewModel.setSelectedCategories(categories)
+                },
+                onCreateCategory = { name ->
+                    viewModel.createCategory(name)
+                },
+                modifier = Modifier.padding(vertical = 8.dp)
             )
 
-            OutlinedTextField(
-                value = formState.phone,
-                onValueChange = viewModel::onPhoneChange,
-                label = { Text("Телефон") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+            UsernameField(viewModel = viewModel)
+            PhoneField(viewModel = viewModel)
+            EmailField(viewModel = viewModel)
+            TelegramField(viewModel = viewModel)
+            MaxField(viewModel = viewModel)
+            JobField(viewModel = viewModel)
 
-            OutlinedTextField(
-                value = formState.email,
-                onValueChange = viewModel::onEmailChange,
-                label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = formState.telegram,
-                onValueChange = viewModel::onTelegramChange,
-                label = { Text("Telegram") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = formState.max,
-                onValueChange = viewModel::onMaxChange,
-                label = { Text("MAX") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = formState.job,
-                onValueChange = viewModel::onJobChange,
-                label = { Text("Место работы") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-
-            formState.error?.let { error ->
+            error?.let { errorMessage ->
                 Text(
-                    text = error,
+                    text = errorMessage,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(vertical = 4.dp)
@@ -123,14 +116,14 @@ fun AddContactScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp)
-                    .padding(bottom = 80.dp),
+                    .padding(bottom = 90.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Button(
                     onClick = onBackClick,
                     modifier = Modifier.weight(1f),
-                    enabled = !formState.isLoading,
+                    enabled = !isLoading,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
@@ -141,9 +134,9 @@ fun AddContactScreen(
                 Button(
                     onClick = { viewModel.saveContact() },
                     modifier = Modifier.weight(1f),
-                    enabled = !formState.isLoading && formState.username.isNotBlank()
+                    enabled = !isLoading && username.isNotBlank()
                 ) {
-                    if (formState.isLoading) {
+                    if (isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
                             color = MaterialTheme.colorScheme.onPrimary
@@ -156,11 +149,142 @@ fun AddContactScreen(
         }
     }
 
-    LaunchedEffect(formState.isSuccess) {
-        if (formState.isSuccess) {
+    LaunchedEffect(isSuccess) {
+        if (isSuccess) {
             onContactCreated()
         }
     }
+}
+
+
+@Composable
+private fun UsernameField(viewModel: AddContactViewModel) {
+
+    val value by viewModel.formState
+        .map { it.username }
+        .collectAsState(initial = "")
+
+    val isError by viewModel.formState
+        .map { it.error != null && it.username.isBlank() }
+        .collectAsState(initial = false)
+
+    val supportingText = remember(isError) {
+        if (isError) "Обязательное поле" else null
+    }
+
+    val onValueChange = remember { viewModel::onUsernameChange }
+
+    FormTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = "Имя *",
+        isError = isError,
+        supportingText = supportingText
+    )
+}
+
+@Composable
+private fun PhoneField(viewModel: AddContactViewModel) {
+
+    val value by viewModel.formState
+        .map { it.phone }
+        .collectAsState(initial = "")
+
+    FormTextField(
+        value = value,
+        onValueChange = viewModel::onPhoneChange,
+        label = "Телефон"
+    )
+}
+
+@Composable
+private fun EmailField(viewModel: AddContactViewModel) {
+
+    val value by viewModel.formState
+        .map { it.email }
+        .collectAsState(initial = "")
+
+    FormTextField(
+        value = value,
+        onValueChange = viewModel::onEmailChange,
+        label = "Email"
+    )
+}
+
+@Composable
+private fun TelegramField(viewModel: AddContactViewModel) {
+
+
+    val value by viewModel.formState
+        .map { it.telegram }
+        .collectAsState(initial = "")
+
+    FormTextField(
+        value = value,
+        onValueChange = viewModel::onTelegramChange,
+        label = "Telegram"
+    )
+}
+
+@Composable
+private fun MaxField(viewModel: AddContactViewModel) {
+
+    val value by viewModel.formState
+        .map { it.max }
+        .collectAsState(initial = "")
+
+    FormTextField(
+        value = value,
+        onValueChange = viewModel::onMaxChange,
+        label = "MAX"
+    )
+}
+
+@Composable
+private fun JobField(viewModel: AddContactViewModel) {
+
+
+    val value by viewModel.formState
+        .map { it.job }
+        .collectAsState(initial = "")
+
+    FormTextField(
+        value = value,
+        onValueChange = viewModel::onJobChange,
+        label = "Место работы"
+    )
+}
+
+
+@Composable
+private fun FormTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    isError: Boolean = false,
+    supportingText: String? = null
+) {
+    val labelContent = @Composable { Text(label) }
+    val supportingContent = supportingText?.let { text ->
+        @Composable { Text(text) }
+    }
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = labelContent,
+        modifier = modifier.fillMaxWidth(),
+        singleLine = true,
+        isError = isError,
+        supportingText = supportingContent,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = if (isError)
+                MaterialTheme.colorScheme.error
+            else
+                MaterialTheme.colorScheme.primary
+        )
+    )
 }
 
 @Preview(showBackground = true)

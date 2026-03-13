@@ -246,7 +246,7 @@ fun CreateNoteScreen(
                         if (state.isEditMode) {
                             viewModel.saveNote()  // Обновить заметку
                         } else {
-                            viewModel.saveNote()  // Создаст новую
+                            viewModel.saveNote()
                         }
                     },
                     modifier = Modifier.weight(1f),
