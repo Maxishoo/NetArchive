@@ -18,8 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.example.netarchive.domain.model.Note
 import java.text.SimpleDateFormat
 import java.util.*
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.netarchive.ui.theme.NetArchiveTheme
+
 
 @Composable
 fun NoteCard(
@@ -91,24 +90,5 @@ fun NoteCard(
                 }
             }
         }
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun NoteCardPreview() {
-    NetArchiveTheme {
-        NoteCard(
-            note = Note(
-                id = 1,
-                text = "Это пример заметки с длинным текстом, котоkjhkjhhhkgjhgvjhgjhgjhgjhhjghjgjhgyuрыkjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjй может занимать несколько строк и будет обрезан с многоточием",
-                contactId = 8,
-                date = System.currentTimeMillis(),
-            ),
-            isEditMode = false,
-            onNoteClick = {},
-            onDeleteClick = {}
-        )
     }
 }
