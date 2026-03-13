@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.netarchive.domain.model.Note
+import com.example.netarchive.ui.components.CategorySelector
 import com.example.netarchive.ui.components.cards.NoteCard
 import com.example.netarchive.ui.theme.NetArchiveTheme
 import kotlin.text.get
@@ -117,22 +118,22 @@ fun ContactViewScreen(
                     0 -> ContactInfoTab(
                         viewState = viewState,
                         viewModel = viewModel,
-                        showDeleteDialog = showDeleteDialog,           // <-- Передай
-                        onShowDeleteDialog = { showDeleteDialog = true },  // <-- Передай
+                        showDeleteDialog = showDeleteDialog,
+                        onShowDeleteDialog = { showDeleteDialog = true },
                         onDeleteContact = {
                             showDeleteDialog = false
                             viewModel.deleteContact(onBackClick)
-                        }                                              // <-- Передай
+                        }
                     )
                     1 -> NotesTab(
                         notes = viewState.notes,
                         contactName = viewState.username,
-                        isEditMode = isNotesEditMode,  // <-- Передай
+                        isEditMode = isNotesEditMode,
                         onAddNoteClick = {
                             onAddNoteClick(viewState.contactId, viewState.username, 0, "", 0L,"contact_view",selectedTab)
                         },
                         onNoteClick = { note ->
-                            // Навигация на редактирование заметки
+
                             onAddNoteClick(
                                 viewState.contactId,
                                 viewState.username,
@@ -158,7 +159,6 @@ fun ContactViewScreen(
             viewModel.clearError()
         }
     }
-    // Диалог подтверждения удаления
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -201,8 +201,8 @@ fun ContactViewScreen(
 private fun ContactInfoTab(
     viewState: ContactViewState,
     viewModel: ContactViewViewModel,
-    showDeleteDialog: Boolean,                    // <-- Добавь
-    onShowDeleteDialog: () -> Unit,               // <-- Добавь
+    showDeleteDialog: Boolean,
+    onShowDeleteDialog: () -> Unit,
     onDeleteContact: () -> Unit
 ) {
     Column(
@@ -213,7 +213,6 @@ private fun ContactInfoTab(
             .padding(bottom = 80.dp, top = 10.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Аватар
         Box(
             modifier = Modifier
                 .size(100.dp)
@@ -231,54 +230,55 @@ private fun ContactInfoTab(
             )
         }
 
-//        Spacer(modifier = Modifier.height(16.dp))
 
-        // Категория (dropdown)
-        var categoryExpanded by remember { mutableStateOf(false) }
-        var selectedCategory by remember { mutableStateOf("Друзья") }
 
-        ExposedDropdownMenuBox(
-            expanded = categoryExpanded,
-            onExpandedChange = { categoryExpanded = it && viewState.isEditMode },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            OutlinedTextField(
-                value = selectedCategory,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Категории") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(),
-                enabled = viewState.isEditMode,
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF64B5F6),  // Голубой при фокусе
-                    unfocusedBorderColor = Color(0xFF90CAF9), // Голубой без фокуса
-                    disabledBorderColor = Color(0xFF90CAF9),
-                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    focusedLabelColor = Color(0xFF64B5F6),
-                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+        if (viewState.isEditMode) {
+            val allCategories by viewModel.allCategories.collectAsState()
+            val selectedCategories by viewModel.selectedCategories.collectAsState()
+
+            CategorySelector(
+                allCategories = allCategories,
+                selectedCategories = selectedCategories,
+                onCategoriesChanged = { categories ->
+                    viewModel.setSelectedCategories(categories)
+                },
+                onCreateCategory = { name ->
+                    viewModel.createCategory(name)
+                },
+                modifier = Modifier.padding(vertical = 8.dp)
             )
-            ExposedDropdownMenu(
-                expanded = categoryExpanded,
-                onDismissRequest = { categoryExpanded = false }
-            ) {
-                listOf("Друзья", "Коллеги", "Семья", "Знакомые").forEach { category ->
-                    DropdownMenuItem(
-                        text = { Text(category) },
-                        onClick = {
-                            selectedCategory = category
-                            categoryExpanded = false
-                        }
-                    )
+        } else {
+            val selectedCategories by viewModel.selectedCategories.collectAsState()
+            if (selectedCategories.isNotEmpty()) {
+                Text(
+                    text = "Категории:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    selectedCategories.forEach { category ->
+                        AssistChip(
+                            onClick = { },
+                            label = { Text(category.name) },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = if (category.isDefault) {
+                                    MaterialTheme.colorScheme.primaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.secondaryContainer
+                                }
+                            ),
+                            enabled = false
+                        )
+                    }
                 }
+                Spacer(modifier = Modifier.height(12.dp))
             }
         }
 
-        // Поля контакта с голубой обводкой
         OutlinedTextField(
             value = viewState.username,
             onValueChange = { viewModel.onUsernameChange(it) },
@@ -387,7 +387,6 @@ private fun ContactInfoTab(
             )
         )
 
-        // Ошибка
         viewState.error?.let { error ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -402,7 +401,6 @@ private fun ContactInfoTab(
                 )
             }
         }
-        // Кнопка удаления контакта
         if (!viewState.isEditMode) {
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -468,7 +466,6 @@ private fun NotesTab(
                 .padding(16.dp)
                 .padding(bottom = 80.dp),
         ) {
-            // Заголовок с кнопкой редактирования
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -480,7 +477,6 @@ private fun NotesTab(
                     fontWeight = FontWeight.Bold
                 )
 
-                // Кнопка переключения режима редактирования
                 TextButton(onClick = onToggleEditMode) {
                     Text(if (isEditMode) "Готово" else "Удалить")
                 }
@@ -493,9 +489,9 @@ private fun NotesTab(
             ) {
                 items(count = notes.size) { index ->
                     NoteCard(note = notes[index],
-                        isEditMode = isEditMode,  // <-- Передай
-                        onNoteClick = { onNoteClick(notes[index]) },  // <-- Передай
-                        onDeleteClick = { onDeleteNoteClick(notes[index]) }  // <-- Передай
+                        isEditMode = isEditMode,
+                        onNoteClick = { onNoteClick(notes[index]) },
+                        onDeleteClick = { onDeleteNoteClick(notes[index]) }
                     )
                 }
             }

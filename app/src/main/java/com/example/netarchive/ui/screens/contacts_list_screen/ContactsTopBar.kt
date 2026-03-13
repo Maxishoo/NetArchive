@@ -9,16 +9,23 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,98 +43,143 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.netarchive.R
+import com.example.netarchive.data.local.db.entity.CategoryEntity
 import com.example.netarchive.ui.theme.LightBlue
+import androidx.compose.foundation.lazy.items
 
 @Composable
 fun ContactsTopBar(
     query: String,
     onQueryChange: (String) -> Unit,
-    isSelectionMode: Boolean = false
+    isSelectionMode: Boolean = false,
+    allCategories: List<CategoryEntity> = emptyList(),
+    selectedCategoryId: Int? = null,
+    onCategoryFilterSelected: (Int?) -> Unit = {}
 ) {
     var showSearchField by remember { mutableStateOf(false) }
 
-    Row(
+    Column(
         modifier = Modifier
-        .fillMaxWidth()
-        .height(100.dp)
+            .fillMaxWidth()
             .background(color = Color(0xFFECEBF4).copy(alpha = 0.95f))
-            .padding(top = 30.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+            .padding(top = 30.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
     ) {
-        AnimatedContent(
-            targetState = showSearchField,
-            transitionSpec = {
+        // Верхняя строка с заголовком и поиском
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AnimatedContent(
+                targetState = showSearchField,
+                transitionSpec = {
+                    if (targetState) {
+                        slideInHorizontally(initialOffsetX = { it }) + fadeIn() togetherWith
+                                slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+                    } else {
+                        slideInHorizontally(initialOffsetX = { -it }) + fadeIn() togetherWith
+                                slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+                    }
+                },
+                label = "searchBarAnimation"
+            ) { targetState ->
                 if (targetState) {
-                    slideInHorizontally(initialOffsetX = { it }) + fadeIn() togetherWith
-                            slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
-                } else {
-                    slideInHorizontally(initialOffsetX = { -it }) + fadeIn() togetherWith
-                            slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
-                }
-            },
-            label = "searchBarAnimation"
-        ) { targetState ->
-            if (targetState) {
-                TextField(
-                    value = query,
-                    onValueChange = onQueryChange,
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Search,
-                            contentDescription = "Поиск"
-                        )
-                    },
-                    trailingIcon = {
-                        IconButton(onClick = {
-                            showSearchField = false
-                            onQueryChange("")
-                        }) {
+                    TextField(
+                        value = query,
+                        onValueChange = onQueryChange,
+                        leadingIcon = {
                             Icon(
-                                imageVector = Icons.Outlined.Close,
-                                contentDescription = "Закрыть"
+                                imageVector = Icons.Outlined.Search,
+                                contentDescription = "Поиск"
+                            )
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                showSearchField = false
+                                onQueryChange("")
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Close,
+                                    contentDescription = "Закрыть"
+                                )
+                            }
+                        },
+                        placeholder = { Text("Поиск контактов") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = LightBlue,
+                            unfocusedContainerColor = LightBlue,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        )
+                    )
+                } else {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = if (isSelectionMode) "Выберите контакт" else "Контакты",
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = Color.Black
+                        )
+                        IconButton(onClick = { showSearchField = true }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Search,
+                                contentDescription = "Поиск",
+                                tint = Color.Black
                             )
                         }
-                    },
-                    placeholder = { Text("Поиск контактов") },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = LightBlue,
-                        unfocusedContainerColor = LightBlue,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
+                    }
+                }
+            }
+        }
+
+        // 🔥 Фильтр по категориям (горизонтальный скролл с chips)
+        if (allCategories.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Chip "Все контакты"
+                item {
+                    FilterChip(
+                        selected = selectedCategoryId == null,
+                        onClick = { onCategoryFilterSelected(null) },
+                        label = { Text("Все") },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                        )
                     )
-                )
-            } else {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    if (isSelectionMode){
-                        Text(
-                            text = "Выберите контакт",
-                            style = MaterialTheme.typography.headlineLarge,
-                            color = Color.Black
+                }
+
+                items(allCategories) { category ->  // ✅ ПРАВИЛЬНО: items(список)
+                    FilterChip(
+                        selected = selectedCategoryId == category.id,
+                        onClick = { onCategoryFilterSelected(category.id) },
+                        label = { Text(category.name) },
+                        leadingIcon = if (category.isDefault) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Outlined.Star,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                         )
-                    }
-                    else {
-                        Text(
-                            text = "Контакты",
-                            style = MaterialTheme.typography.headlineLarge,
-                            color = Color.Black
-                        )
-                    }
-                    IconButton(onClick = { showSearchField = true }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Search,
-                            contentDescription = "Поиск",
-                            tint = Color.Black
-                        )
-                    }
+                    )
                 }
             }
         }

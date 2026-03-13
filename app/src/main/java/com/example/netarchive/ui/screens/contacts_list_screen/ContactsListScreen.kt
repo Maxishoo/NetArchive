@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.netarchive.R
+import com.example.netarchive.data.local.db.entity.ContactWithCategories
 import com.example.netarchive.domain.model.Contact
 import com.example.netarchive.ui.components.cards.ContactCard
 
@@ -32,10 +33,11 @@ fun ContactListScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
-
+    var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
+    val allCategories by viewModel.allCategories.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
-    val topBarHeight = 100.dp
+    val topBarHeight = 140.dp
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -59,24 +61,45 @@ fun ContactListScreen(
                 )
             }
             is LoadState.Success -> {
-                val contacts = (state as LoadState.Success<List<Contact>>).data
+                val contactsWithCategories = (state as LoadState.Success<List<ContactWithCategories>>).data
 
-                LaunchedEffect(contacts.size) {
+                LaunchedEffect(contactsWithCategories.size) {
                     listState.scrollToItem(0)
                 }
 
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = listState,
-                    contentPadding = PaddingValues(
-                        top = topBarHeight
-                    ),
+                    contentPadding = PaddingValues(top = topBarHeight),
                     verticalArrangement = Arrangement.spacedBy(1.dp)
                 ) {
-                    items(contacts, key = { contact -> contact.id }) { contact ->
+                    items(contactsWithCategories, key = { it.contact.id }) { contactWithCategories ->
                         ContactCard(
-                            contact = contact,
-                            onClick = { onContactClick(contact) }
+                            contact = Contact(
+                                id = contactWithCategories.contact.id,
+                                username = contactWithCategories.contact.username,
+                                phone = contactWithCategories.contact.phone,
+                                telegram = contactWithCategories.contact.telegram,
+                                max = contactWithCategories.contact.max,
+                                email = contactWithCategories.contact.email,
+                                job = contactWithCategories.contact.job,
+                                avatar = contactWithCategories.contact.avatar
+                            ),
+                            categories = contactWithCategories.categories,
+                            onClick = {
+                                onContactClick(
+                                    Contact(
+                                        id = contactWithCategories.contact.id,
+                                        username = contactWithCategories.contact.username,
+                                        phone = contactWithCategories.contact.phone,
+                                        telegram = contactWithCategories.contact.telegram,
+                                        max = contactWithCategories.contact.max,
+                                        email = contactWithCategories.contact.email,
+                                        job = contactWithCategories.contact.job,
+                                        avatar = contactWithCategories.contact.avatar
+                                    )
+                                )
+                            }
                         )
                     }
                     item {
@@ -85,13 +108,20 @@ fun ContactListScreen(
                 }
             }
         }
+
         ContactsTopBar(
             query = searchQuery,
             onQueryChange = {
                 searchQuery = it
                 viewModel.onSearchQueryChange(it)
             },
-            isSelectionMode = isSelectionMode
+            isSelectionMode = isSelectionMode,
+            allCategories = allCategories,
+            selectedCategoryId = selectedCategoryId,
+            onCategoryFilterSelected = { categoryId ->
+                selectedCategoryId = categoryId
+                viewModel.onCategoryFilterSelected(categoryId)
+            }
         )
     }
 }

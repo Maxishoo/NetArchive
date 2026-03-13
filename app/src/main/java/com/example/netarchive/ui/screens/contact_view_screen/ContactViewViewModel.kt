@@ -3,6 +3,8 @@ package com.example.netarchive.ui.screens.contact_view_screen
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.netarchive.data.local.db.entity.CategoryEntity
+import com.example.netarchive.data.repository.CategoryRepository
 import com.example.netarchive.data.repository.ContactRepository
 import com.example.netarchive.domain.model.Contact
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,7 +15,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.netarchive.data.repository.NoteRepository
 import com.example.netarchive.domain.model.Note
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 
 data class ContactViewState(
     val contactId: Int = 0,
@@ -36,6 +41,7 @@ data class ContactViewState(
 class ContactViewViewModel @Inject constructor(
     private val repository: ContactRepository,
     private val noteRepository: NoteRepository,
+    private val categoryRepository: CategoryRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -46,6 +52,12 @@ class ContactViewViewModel @Inject constructor(
 
     private val originalState = MutableStateFlow<ContactViewState?>(null)
 
+    val allCategories: StateFlow<List<CategoryEntity>> =
+        categoryRepository.allCategories
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _selectedCategories = MutableStateFlow<List<CategoryEntity>>(emptyList())
+    val selectedCategories: StateFlow<List<CategoryEntity>> = _selectedCategories.asStateFlow()
     init {
         loadContact()
         loadNotes()
@@ -55,21 +67,22 @@ class ContactViewViewModel @Inject constructor(
         viewModelScope.launch {
             _viewState.value = _viewState.value.copy(isLoading = true, notes = emptyList())
             try {
-                repository.getContactById(contactId).collect { contact ->
-                    contact?.let {
-                        // Вместо создания нового state — используем copy!
+
+                repository.getContactWithCategories(contactId).collect { contactWithCategories ->
+                    contactWithCategories?.let {
                         _viewState.value = _viewState.value.copy(
                             isLoading = false,
-                            contactId = it.id,
-                            username = it.username,
-                            phone = it.phone ?: "",
-                            telegram = it.telegram ?: "",
-                            max = it.max ?: "",
-                            email = it.email ?: "",
-                            job = it.job ?: "",
-                            avatar = it.avatar ?: ""
-                            // notes НЕ трогаем — остаётся как было!
+                            contactId = it.contact.id,
+                            username = it.contact.username,
+                            phone = it.contact.phone ?: "",
+                            telegram = it.contact.telegram ?: "",
+                            max = it.contact.max ?: "",
+                            email = it.contact.email ?: "",
+                            job = it.contact.job ?: "",
+                            avatar = it.contact.avatar ?: ""
                         )
+
+                        _selectedCategories.value = it.categories
                         originalState.value = _viewState.value.copy(isLoading = false)
                     } ?: run {
                         _viewState.value = _viewState.value.copy(
@@ -133,6 +146,75 @@ class ContactViewViewModel @Inject constructor(
     fun onAvatarChange(value: String) {
         _viewState.value = _viewState.value.copy(avatar = value, hasChanges = true)
     }
+    fun createCategory(name: String) {
+        viewModelScope.launch {
+            android.util.Log.d("ContactViewVM", "=== createCategory START: $name ===")
+
+
+            val previouslySelected = _selectedCategories.value.toList()
+
+            try {
+                val categoryId = categoryRepository.createCategoryIfNotExists(name)
+
+                if (categoryId > 0) {
+                    kotlinx.coroutines.delay(100)
+
+                    val newCategory = categoryRepository.getCategoryById(categoryId)
+
+                    newCategory?.let { category ->
+
+                        val alreadyExists = previouslySelected.any { it.id == category.id }
+
+                        if (!alreadyExists) {
+                            val newList = previouslySelected + category
+                            _selectedCategories.value = newList
+                            _viewState.value = _viewState.value.copy(hasChanges = true)
+
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("ContactViewVM", "Error creating category", e)
+            }
+
+        }
+    }
+
+    fun addCategory(category: CategoryEntity) {
+        viewModelScope.launch {
+            val currentSelected = _selectedCategories.value.toMutableList()
+
+
+            if (currentSelected.none { it.id == category.id }) {
+                currentSelected.add(category)
+                _selectedCategories.value = currentSelected
+                _viewState.value = _viewState.value.copy(hasChanges = true)
+
+            }
+        }
+    }
+
+    fun removeCategory(category: CategoryEntity) {
+        viewModelScope.launch {
+            val currentSelected = _selectedCategories.value.toMutableList()
+            currentSelected.removeAll { it.id == category.id }
+            _selectedCategories.value = currentSelected
+            _viewState.value = _viewState.value.copy(hasChanges = true)
+
+        }
+    }
+
+    fun setSelectedCategories(categories: List<CategoryEntity>) {
+        viewModelScope.launch {
+
+            if (categories.isEmpty() && _selectedCategories.value.isNotEmpty()) {
+                return@launch
+            }
+
+            _selectedCategories.value = categories.toList()
+            _viewState.value = _viewState.value.copy(hasChanges = true)
+        }
+    }
 
     fun saveContact() {
         val state = _viewState.value
@@ -158,6 +240,12 @@ class ContactViewViewModel @Inject constructor(
                 )
 
                 repository.updateContact(contact)
+                repository.updateContactCategories(
+                    contactId = contactId,
+                    categoryIds = _selectedCategories.value.map { it.id }
+                )
+
+                categoryRepository.deleteUnusedCustomCategories()
 
                 val newState = state.copy(
                     isLoading = false,
@@ -201,10 +289,10 @@ class ContactViewViewModel @Inject constructor(
                 )
 
                 repository.deleteContact(contact)
-                // Заметки удалятся автоматически благодаря CASCADE
+
 
                 _viewState.value = _viewState.value.copy(isLoading = false)
-                onSuccess() // Вызываем навигацию назад
+                onSuccess()
             } catch (e: Exception) {
                 _viewState.value = _viewState.value.copy(
                     isLoading = false,

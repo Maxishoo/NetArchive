@@ -12,16 +12,23 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.example.netarchive.data.repository.DatabaseInitializer
 import com.example.netarchive.ui.navigation.AppNavHost
 import com.example.netarchive.ui.navigation.BottomNavBar
 import com.example.netarchive.ui.theme.NetArchiveTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @Inject
+    lateinit var databaseInitializer: DatabaseInitializer
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        databaseInitializer.initializeIfNeeded()
 
         setContent {
             NetArchiveTheme {

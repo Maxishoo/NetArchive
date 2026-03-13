@@ -65,8 +65,8 @@ private fun ShowDatePickerDialog(
 fun CreateNoteScreen(
     contactId: Int,
     contactName: String,
-    noteId: Int = 0,              // <-- Добавь
-    noteText: String = "",        // <-- Добавь
+    noteId: Int = 0,
+    noteText: String = "",
     noteDate: Long = 0L,
     viewModel: CreateNoteViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
@@ -231,9 +231,9 @@ fun CreateNoteScreen(
                 Button(
                     onClick = {
                         if (state.isEditMode) {
-                            viewModel.saveNote()  // Обновит заметку
+                            viewModel.saveNote()
                         } else {
-                            viewModel.saveNote()  // Создаст новую
+                            viewModel.saveNote()
                         }
                     },
                     modifier = Modifier.weight(1f),
