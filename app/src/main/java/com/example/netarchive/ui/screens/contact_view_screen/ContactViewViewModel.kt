@@ -1,5 +1,6 @@
 package com.example.netarchive.ui.screens.contact_view_screen
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,6 +20,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
 
 data class ContactViewState(
     val contactId: Int = 0,
@@ -42,7 +45,8 @@ class ContactViewViewModel @Inject constructor(
     private val repository: ContactRepository,
     private val noteRepository: NoteRepository,
     private val categoryRepository: CategoryRepository,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val contactId: Int = checkNotNull(savedStateHandle["contactId"])
@@ -143,8 +147,36 @@ class ContactViewViewModel @Inject constructor(
         _viewState.value = _viewState.value.copy(job = value, hasChanges = true)
     }
 
-    fun onAvatarChange(value: String) {
-        _viewState.value = _viewState.value.copy(avatar = value, hasChanges = true)
+    private fun copyAvatarToInternalStorage(uri: android.net.Uri): String {
+        val inputStream = context.contentResolver.openInputStream(uri)
+            ?: throw IllegalStateException("Cannot open URI")
+
+        val fileName = "avatar_${System.currentTimeMillis()}.jpg"
+        val outputFile = File(context.filesDir, "avatars/$fileName").apply {
+            parentFile?.mkdirs()
+        }
+
+        inputStream.use { input ->
+            outputFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+        return outputFile.toURI().toString()
+    }
+    fun onAvatarSelected(uri: android.net.Uri) {
+        viewModelScope.launch {
+            try {
+                val localUri = copyAvatarToInternalStorage(uri)
+                _viewState.value = _viewState.value.copy(
+                    avatar = localUri,
+                    hasChanges = true
+                )
+            } catch (e: Exception) {
+                _viewState.value = _viewState.value.copy(
+                    error = "Ошибка загрузки фото: ${e.message}"
+                )
+            }
+        }
     }
     fun createCategory(name: String) {
         viewModelScope.launch {

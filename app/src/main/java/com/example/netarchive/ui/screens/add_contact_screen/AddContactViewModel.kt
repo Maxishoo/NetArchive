@@ -1,5 +1,7 @@
 package com.example.netarchive.ui.screens.add_contact_screen
 
+import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,13 +10,16 @@ import com.example.netarchive.data.repository.CategoryRepository
 import com.example.netarchive.data.repository.ContactRepository
 import com.example.netarchive.domain.model.Contact
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 @Stable
 data class ContactFormState(
@@ -33,7 +38,8 @@ data class ContactFormState(
 @HiltViewModel
 class AddContactViewModel @Inject constructor(
     private val repository: ContactRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     val allCategories: StateFlow<List<CategoryEntity>> =
@@ -81,9 +87,40 @@ class AddContactViewModel @Inject constructor(
         }
     }
 
-    fun onAvatarChange(value: String) {
-        if (_formState.value.avatar != value) {
-            _formState.value = _formState.value.copy(avatar = value)
+    private fun copyImageToInternalStorage(uri: Uri): String {
+        val inputStream = context.contentResolver.openInputStream(uri)
+            ?: throw IllegalStateException("Cannot  open URI")
+
+        val fileName = "avatar_${System.currentTimeMillis()}.jpg"
+        val outputFile = File(context.filesDir, "avatars/$fileName").apply {
+            parentFile?.mkdirs()
+        }
+
+        inputStream.use { input ->
+            outputFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+        return outputFile.toURI().toString() // Возвращаем file:// URI
+    }
+
+    /**
+     * Обновлённая функция: теперь принимает Uri и копирует файл
+     */
+    fun onAvatarChange(uri: Uri) {
+        _formState.value.avatar.takeIf { it.isNotBlank() }?.let { oldUri ->
+            File(oldUri.toUri().path!!).delete()
+        }
+
+        viewModelScope.launch {
+            try {
+                val localUri = copyImageToInternalStorage(uri)
+                _formState.value = _formState.value.copy(avatar = localUri)
+            } catch (e: Exception) {
+                _formState.value = _formState.value.copy(
+                    error = "Ошибка загрузки фото: ${e.message}"
+                )
+            }
         }
     }
 

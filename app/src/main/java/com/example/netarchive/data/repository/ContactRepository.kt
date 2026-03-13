@@ -1,5 +1,6 @@
 package com.example.netarchive.data.repository
 
+import android.net.Uri
 import com.example.netarchive.data.local.db.dao.ContactDao
 import com.example.netarchive.data.local.db.entity.ContactCategoryCrossRef
 import com.example.netarchive.data.local.db.entity.ContactWithCategories
@@ -8,7 +9,9 @@ import com.example.netarchive.data.mapper.toEntity
 import com.example.netarchive.domain.model.Contact
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.io.File
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 class ContactRepository @Inject constructor(
     private val contactDao: ContactDao
@@ -23,6 +26,9 @@ class ContactRepository @Inject constructor(
     }
 
     suspend fun deleteContact(contact: Contact) {
+        contact.avatar?.let {
+            File(it.toUri().path!!).delete()
+        }
         contactDao.deleteContact(contact.toEntity())
     }
 

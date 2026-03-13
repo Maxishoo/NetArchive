@@ -7,24 +7,25 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.netarchive.ui.theme.NetArchiveTheme
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Event
 import android.app.DatePickerDialog
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
 import java.util.Calendar
 
 
@@ -65,6 +66,7 @@ private fun ShowDatePickerDialog(
 fun CreateNoteScreen(
     contactId: Int,
     contactName: String,
+    contactAvatar: String?,
     noteId: Int = 0,
     noteText: String = "",
     noteDate: Long = 0L,
@@ -96,8 +98,10 @@ fun CreateNoteScreen(
                     Text(if (state.isEditMode) "Редактировать запись" else "Добавьте запись")
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Text("✕", style = MaterialTheme.typography.titleLarge)
+                    IconButton(onClick = onBackClick){
+                        Icon(imageVector = Icons.Default.Close,
+                            contentDescription = "Закрыть"
+                        )
                     }
                 }
             )
@@ -127,19 +131,28 @@ fun CreateNoteScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Аватар
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    if (contactAvatar != "") {
+                        AsyncImage(
+                            model = contactAvatar,
+                            contentDescription = "Avatar of $contactName",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(color = Color(0xFFDBE0F7)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = contactName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        }
                     }
 
                     // Имя контакта
@@ -231,7 +244,7 @@ fun CreateNoteScreen(
                 Button(
                     onClick = {
                         if (state.isEditMode) {
-                            viewModel.saveNote()
+                            viewModel.saveNote()  // Обновить заметку
                         } else {
                             viewModel.saveNote()
                         }
