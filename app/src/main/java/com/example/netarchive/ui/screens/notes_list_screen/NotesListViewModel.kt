@@ -9,107 +9,79 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class NotesUiState(
+    val notes: List<Note> = emptyList(),
+    val isLoading: Boolean = false,
+    val isEditMode: Boolean = false,
+    val error: String? = null,
+    val selectedContactId: Int? = null
+)
+
 @HiltViewModel
 class NotesViewModel @Inject constructor(
     private val noteRepository: NoteRepository
 ) : ViewModel() {
 
-    // Состояния UI
-    private val _notes = MutableStateFlow<List<Note>>(emptyList())
-    val notes: StateFlow<List<Note>> = _notes.asStateFlow()
+    private val _uiState = MutableStateFlow(NotesUiState())
+    val uiState: StateFlow<NotesUiState> = _uiState.asStateFlow()
 
-    private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private val _isEditMode = MutableStateFlow(false)
-    val isEditMode: StateFlow<Boolean> = _isEditMode.asStateFlow()
 
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
-
-    private val _selectedContactId = MutableStateFlow<Int?>(null)
-    val selectedContactId: StateFlow<Int?> = _selectedContactId.asStateFlow()
-
-    init {
-        loadAllNotes()
-    }
-
-    // Загрузка всех заметок
-    fun loadAllNotes() {
+    /**
+     * Универсальный метод загрузки.
+     * @param contactId Если null - грузим все заметки, иначе - фильтруем по контакту.
+     */
+    fun loadNotes(contactId: Int?) {
         viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
+            _uiState.update { it.copy(isLoading = true, error = null, selectedContactId = contactId) }
 
-            try {
+            val notesFlow = if (contactId == null) {
                 noteRepository.getAllNotes()
-                    .catch { e ->
-                        _error.value = "Ошибка загрузки: ${e.message}"
-                        emit(emptyList())
-                    }
-                    .collect { notesList ->
-                        _notes.value = notesList
-                        _isLoading.value = false
-                    }
-            } catch (e: Exception) {
-                _error.value = "Ошибка загрузки: ${e.message}"
-                _isLoading.value = false
-            }
-        }
-    }
-
-    // Загрузка заметок для конкретного контакта
-    fun loadNotesByContact(contactId: Int) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
-            _selectedContactId.value = contactId
-
-            try {
+            } else {
                 noteRepository.getNotesByContactId(contactId)
-                    .catch { e ->
-                        _error.value = "Ошибка загрузки: ${e.message}"
-                        emit(emptyList())
-                    }
-                    .collect { notesList ->
-                        _notes.value = notesList
-                        _isLoading.value = false
-                    }
-            } catch (e: Exception) {
-                _error.value = "Ошибка загрузки: ${e.message}"
-                _isLoading.value = false
             }
+
+            notesFlow
+                .catch { e ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = "Ошибка загрузки: ${e.message}",
+                            notes = emptyList()
+                        )
+                    }
+                }
+                .onCompletion {
+                    // Если поток завершился без ошибки через catch, снимаем лоадер
+                    // Но так как у нас есть catch выше, сюда попадем в любом случае после emit
+                }
+                .collect { notesList ->
+                    _uiState.update {
+                        it.copy(
+                            notes = notesList,
+                            isLoading = false
+                        )
+                    }
+                }
         }
     }
 
-    // Переключение режима редактирования
     fun toggleEditMode() {
-        _isEditMode.value = !_isEditMode.value
+        _uiState.update { it.copy(isEditMode = !it.isEditMode) }
     }
 
-    // Удаление заметки
     fun deleteNote(note: Note) {
         viewModelScope.launch {
             try {
                 noteRepository.deleteNote(note)
+                loadNotes(null)
+
             } catch (e: Exception) {
-                _error.value = "Ошибка удаления: ${e.message}"
+                _uiState.update { it.copy(error = "Ошибка удаления: ${e.message}") }
             }
         }
     }
 
-    // Удаление заметки по ID
-    fun deleteNoteById(noteId: Int) {
-        viewModelScope.launch {
-            try {
-                val note = noteRepository.getNoteById(noteId)
-                note?.let { noteRepository.deleteNote(it) }
-            } catch (e: Exception) {
-                _error.value = "Ошибка удаления: ${e.message}"
-            }
-        }
-    }
-
-    // Добавление заметки
     fun addNote(text: String, contactId: Int) {
         viewModelScope.launch {
             try {
@@ -121,40 +93,26 @@ class NotesViewModel @Inject constructor(
                 )
                 noteRepository.addNote(newNote)
             } catch (e: Exception) {
-                _error.value = "Ошибка добавления: ${e.message}"
+                _uiState.update { it.copy(error = "Ошибка добавления: ${e.message}") }
             }
         }
     }
 
-    // Обновление заметки
     fun updateNote(note: Note) {
         viewModelScope.launch {
             try {
                 noteRepository.updateNote(note)
             } catch (e: Exception) {
-                _error.value = "Ошибка обновления: ${e.message}"
+                _uiState.update { it.copy(error = "Ошибка обновления: ${e.message}") }
             }
         }
     }
 
-    // Получение заметки по ID
-    suspend fun getNoteById(noteId: Int): Note? {
-        return try {
-            noteRepository.getNoteById(noteId)
-        } catch (e: Exception) {
-            _error.value = "Ошибка загрузки заметки: ${e.message}"
-            null
-        }
-    }
-
-    // Очистка ошибки
     fun clearError() {
-        _error.value = null
+        _uiState.update { it.copy(error = null) }
     }
 
-    // Сброс фильтра по контакту
     fun clearContactFilter() {
-        _selectedContactId.value = null
-        loadAllNotes()
+        loadNotes(null)
     }
 }

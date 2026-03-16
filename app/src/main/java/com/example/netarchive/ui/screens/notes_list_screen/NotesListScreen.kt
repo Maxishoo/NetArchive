@@ -1,24 +1,22 @@
 package com.example.netarchive.ui.screens.notes_list_screen
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.netarchive.domain.model.Note
 import com.example.netarchive.ui.components.cards.NoteCard
-import kotlinx.coroutines.launch
-
-
-import androidx.compose.ui.tooling.preview.Preview
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,30 +27,18 @@ fun NotesListScreen(
     onAddNoteClick: (() -> Unit)? = null,
     onBackClick: (() -> Unit)? = null
 ) {
-    val scope = rememberCoroutineScope()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-    // Состояния из ViewModel
-    val notes by viewModel.notes.collectAsStateWithLifecycle()
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val isEditMode by viewModel.isEditMode.collectAsStateWithLifecycle()
-    val error by viewModel.error.collectAsStateWithLifecycle()
-    val selectedContactId by viewModel.selectedContactId.collectAsStateWithLifecycle()
-
-    // Загрузка заметок при изменении contactId
     LaunchedEffect(contactId) {
-        if (contactId != null) {
-            viewModel.loadNotesByContact(contactId)
-        } else {
-            viewModel.loadAllNotes()
-        }
+        viewModel.loadNotes(contactId)
     }
 
-    // Показ ошибок
-    LaunchedEffect(error) {
-        error?.let {
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { errorMessage ->
             snackbarHostState.showSnackbar(
-                message = it,
+                message = errorMessage,
                 actionLabel = "OK",
                 duration = SnackbarDuration.Short
             )
@@ -60,38 +46,20 @@ fun NotesListScreen(
         }
     }
 
-    /*Обработка назад
-    BackHandler(enabled = selectedContactId != null) {
-        viewModel.clearContactFilter()
-        onBackClick?.invoke()
-    }*/
-
     Scaffold(
         topBar = {
             NotesListTopBar(
-                isEditMode = isEditMode,
-                selectedContactId = selectedContactId,
-                onEditModeToggle = { viewModel.toggleEditMode() },
-                onBackClick = if (selectedContactId != null) {
+                isEditMode = uiState.isEditMode,
+                hasActiveFilter = uiState.selectedContactId != null,
+                onEditModeToggle = viewModel::toggleEditMode,
+                onBackClick = if (uiState.selectedContactId != null) {
                     {
                         viewModel.clearContactFilter()
                         onBackClick?.invoke()
                     }
-                } else null
+                } else null,
+                scrollBehavior = scrollBehavior
             )
-        },
-        floatingActionButton = {
-            if (!isEditMode && onAddNoteClick != null) {
-                FloatingActionButton(
-                    onClick = onAddNoteClick,
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Добавить заметку"
-                    )
-                }
-            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
@@ -101,24 +69,19 @@ fun NotesListScreen(
                 .padding(paddingValues)
         ) {
             when {
-                isLoading -> LoadingIndicator()
+                uiState.isLoading -> LoadingIndicator()
 
-                notes.isEmpty() -> EmptyNotesContent(
-                    contactId = selectedContactId,
+                uiState.notes.isEmpty() -> EmptyNotesContent(
+                    contactId = uiState.selectedContactId,
                     onAddClick = onAddNoteClick
                 )
 
                 else -> NotesList(
-                    notes = notes,
-                    isEditMode = isEditMode,
-                    onNoteClick = { noteId ->
-                        if (!isEditMode) {
-                            onNoteClick(noteId)
-                        }
-                    },
-                    onDeleteClick = { note ->
-                        viewModel.deleteNote(note)
-                    }
+                    notes = uiState.notes,
+                    isEditMode = uiState.isEditMode,
+                    onNoteClick = onNoteClick,
+                    onDeleteClick = viewModel::deleteNote,
+                    scrollBehavior = scrollBehavior
                 )
             }
         }
@@ -127,19 +90,17 @@ fun NotesListScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotesListTopBar(
+private fun NotesListTopBar(
     isEditMode: Boolean,
-    selectedContactId: Int?,
+    hasActiveFilter: Boolean,
     onEditModeToggle: () -> Unit,
-    onBackClick: (() -> Unit)?
+    onBackClick: (() -> Unit)?,
+    scrollBehavior: TopAppBarScrollBehavior
 ) {
     TopAppBar(
         title = {
             Text(
-                when {
-                    selectedContactId != null -> "Заметки контакта"
-                    else -> "Все заметки"
-                }
+                text = if (hasActiveFilter) "Заметки контакта" else "Все заметки"
             )
         },
         navigationIcon = {
@@ -159,38 +120,45 @@ fun NotesListTopBar(
                     contentDescription = if (isEditMode) "Готово" else "Редактировать"
                 )
             }
-        }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f),
+            scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f)
+        ),
+        scrollBehavior = scrollBehavior
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotesList(
+private fun NotesList(
     notes: List<Note>,
     isEditMode: Boolean,
     onNoteClick: (Int) -> Unit,
-    onDeleteClick: (Note) -> Unit
+    onDeleteClick: (Note) -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(
-            items = notes,
-            key = { it.id }
-        ) { note ->
+        notes.forEach { note ->
             NoteCard(
                 note = note,
                 isEditMode = isEditMode,
-                onNoteClick = { onNoteClick(note.id) },
-                onDeleteClick = { onDeleteClick(note) }
+                onNoteClick = {
+                    if (!isEditMode) onNoteClick(note.id)
+                },onDeleteClick = { onDeleteClick(note) }
             )
         }
     }
 }
 
 @Composable
-fun LoadingIndicator() {
+private fun LoadingIndicator() {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -200,10 +168,13 @@ fun LoadingIndicator() {
 }
 
 @Composable
-fun EmptyNotesContent(
+private fun EmptyNotesContent(
     contactId: Int?,
     onAddClick: (() -> Unit)?
 ) {
+    val titleRes = if (contactId != null) "У контакта пока нет заметок" else "У вас пока нет заметок"
+    val descRes = if (contactId != null) "Добавьте первую заметку для этого контакта" else "Нажмите кнопку + чтобы создать первую заметку"
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -217,32 +188,20 @@ fun EmptyNotesContent(
             modifier = Modifier.size(64.dp),
             tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
         Text(
-            text = when {
-                contactId != null -> "У контакта пока нет заметок"
-                else -> "У вас пока нет заметок"
-            },
+            text = titleRes,
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         Text(
-            text = when {
-                contactId != null -> "Добавьте первую заметку для этого контакта"
-                else -> "Нажмите кнопку + чтобы создать первую заметку"
-            },
+            text = descRes,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
         )
-
         if (onAddClick != null) {
             Spacer(modifier = Modifier.height(24.dp))
-
             Button(onClick = onAddClick) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -256,43 +215,129 @@ fun EmptyNotesContent(
     }
 }
 
+/*
+private fun getFakeNotes(): List<Note> {
+    return listOf(
+        Note(id = 1, contactId = 101, text = "Купить продукты: молоко, хлеб, яйца", date = System.currentTimeMillis() - 86400000),
+        Note(id = 2, contactId = 101, text = "Встреча с командой в 15:00", date = System.currentTimeMillis()),
+        Note(id = 3, contactId = 102, text = "Позвонить родителям", date = System.currentTimeMillis() - 172800000),
+        Note(id = 4, contactId = 101, text = "Заказать доставку воды", date = System.currentTimeMillis() - 259200000),
+        Note(id = 5, contactId = 103, text = "Подготовить отчет за квартал", date = System.currentTimeMillis() - 345600000),
+        Note(id = 6, contactId = 101, text = "Напомнить о встрече завтра", date = System.currentTimeMillis() - 432000000),
+        Note(id = 7, contactId = 102, text = "Купить подарок на день рождения", date = System.currentTimeMillis() - 518400000),
+        Note(id = 8, contactId = 101, text = "Записаться к врачу", date = System.currentTimeMillis() - 604800000),
+        Note(id = 9, contactId = 103, text = "Проверить счета за коммунальные услуги", date = System.currentTimeMillis() - 691200000),
+        Note(id = 10, contactId = 101, text = "Отправить документы по почте", date = System.currentTimeMillis() - 777600000)
+    )
+}
 
-@Preview(
-    name = "Notes List - With Notes",
-    showBackground = true
-)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotesListWithNotesPreview() {
+private fun NotesListScreenPreviewWrapper(
+    notes: List<Note> = emptyList(),
+    isLoading: Boolean = false,
+    isEditMode: Boolean = false,
+    hasFilter: Boolean = false,
+    forceScrollHeight: Int? = null
+) {
     MaterialTheme {
         Surface(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            NotesList(
-                notes = listOf(
-                    Note(
-                        id = 1,
-                        contactId = 101,
-                        text = "Купить продукты: молоко, хлеб, яйца",
-                        date = System.currentTimeMillis() - 86400000
-                    ),
-                    Note(
-                        id = 2,
-                        contactId = 101,
-                        text = "Встреча с командой в 15:00",
-                        date = System.currentTimeMillis()
-                    ),
-                    Note(
-                        id = 3,
-                        contactId = 102,
-                        text = "Позвонить родителям",
-                        date = System.currentTimeMillis() - 172800000
+            val snackbarHostState = remember { SnackbarHostState() }
+            val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+            Scaffold(
+                topBar = {
+                    NotesListTopBar(
+                        isEditMode = isEditMode,
+                        hasActiveFilter = hasFilter,
+                        onEditModeToggle = { },
+                        onBackClick = if (hasFilter) { { } } else null,
+                        scrollBehavior = scrollBehavior
                     )
-                ),
-                isEditMode = false,
-                onNoteClick = {},
-                onDeleteClick = {}
-            )
+                },
+                snackbarHost = { SnackbarHost(snackbarHostState) }
+            ) { paddingValues ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .then(if (forceScrollHeight != null) Modifier.height(forceScrollHeight.dp) else Modifier)
+                ) {
+                    when {
+                        isLoading -> LoadingIndicator()
+                        notes.isEmpty() -> EmptyNotesContent(
+                            contactId = if (hasFilter) 1 else null,
+                            onAddClick = null
+                        )
+                        else -> NotesList(
+                            notes = notes,
+                            isEditMode = isEditMode,
+                            onNoteClick = { },
+                            onDeleteClick = { },
+                            scrollBehavior = scrollBehavior
+                        )
+                    }
+                }
+            }
         }
     }
 }
+
+@Preview(name = "Screen - Список заметок", showBackground = true, showSystemUi = true)
+@Composable
+fun NotesListScreenFullPreview() {
+    NotesListScreenPreviewWrapper(
+        notes = getFakeNotes(),
+        isLoading = false,
+        isEditMode = false,
+        hasFilter = false
+    )
+}
+
+@Preview(name = "Screen - Скролл тест (300dp)", showBackground = true, showSystemUi = true)
+@Composable
+fun NotesListScreenScrollTestPreview() {
+    NotesListScreenPreviewWrapper(
+        notes = getFakeNotes(),
+        isLoading = false,
+        isEditMode = false,
+        hasFilter = false,
+        forceScrollHeight = 300
+    )
+}
+
+@Preview(name = "Screen - Пустой список", showBackground = true, showSystemUi = true)
+@Composable
+fun NotesListScreenEmptyPreview() {
+    NotesListScreenPreviewWrapper(
+        notes = emptyList(),
+        isLoading = false,
+        isEditMode = false,
+        hasFilter = false
+    )
+}
+
+@Preview(name = "Screen - Загрузка", showBackground = true, showSystemUi = true)
+@Composable
+fun NotesListScreenLoadingPreview() {
+    NotesListScreenPreviewWrapper(
+        notes = emptyList(),
+        isLoading = true,
+        isEditMode = false,
+        hasFilter = false
+    )
+}
+
+@Preview(name = "Screen - Режим редактирования", showBackground = true, showSystemUi = true)
+@Composable
+fun NotesListScreenEditPreview() {
+    NotesListScreenPreviewWrapper(
+        notes = getFakeNotes(),
+        isLoading = false,
+        isEditMode = true,
+        hasFilter = false
+    )
+}*/
