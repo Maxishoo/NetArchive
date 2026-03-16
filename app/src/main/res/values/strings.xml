@@ -4,4 +4,8 @@
 
     <string name="error_contacts_load">Ошибка загрузки контактов</string>
     <string name="contacts_empty">Нет контактов</string>
+
+    <string name="content_description_date">Дата</string>
+    <string name="content_description_clock">Время</string>
+
 </resources>
