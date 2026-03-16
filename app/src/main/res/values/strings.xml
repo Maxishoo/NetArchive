@@ -5,7 +5,17 @@
     <string name="error_contacts_load">Ошибка загрузки контактов</string>
     <string name="contacts_empty">Нет контактов</string>
 
-    <string name="content_description_date">Дата</string>
+    <string name="date">Дата</string>
     <string name="content_description_clock">Время</string>
+
+    <string name="icon_event_description">Выбрать дату</string>
+    <string name="cancel">Отмена</string>
+
+    <string name="modify_note">Редактировать запись</string>
+    <string name="add_note">Добавьте запись</string>
+    <string name="close">Закрыть</string>
+    <string name="note_text">Текст заметки</string>
+    <string name="save">Сохранить</string>
+    <string name="create">Создать</string>
 
 </resources>

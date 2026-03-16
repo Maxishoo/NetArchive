@@ -64,7 +64,7 @@ fun NoteCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.CalendarToday,
-                        contentDescription = stringResource(R.string.content_description_date),
+                        contentDescription = stringResource(R.string.date),
                         modifier = Modifier.size(16.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )

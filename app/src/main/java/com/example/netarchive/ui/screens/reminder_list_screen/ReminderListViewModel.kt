@@ -1,4 +1,4 @@
-package com.example.netarchive.ui.screens.notes_list_screen
+package com.example.netarchive.ui.screens.reminder_list_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
