@@ -123,7 +123,51 @@ fun DateTimeSelector(
         )
     )
 }
+// ===== В файле DateTimeSelector.kt =====
 
+@Composable
+fun DateTimeSelector_with_valid(
+    selectedDate: Long,
+    onDateClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isError: Boolean = false
+) {
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    val dateString = dateFormat.format(Date(selectedDate))
+
+    OutlinedTextField(
+        value = dateString,
+        onValueChange = {},
+        readOnly = true,
+        label = { Text("Дата") },
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+        leadingIcon = {
+            Icon(imageVector = Icons.Filled.CalendarToday, contentDescription = null)
+        },
+        trailingIcon = {
+            IconButton(onClick = onDateClick) {
+                Icon(
+                    imageVector = Icons.Filled.Event,
+                    contentDescription = "Выбрать дату",
+                    tint = if (isError) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.primary
+                )
+            }
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = if (isError) MaterialTheme.colorScheme.error
+            else MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = if (isError) MaterialTheme.colorScheme.error
+            else MaterialTheme.colorScheme.outline
+        ),
+        
+        supportingText = if (isError) {
+            { Text("Неверная дата", color = MaterialTheme.colorScheme.error) }
+        } else null
+    )
+}
 @Composable
 fun ActionButtonsSaveCancel(
     onCancelClick: () -> Unit,

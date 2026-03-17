@@ -18,8 +18,12 @@ import com.example.netarchive.R
 import com.example.netarchive.ui.components.*
 import com.example.netarchive.ui.components.cards.ActionButtonsSaveCancel
 import com.example.netarchive.ui.components.cards.DateTimeSelector
+import com.example.netarchive.ui.components.cards.DateTimeSelector_with_valid
 import com.example.netarchive.ui.components.cards.SimpleContactCard
 import java.util.Calendar
+
+const val MAX_TEXT_LENGTH = 500
+
 
 @Composable
 private fun ShowDatePickerDialog(
@@ -40,13 +44,19 @@ private fun ShowDatePickerDialog(
         { _, selectedYear, selectedMonth, selectedDay ->
             val selectedCalendar = Calendar.getInstance().apply {
                 set(selectedYear, selectedMonth, selectedDay)
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
             }
             onDateSelected(selectedCalendar.timeInMillis)
         },
         year,
         month,
         day
-    )
+    ).apply {
+        datePicker.minDate = System.currentTimeMillis() - 1000
+    }
 
     dialog.setOnDismissListener { onDismiss() }
     dialog.show()
@@ -76,9 +86,18 @@ fun CreateReminderScreen(
     val onDismissDatePicker = remember { { showDatePicker = false } }
     val onSaveClick = remember(viewModel) { { viewModel.saveReminder() } }
 
-
-    val isSaveEnabled by remember(state.reminderText, state.isLoading) {
-        derivedStateOf { state.reminderText.isNotBlank() && !state.isLoading }
+    val isSaveEnabled by remember(
+        state.reminderText,
+        state.isLoading,
+        state.hasTextError,
+        state.hasDateError
+    ) {
+        derivedStateOf {
+            state.reminderText.isNotBlank() &&
+                    !state.isLoading &&
+                    !state.hasTextError &&
+                    !state.hasDateError
+        }
     }
 
     LaunchedEffect(state.isSuccess) {
@@ -126,7 +145,7 @@ fun CreateReminderScreen(
                 contactAvatar = stableContactAvatar
             )
 
-            DateTimeSelector(
+            DateTimeSelector_with_valid(
                 selectedDate = state.date,
                 onDateClick = onDateClick
             )
@@ -141,17 +160,20 @@ fun CreateReminderScreen(
                     onDismiss = onDismissDatePicker
                 )
             }
+
             ReminderTextField(
                 value = state.reminderText,
-                onValueChange = viewModel::onReminderTextChange
+                onValueChange = viewModel::onReminderTextChange,
+                textLength = state.textLength,
+                maxLength = MAX_TEXT_LENGTH,
+                isError = state.hasTextError
             )
+
             Spacer(modifier = Modifier.weight(1f))
 
             ActionButtonsSaveCancel(
                 onCancelClick = onBackClick,
-                onSaveClick = {
-                    viewModel.saveReminder()
-                },
+                onSaveClick = onSaveClick,
                 saveButtonText = stringResource(R.string.save),
                 isEnabled = isSaveEnabled,
                 isLoading = state.isLoading
@@ -160,20 +182,34 @@ fun CreateReminderScreen(
     }
 }
 
-
 @Composable
 private fun ReminderTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    textLength: Int = 0,
+    maxLength: Int = MAX_TEXT_LENGTH,
+    isError: Boolean = false
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(stringResource(R.string.reminder_text))},
+        label = { Text(stringResource(R.string.reminder_text)) },
+        placeholder = { Text(stringResource(R.string.reminder_text)) },
         modifier = modifier
             .fillMaxWidth()
             .height(200.dp),
-        maxLines = Int.MAX_VALUE
+        maxLines = Int.MAX_VALUE,
+        isError = isError,
+        supportingText = {
+            Text(
+                text = "$textLength / $maxLength",
+                color = if (isError || textLength > maxLength) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                }
+            )
+        }
     )
 }
