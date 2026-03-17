@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.netarchive.ui.theme.LightBlue
 
+import com.example.netarchive.ui.navigation.CreateConnection.EntryType
 sealed class BottomNavItem(
     val icon: ImageVector,
     val route: Any,
@@ -78,7 +79,7 @@ sealed class AddMenuItem(
 
     object CreateRemind : AddMenuItem(
         label = "Напоминание",
-        route = com.example.netarchive.ui.navigation.CreateRemind
+        route = CreateConnection(type = EntryType.REMINDER)
     )
 
     companion object {

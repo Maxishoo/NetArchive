@@ -13,7 +13,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.app.DatePickerDialog
+import androidx.compose.ui.res.stringResource
+import com.example.netarchive.R
 import com.example.netarchive.ui.components.*
+import com.example.netarchive.ui.components.cards.ActionButtonsSaveCancel
+import com.example.netarchive.ui.components.cards.DateTimeSelector
+import com.example.netarchive.ui.components.cards.SimpleContactCard
 import java.util.Calendar
 
 @Composable
@@ -87,7 +92,7 @@ fun CreateReminderScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Закрыть"
+                            contentDescription = stringResource(R.string.close)
                         )
                     }
                 }
@@ -104,19 +109,16 @@ fun CreateReminderScreen(
                 .padding(bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Карточка контакта
-            ContactCard(
+            SimpleContactCard(
                 contactName = contactName,
                 contactAvatar = contactAvatar
             )
 
-            // Дата
             DateTimeSelector(
                 selectedDate = state.date,
                 onDateClick = { showDatePicker = true }
             )
 
-            // DatePicker Dialog
             if (showDatePicker) {
                 ShowDatePickerDialog(
                     initialDate = state.date,
@@ -129,8 +131,6 @@ fun CreateReminderScreen(
                     }
                 )
             }
-
-            // Текст напоминания
             OutlinedTextField(
                 value = state.reminderText,
                 onValueChange = viewModel::onReminderTextChange,
@@ -143,13 +143,12 @@ fun CreateReminderScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Кнопки
-            ActionButtons(
+            ActionButtonsSaveCancel(
                 onCancelClick = onBackClick,
                 onSaveClick = {
                     viewModel.saveReminder()
                 },
-                saveButtonText = "Сохранить",
+                saveButtonText = stringResource(R.string.save),
                 isEnabled = state.reminderText.isNotBlank(),
                 isLoading = state.isLoading
             )

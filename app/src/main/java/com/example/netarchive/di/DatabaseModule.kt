@@ -6,7 +6,9 @@ import com.example.netarchive.data.local.db.AppDatabase
 import com.example.netarchive.data.local.db.dao.CategoryDao
 import com.example.netarchive.data.local.db.dao.ContactDao
 import com.example.netarchive.data.local.db.dao.NoteDao
+import com.example.netarchive.data.local.db.dao.ReminderDao
 import com.example.netarchive.data.repository.CategoryRepository
+import com.example.netarchive.data.repository.ReminderRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -55,4 +57,20 @@ object DatabaseModule {
     ): CategoryRepository {
         return CategoryRepository(categoryDao)
     }
+
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object RepositoryModule {
+
+        @Provides
+        @Singleton
+        fun provideReminderRepository(
+            reminderDao: ReminderDao
+        ): ReminderRepository = ReminderRepository(reminderDao)
+    }
+    @Provides
+    @Singleton
+    fun provideReminderDao(database: AppDatabase): ReminderDao =
+        database.reminderDao()
 }
