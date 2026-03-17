@@ -1,5 +1,6 @@
 package com.example.netarchive.ui.screens.add_reminder_screen
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@Stable
 data class CreateReminderState(
     val contactId: Int = 0,
     val contactName: String = "",

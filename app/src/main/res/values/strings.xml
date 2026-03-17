@@ -17,5 +17,6 @@
     <string name="note_text">Текст заметки</string>
     <string name="save">Сохранить</string>
     <string name="create">Создать</string>
-
+    <string name="reminder_text">Текст напоминания</string>
+    <string name="add_reminder">Добавьте напоминание</string>
 </resources>

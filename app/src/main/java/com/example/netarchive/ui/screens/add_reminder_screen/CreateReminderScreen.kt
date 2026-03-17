@@ -69,6 +69,18 @@ fun CreateReminderScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showDatePicker by remember { mutableStateOf(false) }
 
+    val stableContactName = remember { contactName }
+    val stableContactAvatar = remember { contactAvatar }
+
+    val onDateClick = remember { { showDatePicker = true } }
+    val onDismissDatePicker = remember { { showDatePicker = false } }
+    val onSaveClick = remember(viewModel) { { viewModel.saveReminder() } }
+
+
+    val isSaveEnabled by remember(state.reminderText, state.isLoading) {
+        derivedStateOf { state.reminderText.isNotBlank() && !state.isLoading }
+    }
+
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             onReminderCreated()
@@ -86,7 +98,7 @@ fun CreateReminderScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Добавьте напоминание")
+                    Text(stringResource(R.string.add_reminder))
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
@@ -110,13 +122,13 @@ fun CreateReminderScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             SimpleContactCard(
-                contactName = contactName,
-                contactAvatar = contactAvatar
+                contactName = stableContactName,
+                contactAvatar = stableContactAvatar
             )
 
             DateTimeSelector(
                 selectedDate = state.date,
-                onDateClick = { showDatePicker = true }
+                onDateClick = onDateClick
             )
 
             if (showDatePicker) {
@@ -126,21 +138,13 @@ fun CreateReminderScreen(
                         viewModel.onDateChange(selectedDate)
                         showDatePicker = false
                     },
-                    onDismiss = {
-                        showDatePicker = false
-                    }
+                    onDismiss = onDismissDatePicker
                 )
             }
-            OutlinedTextField(
+            ReminderTextField(
                 value = state.reminderText,
-                onValueChange = viewModel::onReminderTextChange,
-                label = { Text("Текст напоминания") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                maxLines = Int.MAX_VALUE
+                onValueChange = viewModel::onReminderTextChange
             )
-
             Spacer(modifier = Modifier.weight(1f))
 
             ActionButtonsSaveCancel(
@@ -149,9 +153,27 @@ fun CreateReminderScreen(
                     viewModel.saveReminder()
                 },
                 saveButtonText = stringResource(R.string.save),
-                isEnabled = state.reminderText.isNotBlank(),
+                isEnabled = isSaveEnabled,
                 isLoading = state.isLoading
             )
         }
     }
+}
+
+
+@Composable
+private fun ReminderTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(stringResource(R.string.reminder_text))},
+        modifier = modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        maxLines = Int.MAX_VALUE
+    )
 }

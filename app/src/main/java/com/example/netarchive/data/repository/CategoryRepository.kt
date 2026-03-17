@@ -8,7 +8,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class CategoryRepository @Inject constructor(
+class
+CategoryRepository @Inject constructor(
     private val categoryDao: CategoryDao
 ) {
     val allCategories: Flow<List<CategoryEntity>> = categoryDao.getAllCategories()
