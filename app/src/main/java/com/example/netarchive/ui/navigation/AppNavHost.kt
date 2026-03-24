@@ -15,80 +15,90 @@ import com.example.netarchive.ui.screens.add_contact_screen.AddContactScreen
 import com.example.netarchive.ui.screens.contacts_list_screen.ContactListScreen
 import com.example.netarchive.ui.screens.contact_view_screen.ContactViewScreen
 import com.example.netarchive.ui.screens.add_note_screen.CreateNoteScreen
-@Serializable
-object AddButt
 
 @Serializable
-object Contacts
+sealed class Routes{
+    @Serializable
+    object AddButt
 
-@Serializable
-data class ContactDetail(
-    val contactId: Int,
-    val selectedTab: Int = 0  // 0 = Информация, 1 = Заметки
-)
+    @Serializable
+    object Contacts
 
-@Serializable
-data class EditContact(val contactId: Int?)
+    @Serializable
+    data class ContactDetail(
+        val contactId: Int,
+        val selectedTab: Int = 0  // 0 = Информация, 1 = Заметки
+    )
 
-@Serializable
-object Profile
+    @Serializable
+    object Profile
 
-@Serializable
-object CreateContact
+    @Serializable
+    object CreateContact
 
-@Serializable
-object CreateConnection
-
-
-@Serializable
-object CreateRemind
-
-@Serializable
-data class CreateNoteRoute(
-    val contactId: Int,
-    val contactName: String,
-    val contactAvatar: String?,
-    val noteId: Int = 0,
-    val noteText: String = "",
-    val noteDate: Long = 0L,
-    val fromScreen: String = "contact_view",
-    val returnTab: Int = 0
-)
+    @Serializable
+    object CreateConnection
 
 
+    @Serializable
+    object CreateRemind
+
+    @Serializable
+    data class CreateNoteRoute(
+        val contactId: Int,
+        val contactName: String,
+        val contactAvatar: String?,
+        val noteId: Int = 0,
+        val noteText: String = "",
+        val noteDate: Long = 0L,
+        val fromScreen: String = "contact_view",
+        val returnTab: Int = 0
+    )
+}
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    modifier: Modifier
+    modifier: Modifier,
+    previousRoute: String? = null,
+    onRouteChange: (String?) -> Unit = {}
 ) {
     NavHost(
         navController = navController,
-        startDestination = Contacts
-    ){
-        composable<Contacts> {
+        startDestination = Routes.Contacts
+    ) {
+        composable<Routes.Contacts> {
             ContactListScreen(
                 onContactClick = { contact ->
-                    navController.navigate(ContactDetail(contact.id))
+                    navController.navigate(Routes.ContactDetail(contact.id))
                 }
             )
         }
-        composable<Profile> {
-            Text("Profile", modifier = Modifier.padding(top=100.dp), fontSize = 40.sp)
+
+        composable<Routes.Profile> {
+            Text("Profile", modifier = Modifier.padding(top = 100.dp), fontSize = 40.sp)
         }
-        composable<CreateContact> {
+
+        composable<Routes.CreateContact> {
             AddContactScreen(
                 onContactCreated = {
                     navController.popBackStack()
+                    previousRoute?.let {
+                        if (!navController.popBackStack(it, false)) {
+                            navController.navigate(Routes.Contacts) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    } ?: navController.navigate(Routes.Contacts)
                 },
                 onBackClick = {
                     navController.popBackStack()
                 }
             )
         }
-        composable<CreateNoteRoute> { backStackEntry ->
-            val route = backStackEntry.toRoute<CreateNoteRoute>()
 
+        composable<Routes.CreateNoteRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<Routes.CreateNoteRoute>()
             CreateNoteScreen(
                 contactId = route.contactId,
                 contactName = route.contactName,
@@ -106,36 +116,36 @@ fun AppNavHost(
             )
         }
 
-        composable<CreateConnection> {
+        composable<Routes.CreateConnection> {
             ContactListScreen(
                 onContactClick = { contact ->
                     navController.navigate(
-                        CreateNoteRoute(
+                        Routes.CreateNoteRoute(
                             contactId = contact.id,
                             contactName = contact.username,
                             contactAvatar = contact.avatar,
-                            fromScreen = "select_contact")
+                            fromScreen = "select_contact"
+                        )
                     )
                 },
                 isSelectionMode = true
             )
         }
 
-        composable<CreateRemind> {
-            Text("CreateRemind", modifier = Modifier.padding(top=100.dp), fontSize = 40.sp)
+        composable<Routes.CreateRemind> {
+            Text("CreateRemind", modifier = Modifier.padding(top = 100.dp), fontSize = 40.sp)
         }
 
-        composable<ContactDetail> { backStackEntry ->
-            val contactId = backStackEntry.arguments?.getInt("contactId") ?: 0
-            val selectedTab = backStackEntry.arguments?.getInt("selectedTab") ?: 0
+        composable<Routes.ContactDetail> { backStackEntry ->
+            val route = backStackEntry.toRoute<Routes.ContactDetail>()
             ContactViewScreen(
-                initialTab = selectedTab,
+                initialTab = route.selectedTab,
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onAddNoteClick = { id, name, contactAvatar, noteId, noteText, noteDate,fromScreen,tab ->
+                onAddNoteClick = { id, name, contactAvatar, noteId, noteText, noteDate, fromScreen, tab ->
                     navController.navigate(
-                        CreateNoteRoute(
+                        Routes.CreateNoteRoute(
                             contactId = id,
                             contactName = name,
                             contactAvatar = contactAvatar,
@@ -148,17 +158,6 @@ fun AppNavHost(
                     )
                 }
             )
-//            val contactId = backStackEntry.arguments?.getInt("contactId")
-//            ContactDetailScreen(
-//                contactId = contactId,
-//                onBackClick = {
-//                    navController.popBackStack()
-//                },
-//                onEditClick = { id: Int ->
-//                    navController.navigate(EditContact(id))
-//                }
-//            )
         }
-
     }
 }

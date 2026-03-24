@@ -37,7 +37,7 @@ fun ContactListScreen(
     val allCategories by viewModel.allCategories.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
-    val topBarHeight = 140.dp
+    val topBarHeight = 80.dp
 
     Box(
         modifier = modifier.fillMaxSize()
