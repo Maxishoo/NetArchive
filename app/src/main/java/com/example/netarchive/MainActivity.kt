@@ -57,14 +57,13 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Main(){
+fun Main() {
     val navController = rememberNavController()
     var showAddMenu by remember { mutableStateOf(false) }
+    var previousRoute by remember { mutableStateOf<String?>(null) }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-
-    Text("$currentDestination")
 
     val selectedTab = when {
         currentDestination?.hierarchy?.any {
@@ -83,7 +82,8 @@ fun Main(){
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(), bottomBar = {
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
             BottomNavBar(
                 modifier = Modifier,
                 navController = navController,
@@ -97,44 +97,52 @@ fun Main(){
                         BottomNavItem.Contacts -> {
                             showAddMenu = false
                             navController.navigate(Routes.Contacts) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
+                                popUpTo(0) { inclusive = true }
                                 launchSingleTop = true
-                                restoreState = true
                             }
                         }
 
                         BottomNavItem.Profile -> {
                             showAddMenu = false
                             navController.navigate(Routes.Profile) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
+                                popUpTo(0) { inclusive = true }
                                 launchSingleTop = true
-                                restoreState = true
                             }
                         }
                     }
-                })
-        }) { innerPadding ->
-            Box {
-                AppNavHost(
-                    navController = navController, modifier = Modifier.padding(innerPadding)
-                )
-                AddMenuOverlay(
-                    visible = showAddMenu,
-                    onDismiss = { showAddMenu = false },
-                    onActionSelected = { action ->
-                        showAddMenu = false
-                        when (action) {
-                            AddMenuItem.CreateContact -> navController.navigate(Routes.CreateContact)
-                            AddMenuItem.CreateRemind -> navController.navigate(Routes.CreateRemind)
-                            AddMenuItem.CreateConnection -> navController.navigate(Routes.CreateConnection)
+                }
+            )
+        }
+    ) { innerPadding ->
+        Box {
+            AppNavHost(
+                navController = navController,
+                modifier = Modifier.padding(innerPadding),
+                previousRoute = previousRoute,
+                onRouteChange = { previousRoute = it }
+            )
+
+            AddMenuOverlay(
+                visible = showAddMenu,
+                onDismiss = { showAddMenu = false },
+                onActionSelected = { action ->
+                    showAddMenu = false
+                    previousRoute = currentDestination?.route
+
+                    when (action) {
+                        AddMenuItem.CreateContact -> navController.navigate(Routes.CreateContact) {
+                            launchSingleTop = true
                         }
-                    },
-                    modifier = Modifier
-                )
-            }
+                        AddMenuItem.CreateRemind -> navController.navigate(Routes.CreateRemind) {
+                            launchSingleTop = true
+                        }
+                        AddMenuItem.CreateConnection -> navController.navigate(Routes.CreateConnection) {
+                            launchSingleTop = true
+                        }
+                    }
+                },
+                modifier = Modifier
+            )
+        }
     }
 }

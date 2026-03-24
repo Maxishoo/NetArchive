@@ -59,12 +59,14 @@ sealed class Routes{
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    modifier: Modifier
+    modifier: Modifier,
+    previousRoute: String? = null,
+    onRouteChange: (String?) -> Unit = {}
 ) {
     NavHost(
         navController = navController,
         startDestination = Routes.Contacts
-    ){
+    ) {
         composable<Routes.Contacts> {
             ContactListScreen(
                 onContactClick = { contact ->
@@ -72,22 +74,31 @@ fun AppNavHost(
                 }
             )
         }
+
         composable<Routes.Profile> {
-            Text("Profile", modifier = Modifier.padding(top=100.dp), fontSize = 40.sp)
+            Text("Profile", modifier = Modifier.padding(top = 100.dp), fontSize = 40.sp)
         }
+
         composable<Routes.CreateContact> {
             AddContactScreen(
                 onContactCreated = {
-                    navController.navigate(Routes.Contacts)
+                    navController.popBackStack()
+                    previousRoute?.let {
+                        if (!navController.popBackStack(it, false)) {
+                            navController.navigate(Routes.Contacts) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    } ?: navController.navigate(Routes.Contacts)
                 },
                 onBackClick = {
                     navController.popBackStack()
                 }
             )
         }
+
         composable<Routes.CreateNoteRoute> { backStackEntry ->
             val route = backStackEntry.toRoute<Routes.CreateNoteRoute>()
-
             CreateNoteScreen(
                 contactId = route.contactId,
                 contactName = route.contactName,
@@ -113,7 +124,8 @@ fun AppNavHost(
                             contactId = contact.id,
                             contactName = contact.username,
                             contactAvatar = contact.avatar,
-                            fromScreen = "select_contact")
+                            fromScreen = "select_contact"
+                        )
                     )
                 },
                 isSelectionMode = true
@@ -121,18 +133,17 @@ fun AppNavHost(
         }
 
         composable<Routes.CreateRemind> {
-            Text("CreateRemind", modifier = Modifier.padding(top=100.dp), fontSize = 40.sp)
+            Text("CreateRemind", modifier = Modifier.padding(top = 100.dp), fontSize = 40.sp)
         }
 
         composable<Routes.ContactDetail> { backStackEntry ->
-            val contactId = backStackEntry.arguments?.getInt("contactId") ?: 0
-            val selectedTab = backStackEntry.arguments?.getInt("selectedTab") ?: 0
+            val route = backStackEntry.toRoute<Routes.ContactDetail>()
             ContactViewScreen(
-                initialTab = selectedTab,
+                initialTab = route.selectedTab,
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onAddNoteClick = { id, name, contactAvatar, noteId, noteText, noteDate,fromScreen,tab ->
+                onAddNoteClick = { id, name, contactAvatar, noteId, noteText, noteDate, fromScreen, tab ->
                     navController.navigate(
                         Routes.CreateNoteRoute(
                             contactId = id,
@@ -148,6 +159,5 @@ fun AppNavHost(
                 }
             )
         }
-
     }
 }
