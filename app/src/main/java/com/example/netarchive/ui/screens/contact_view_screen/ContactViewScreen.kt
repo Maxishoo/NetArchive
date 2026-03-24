@@ -119,7 +119,7 @@ fun ContactViewScreen(
                     .padding(paddingValues)
             ) {
                 // Табы
-                TabRow(
+                PrimaryTabRow(
                     selectedTabIndex = selectedTab,
                     containerColor = MaterialTheme.colorScheme.surface,
                     contentColor = MaterialTheme.colorScheme.onSurface,
@@ -328,10 +328,9 @@ private fun ContactInfoTab(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.height(4.dp))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     selectedCategories.forEach { category ->
                         AssistChip(
@@ -344,11 +343,10 @@ private fun ContactInfoTab(
                                     MaterialTheme.colorScheme.secondaryContainer
                                 }
                             ),
-                            enabled = false
+                            enabled = true
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
             }
         }
 

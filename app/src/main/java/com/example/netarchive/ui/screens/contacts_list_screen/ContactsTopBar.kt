@@ -1,12 +1,9 @@
 package com.example.netarchive.ui.screens.contacts_list_screen
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
@@ -124,7 +121,10 @@ fun ContactsTopBar(
                                 item {
                                     FilterChip(
                                         selected = selectedCategoryId == null,
-                                        onClick = { onCategoryFilterSelected(null) },
+                                        onClick = {
+                                            onCategoryFilterSelected(null)
+                                            showSearchField = false
+                                                  },
                                         label = { Text("Все") },
                                         colors = FilterChipDefaults.filterChipColors(
                                             selectedContainerColor = MaterialTheme.colorScheme.primary,
@@ -136,7 +136,10 @@ fun ContactsTopBar(
                                 items(allCategories) { category ->
                                     FilterChip(
                                         selected = selectedCategoryId == category.id,
-                                        onClick = { onCategoryFilterSelected(category.id) },
+                                        onClick = {
+                                            onCategoryFilterSelected(category.id)
+                                            showSearchField = false
+                                                  },
                                         label = { Text(category.name) },
                                         leadingIcon = if (category.isDefault) {
                                             {
