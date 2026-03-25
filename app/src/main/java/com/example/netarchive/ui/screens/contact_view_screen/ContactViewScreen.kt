@@ -40,13 +40,15 @@ import com.example.netarchive.domain.model.Note
 import com.example.netarchive.ui.components.CategorySelector
 import com.example.netarchive.ui.components.cards.NoteCard
 import com.example.netarchive.ui.theme.NetArchiveTheme
+import com.example.netarchive.ui.navigation.NoteNavigationData
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactViewScreen(
     viewModel: ContactViewViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
-    onAddNoteClick: (Int, String, String?, Int, String, Long,String,Int) -> Unit = { _,_, _, _, _, _, _, _ -> },
+    onAddNoteClick: (NoteNavigationData) -> Unit = {},
     initialTab: Int = 0
 ) {
     val viewState by viewModel.viewState.collectAsState()
@@ -150,12 +152,6 @@ fun ContactViewScreen(
                         0 -> ContactInfoTab(
                             viewState = viewState,
                             viewModel = viewModel,
-                            showDeleteDialog = showDeleteDialog,
-                            onShowDeleteDialog = { showDeleteDialog = true },
-                            onDeleteContact = {
-                                showDeleteDialog = false
-                                viewModel.deleteContact(onBackClick)
-                            },
                             onAvatarClick = {
                                 if (viewState.isEditMode) {
                                     imagePickerLauncher.launch("image/*")
@@ -167,18 +163,26 @@ fun ContactViewScreen(
                             contactName = viewState.username,
                             isEditMode = isNotesEditMode,
                             onAddNoteClick = {
-                                onAddNoteClick(viewState.contactId, viewState.username, viewState.avatar, 0, "", 0L, "contact_view", selectedTab)
+                                onAddNoteClick(
+                                    NoteNavigationData.forNewNote(
+                                        contactId = viewState.contactId,
+                                        contactName = viewState.username,
+                                        contactAvatar = viewState.avatar,
+                                        source = "contact_view",
+                                        selectedTab = selectedTab
+                                    )
+                                )
                             },
                             onNoteClick = { note ->
                                 onAddNoteClick(
-                                    viewState.contactId,
-                                    viewState.username,
-                                    viewState.avatar,
-                                    note.id,
-                                    note.text,
-                                    note.date,
-                                    "contact_view",
-                                    selectedTab
+                                    NoteNavigationData.forEditNote(
+                                        contactId = viewState.contactId,
+                                        contactName = viewState.username,
+                                        contactAvatar = viewState.avatar,
+                                        note = note,
+                                        source = "contact_view",
+                                        selectedTab = selectedTab
+                                    )
                                 )
                             },
                             onDeleteNoteClick = { note ->
@@ -191,15 +195,21 @@ fun ContactViewScreen(
             }
         }
     }
+    LaunchedEffect(viewState.isContactDeleted) {
+        if (viewState.isContactDeleted) {
+            onBackClick()  // ← Возврат на список контактов
+            viewModel.clearDeleteFlag()  // ← Сброс флага
+        }
+    }
 
     LaunchedEffect(viewState.isSuccess) {
         if (viewState.isSuccess && !viewState.isEditMode) {
             viewModel.clearError()
         }
     }
-    if (showDeleteDialog) {
+    if (viewState.showDeleteDialog) {
         AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
+            onDismissRequest = { viewModel.hideDeleteDialog() },
             title = { Text("Удалить контакт?") },
             text = {
                 Column {
@@ -214,10 +224,7 @@ fun ContactViewScreen(
             },
             confirmButton = {
                 Button(
-                    onClick = {
-                        showDeleteDialog = false
-                        viewModel.deleteContact(onBackClick)
-                    },
+                    onClick = { viewModel.deleteContact() },  // ← вызов ViewModel
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error
                     )
@@ -226,7 +233,7 @@ fun ContactViewScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
+                TextButton(onClick = { viewModel.hideDeleteDialog() }) {  // ← вызов ViewModel
                     Text("Отмена")
                 }
             }
@@ -239,9 +246,6 @@ fun ContactViewScreen(
 private fun ContactInfoTab(
     viewState: ContactViewState,
     viewModel: ContactViewViewModel,
-    showDeleteDialog: Boolean,                    // <-- Добавь
-    onShowDeleteDialog: () -> Unit,               // <-- Добавь
-    onDeleteContact: () -> Unit,
     onAvatarClick: () -> Unit = {}
 ) {
     Column(
@@ -478,7 +482,7 @@ private fun ContactInfoTab(
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = onShowDeleteDialog,
+                onClick = { viewModel.showDeleteDialog() },  // ← Теперь через ViewModel
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error

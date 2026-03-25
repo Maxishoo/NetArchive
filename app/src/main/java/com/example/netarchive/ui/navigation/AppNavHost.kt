@@ -143,17 +143,17 @@ fun AppNavHost(
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onAddNoteClick = { id, name, contactAvatar, noteId, noteText, noteDate, fromScreen, tab ->
+                onAddNoteClick = { navigationData ->
                     navController.navigate(
                         Routes.CreateNoteRoute(
-                            contactId = id,
-                            contactName = name,
-                            contactAvatar = contactAvatar,
-                            noteId = noteId,
-                            noteText = noteText,
-                            noteDate = noteDate,
-                            fromScreen = fromScreen,
-                            returnTab = tab
+                            contactId = navigationData.contactId,
+                            contactName = navigationData.contactName,
+                            contactAvatar = navigationData.contactAvatar,
+                            noteId = navigationData.noteId,
+                            noteText = navigationData.noteText,
+                            noteDate = navigationData.noteDate,
+                            fromScreen = navigationData.source,
+                            returnTab = navigationData.selectedTab
                         )
                     )
                 }

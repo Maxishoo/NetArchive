@@ -118,10 +118,14 @@ fun CreateNoteScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Карточка контакта
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .clip(RoundedCornerShape(12.dp))
             ) {
                 Row(
                     modifier = Modifier
