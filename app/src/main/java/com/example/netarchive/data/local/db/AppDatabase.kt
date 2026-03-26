@@ -10,7 +10,7 @@ import com.example.netarchive.data.local.db.entity.ContactCategoryCrossRef
 import com.example.netarchive.data.local.db.entity.ContactEntity
 import com.example.netarchive.data.local.db.entity.NoteEntity
 
-@Database(entities = [(ContactEntity::class), (NoteEntity::class),(CategoryEntity::class),(ContactCategoryCrossRef::class)], version = 3, exportSchema = false)
+@Database(entities = [(ContactEntity::class), (NoteEntity::class),(CategoryEntity::class),(ContactCategoryCrossRef::class)], version = 4, exportSchema = false)
 abstract class AppDatabase: RoomDatabase(){
     abstract fun contactDao() : ContactDao
     abstract fun noteDao(): NoteDao

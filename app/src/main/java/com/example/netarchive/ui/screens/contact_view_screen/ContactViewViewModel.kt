@@ -242,10 +242,6 @@ class ContactViewViewModel @Inject constructor(
     fun setSelectedCategories(categories: List<CategoryEntity>) {
         viewModelScope.launch {
 
-            if (categories.isEmpty() && _selectedCategories.value.isNotEmpty()) {
-                return@launch
-            }
-
             _selectedCategories.value = categories.toList()
             _viewState.value = _viewState.value.copy(hasChanges = true)
         }
@@ -280,7 +276,7 @@ class ContactViewViewModel @Inject constructor(
                     categoryIds = _selectedCategories.value.map { it.id }
                 )
 
-                categoryRepository.deleteUnusedCustomCategories()
+                //categoryRepository.deleteUnusedCustomCategories()
 
                 val newState = state.copy(
                     isLoading = false,

@@ -65,7 +65,8 @@ class CategoryRepository @Inject constructor(
     }
 
     suspend fun deleteUnusedCustomCategories(): Int {
-        return categoryDao.deleteUnusedCustomCategories()
+        val deleted = categoryDao.deleteUnusedCustomCategories()
+        return deleted
     }
 
     suspend fun deleteCustomCategory(categoryId: Int) {
