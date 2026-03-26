@@ -26,126 +26,28 @@ fun AddContactScreen(
     onContactCreated: () -> Unit,
     onBackClick: () -> Unit
 ) {
-
-    val isLoading by viewModel.formState
-        .map { it.isLoading }
-        .collectAsState(initial = false)
-
-    val isSuccess by viewModel.formState
-        .map { it.isSuccess }
-        .collectAsState(initial = false)
-
-    val error by viewModel.formState
-        .map { it.error }
-        .collectAsState(initial = null)
-
-    val username by viewModel.formState
-        .map { it.username }
-        .collectAsState(initial = "")
-    val avatar by viewModel.formState
-        .map { it.avatar }
-        .collectAsState(initial = "")
-
+    val formState by viewModel.formState.collectAsStateWithLifecycle()
     val selectedCategories by viewModel.selectedCategories.collectAsStateWithLifecycle()
     val allCategories by viewModel.allCategories.collectAsStateWithLifecycle()
+    val imagePickerResult by viewModel.imagePickerResult.collectAsStateWithLifecycle()
+
+    // Деструктуризация стейта для удобной передачи в подфункции
+    val username = formState.username
+    val avatar = formState.avatar
+    val isLoading = formState.isLoading
+    val isSuccess = formState.isSuccess
+    val error = formState.error
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let {
-            viewModel.onAvatarChange(it)
-        }
+        viewModel.onImagePickerResult(uri)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Добавить контакт", style = MaterialTheme.typography.headlineLarge) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Text("X", style = MaterialTheme.typography.headlineLarge)
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            AvatarSelector(
-                avatarUri = avatar,
-                onClick = { imagePickerLauncher.launch("image/*") }
-            )
-            CategorySelector(
-                allCategories = allCategories,
-                selectedCategories = selectedCategories,
-                onCategoriesChanged = { categories ->
-                    viewModel.setSelectedCategories(categories)
-                },
-                onCreateCategory = { name ->
-                    viewModel.createCategory(name)
-                },
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-
-            UsernameField(viewModel = viewModel)
-            PhoneField(viewModel = viewModel)
-            EmailField(viewModel = viewModel)
-            TelegramField(viewModel = viewModel)
-            MaxField(viewModel = viewModel)
-            JobField(viewModel = viewModel)
-
-            error?.let { errorMessage ->
-                Text(
-                    text = errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp)
-                    .padding(bottom = 90.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(
-                    onClick = onBackClick,
-                    modifier = Modifier.weight(1f),
-                    enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Text("Отмена")
-                }
-
-                Button(
-                    onClick = { viewModel.saveContact() },
-                    modifier = Modifier.weight(1f),
-                    enabled = !isLoading && username.isNotBlank()
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    } else {
-                        Text("Сохранить")
-                    }
-                }
-            }
+    LaunchedEffect(imagePickerResult) {
+        imagePickerResult?.let { uri ->
+            viewModel.onAvatarChange(uri)
+            viewModel.clearImagePickerResult()
         }
     }
 
@@ -154,107 +56,247 @@ fun AddContactScreen(
             onContactCreated()
         }
     }
+
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(top = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ContactHeader(
+                title = "Добавить контакт",
+                onBackClick = onBackClick
+            )
+
+            AvatarSelector(
+                avatarUri = avatar,
+                onClick = { imagePickerLauncher.launch("image/*") }
+            )
+
+            CategorySelector(
+                allCategories = allCategories,
+                selectedCategories = selectedCategories,
+                onCategoriesChanged = viewModel::setSelectedCategories,
+                onCreateCategory = viewModel::createCategory,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            UsernameField(
+                value = username,
+                onValueChange = viewModel::onUsernameChange,
+                isError = error != null && username.isBlank()
+            )
+            PhoneField(
+                value = formState.phone,
+                onValueChange = viewModel::onPhoneChange
+            )
+            EmailField(
+                value = formState.email,
+                onValueChange = viewModel::onEmailChange
+            )
+            TelegramField(
+                value = formState.telegram,
+                onValueChange = viewModel::onTelegramChange
+            )
+            MaxField(
+                value = formState.max,
+                onValueChange = viewModel::onMaxChange
+            )
+            JobField(
+                value = formState.job,
+                onValueChange = viewModel::onJobChange
+            )
+
+            if (error != null) {
+                ErrorSection(errorMessage = error)
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            ContactActions(
+                isLoading = isLoading,
+                isUsernameFilled = username.isNotBlank(),
+                onBackClick = onBackClick,
+                onSaveClick = viewModel::saveContact
+            )
+        }
+    }
 }
 
 
 @Composable
-private fun UsernameField(viewModel: AddContactViewModel) {
-
-    val value by viewModel.formState
-        .map { it.username }
-        .collectAsState(initial = "")
-
-    val isError by viewModel.formState
-        .map { it.error != null && it.username.isBlank() }
-        .collectAsState(initial = false)
-
-    val supportingText = remember(isError) {
-        if (isError) "Обязательное поле" else null
+private fun ContactHeader(
+    title: String,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onBackClick) {
+            Text("X", style = MaterialTheme.typography.headlineLarge)
+        }
+        Text(text = title, style = MaterialTheme.typography.headlineLarge)
+        Spacer(modifier = Modifier.size(40.dp)) // Для центрирования заголовка
     }
+}
 
-    val onValueChange = remember { viewModel::onUsernameChange }
+@Composable
+private fun ErrorSection(
+    errorMessage: String,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = errorMessage,
+        color = MaterialTheme.colorScheme.error,
+        style = MaterialTheme.typography.bodySmall,
+        modifier = modifier.padding(vertical = 4.dp)
+    )
+}
+
+@Composable
+private fun ContactActions(
+    isLoading: Boolean,
+    isUsernameFilled: Boolean,
+    onBackClick: () -> Unit,
+    onSaveClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+            .padding(bottom = 120.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Button(
+            onClick = onBackClick,
+            modifier = Modifier.weight(1f),
+            enabled = !isLoading,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        ) {
+            Text("Отмена")
+        }
+
+        Button(
+            onClick = onSaveClick,
+            modifier = Modifier.weight(1f),
+            enabled = !isLoading && isUsernameFilled
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Text("Сохранить")
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun UsernameField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    isError: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val supportingText = if (isError) "Обязательное поле" else null
 
     FormTextField(
         value = value,
         onValueChange = onValueChange,
         label = "Имя *",
         isError = isError,
-        supportingText = supportingText
+        supportingText = supportingText,
+        modifier = modifier
     )
 }
 
 @Composable
-private fun PhoneField(viewModel: AddContactViewModel) {
-
-    val value by viewModel.formState
-        .map { it.phone }
-        .collectAsState(initial = "")
-
+private fun PhoneField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     FormTextField(
         value = value,
-        onValueChange = viewModel::onPhoneChange,
-        label = "Телефон"
+        onValueChange = onValueChange,
+        label = "Телефон",
+        modifier = modifier
     )
 }
 
 @Composable
-private fun EmailField(viewModel: AddContactViewModel) {
-
-    val value by viewModel.formState
-        .map { it.email }
-        .collectAsState(initial = "")
-
+private fun EmailField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     FormTextField(
         value = value,
-        onValueChange = viewModel::onEmailChange,
-        label = "Email"
+        onValueChange = onValueChange,
+        label = "Email",
+        modifier = modifier
     )
 }
 
 @Composable
-private fun TelegramField(viewModel: AddContactViewModel) {
-
-
-    val value by viewModel.formState
-        .map { it.telegram }
-        .collectAsState(initial = "")
-
+private fun TelegramField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     FormTextField(
         value = value,
-        onValueChange = viewModel::onTelegramChange,
-        label = "Telegram"
+        onValueChange = onValueChange,
+        label = "Telegram",
+        modifier = modifier
     )
 }
 
 @Composable
-private fun MaxField(viewModel: AddContactViewModel) {
-
-    val value by viewModel.formState
-        .map { it.max }
-        .collectAsState(initial = "")
-
+private fun MaxField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     FormTextField(
         value = value,
-        onValueChange = viewModel::onMaxChange,
-        label = "MAX"
+        onValueChange = onValueChange,
+        label = "MAX",
+        modifier = modifier
     )
 }
 
 @Composable
-private fun JobField(viewModel: AddContactViewModel) {
-
-
-    val value by viewModel.formState
-        .map { it.job }
-        .collectAsState(initial = "")
-
+private fun JobField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     FormTextField(
         value = value,
-        onValueChange = viewModel::onJobChange,
-        label = "Место работы"
+        onValueChange = onValueChange,
+        label = "Место работы",
+        modifier = modifier
     )
 }
-
 
 @Composable
 private fun FormTextField(
@@ -265,19 +307,14 @@ private fun FormTextField(
     isError: Boolean = false,
     supportingText: String? = null
 ) {
-    val labelContent = @Composable { Text(label) }
-    val supportingContent = supportingText?.let { text ->
-        @Composable { Text(text) }
-    }
-
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = labelContent,
+        label = { Text(label) },
         modifier = modifier.fillMaxWidth(),
         singleLine = true,
         isError = isError,
-        supportingText = supportingContent,
+        supportingText = supportingText?.let { { Text(it) } },
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = if (isError)
                 MaterialTheme.colorScheme.error

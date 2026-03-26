@@ -37,7 +37,10 @@ data class ContactViewState(
     val isEditMode: Boolean = false,
     val hasChanges: Boolean = false,
     val isSuccess: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val showDeleteDialog: Boolean = false,
+    val deleteContactId: Int = 0,
+    val isContactDeleted: Boolean = false
 )
 
 @HiltViewModel
@@ -89,10 +92,10 @@ class ContactViewViewModel @Inject constructor(
                         _selectedCategories.value = it.categories
                         originalState.value = _viewState.value.copy(isLoading = false)
                     } ?: run {
-                        _viewState.value = _viewState.value.copy(
-                            isLoading = false,
-                            error = "Контакт не найден"
-                        )
+                            _viewState.value = _viewState.value.copy(
+                                isLoading = false,
+                                error = "Контакт не найден"
+                            )
                     }
                 }
             } catch (e: Exception) {
@@ -239,10 +242,6 @@ class ContactViewViewModel @Inject constructor(
     fun setSelectedCategories(categories: List<CategoryEntity>) {
         viewModelScope.launch {
 
-            if (categories.isEmpty() && _selectedCategories.value.isNotEmpty()) {
-                return@launch
-            }
-
             _selectedCategories.value = categories.toList()
             _viewState.value = _viewState.value.copy(hasChanges = true)
         }
@@ -277,7 +276,7 @@ class ContactViewViewModel @Inject constructor(
                     categoryIds = _selectedCategories.value.map { it.id }
                 )
 
-                categoryRepository.deleteUnusedCustomCategories()
+                //categoryRepository.deleteUnusedCustomCategories()
 
                 val newState = state.copy(
                     isLoading = false,
@@ -304,13 +303,28 @@ class ContactViewViewModel @Inject constructor(
     fun clearError() {
         _viewState.value = _viewState.value.copy(error = null)
     }
-    fun deleteContact(onSuccess: () -> Unit) {
+
+    fun showDeleteDialog() {
+        _viewState.value = _viewState.value.copy(
+            showDeleteDialog = true,
+            deleteContactId = contactId
+        )
+    }
+
+    fun hideDeleteDialog() {
+        _viewState.value = _viewState.value.copy(showDeleteDialog = false)
+    }
+
+    fun deleteContact() {
         viewModelScope.launch {
-            _viewState.value = _viewState.value.copy(isLoading = true)
+            _viewState.value = _viewState.value.copy(
+                isLoading = true,
+                isContactDeleted = true
+            )
             try {
                 val currentState = _viewState.value
                 val contact = Contact(
-                    id = currentState.contactId,
+                    id = currentState.deleteContactId,
                     username = currentState.username,
                     phone = currentState.phone,
                     telegram = currentState.telegram,
@@ -321,10 +335,11 @@ class ContactViewViewModel @Inject constructor(
                 )
 
                 repository.deleteContact(contact)
+                hideDeleteDialog()
 
-
-                _viewState.value = _viewState.value.copy(isLoading = false)
-                onSuccess()
+                _viewState.value = _viewState.value.copy(
+                    isLoading = false,
+                )
             } catch (e: Exception) {
                 _viewState.value = _viewState.value.copy(
                     isLoading = false,
@@ -332,6 +347,9 @@ class ContactViewViewModel @Inject constructor(
                 )
             }
         }
+    }
+    fun clearDeleteFlag() {
+        _viewState.value = _viewState.value.copy(isContactDeleted = false)
     }
 
 }

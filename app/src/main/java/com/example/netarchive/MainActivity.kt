@@ -42,6 +42,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         databaseInitializer.initializeIfNeeded()
+        databaseInitializer.cleanupUnusedCategories()
 
         setContent {
             NetArchiveTheme {

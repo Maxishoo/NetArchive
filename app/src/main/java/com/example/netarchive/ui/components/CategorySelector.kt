@@ -45,9 +45,7 @@ fun CategorySelector(
                 AssistChip(
                     onClick = {
                         val newList = selectedCategories - category
-                        if (newList.isNotEmpty() || selectedCategories.size > 1) {
-                            onCategoriesChanged(newList)
-                        }
+                        onCategoriesChanged(newList)
                     },
                     label = {
                         Text(
