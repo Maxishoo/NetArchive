@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -51,7 +52,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,21 +77,7 @@ fun ProfileViewScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Профиль") },
-                actions = {
-                    if (viewState.isEditMode) {
-                        IconButton(
-                            onClick = viewModel::saveProfile,
-                            enabled = viewState.username.isNotBlank()
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Save,
-                                contentDescription = "Сохранить"
-                            )
-                        }
-                    }
-
-                    // Кнопка редактирования
-                    else if (viewState.isProfileCreated) {
+                actions = {if (viewState.isProfileCreated) {
                         IconButton(onClick = viewModel::enableEditMode) {
                             Icon(
                                 imageVector = Icons.Filled.Edit,
@@ -199,6 +185,7 @@ private fun ProfileInfo(
             .padding(bottom = 80.dp, top = 100.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // === Аватар ===
         Box(
             modifier = Modifier
                 .size(100.dp)
@@ -219,7 +206,6 @@ private fun ProfileInfo(
                 contentAlignment = Alignment.Center
             ) {
                 if (viewState.avatar.isNotBlank()) {
-                    val avatarFile = File(viewState.avatar)
                     AsyncImage(
                         model = ImageRequest.Builder(context)
                             .data(viewState.avatar)
@@ -238,7 +224,6 @@ private fun ProfileInfo(
                     )
                 }
             }
-
             if (viewState.isEditMode) {
                 Icon(
                     imageVector = Icons.Default.AddPhotoAlternate,
@@ -254,6 +239,7 @@ private fun ProfileInfo(
             }
         }
 
+        // === Поля ввода ===
         OutlinedTextField(
             value = viewState.username,
             onValueChange = viewModel::onUsernameChange,
@@ -263,7 +249,6 @@ private fun ProfileInfo(
             singleLine = true,
             colors = profileTextFieldColors()
         )
-
         OutlinedTextField(
             value = viewState.phone,
             onValueChange = viewModel::onPhoneChange,
@@ -273,7 +258,6 @@ private fun ProfileInfo(
             singleLine = true,
             colors = profileTextFieldColors()
         )
-
         OutlinedTextField(
             value = viewState.email,
             onValueChange = viewModel::onEmailChange,
@@ -283,7 +267,6 @@ private fun ProfileInfo(
             singleLine = true,
             colors = profileTextFieldColors()
         )
-
         OutlinedTextField(
             value = viewState.telegram,
             onValueChange = viewModel::onTelegramChange,
@@ -293,7 +276,6 @@ private fun ProfileInfo(
             singleLine = true,
             colors = profileTextFieldColors()
         )
-
         OutlinedTextField(
             value = viewState.max,
             onValueChange = viewModel::onMaxChange,
@@ -303,7 +285,6 @@ private fun ProfileInfo(
             singleLine = true,
             colors = profileTextFieldColors()
         )
-
         OutlinedTextField(
             value = viewState.job,
             onValueChange = viewModel::onJobChange,
@@ -314,6 +295,34 @@ private fun ProfileInfo(
             colors = profileTextFieldColors()
         )
 
+        // === ✅ КНОПКА В КОНЦЕ СПИСКА ===
+        Spacer(modifier = Modifier.height(24.dp))
+
+        if (viewState.isEditMode) {
+            Button(
+                onClick = viewModel::saveProfile,
+                enabled = viewState.username.isNotBlank() && viewState.hasChanges && !viewState.isLoading,
+                modifier = Modifier.fillMaxWidth(),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = if (viewState.hasChanges && viewState.username.isNotBlank())
+                        Color(0xFF4D5D8A)  // Синий при активности
+                    else
+                        Color.Gray.copy(alpha = 0.3f), // Серый при неактивности
+                    disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Save,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Сохранить",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+        }
     }
 }
 

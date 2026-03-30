@@ -1,6 +1,5 @@
 package com.example.netarchive.ui.screens.add_contact_screen
 
-import android.util.Log
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,7 +18,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.netarchive.ui.components.CategorySelector
 import com.example.netarchive.ui.theme.NetArchiveTheme
-import kotlinx.coroutines.flow.map
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,17 +55,6 @@ fun AddContactScreen(
         if (isSuccess) {
             onContactCreated()
         }
-    }
-    Box(
-        modifier = Modifier
-        .fillMaxWidth()
-        .background(color = Color(0xFFECEBF4).copy(alpha = 0.95f))
-        .padding(top = 30.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
-    ){
-        ContactHeader(
-            title = "Добавить контакт",
-            onBackClick = onBackClick
-        )
     }
     Column(
         modifier = Modifier
@@ -128,6 +115,17 @@ fun AddContactScreen(
             isUsernameFilled = username.isNotBlank(),
             onBackClick = onBackClick,
             onSaveClick = viewModel::saveContact
+        )
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = Color(0xFFECEBF4).copy(alpha = 0.95f))
+            .padding(top = 30.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
+    ){
+        ContactHeader(
+            title = "Добавить контакт",
+            onBackClick = onBackClick
         )
     }
 }

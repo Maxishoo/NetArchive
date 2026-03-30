@@ -18,7 +18,7 @@ fun ProfileEntity.toDomain(): Profile {
 
 fun Profile.toEntity(): ProfileEntity {
     return ProfileEntity(
-        id = 0,
+        id = 1,
         username = this.username,
         phone = this.phone,
         telegram = this.telegram,

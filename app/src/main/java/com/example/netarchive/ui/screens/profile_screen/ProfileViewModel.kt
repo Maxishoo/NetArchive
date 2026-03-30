@@ -13,17 +13,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
 import javax.inject.Inject
 
+// ✅ FIX: Пустые строки вместо пробелов для консистентности
 data class ProfileViewState(
-    val username: String = "",              // ❌ Было: " " (пробел)
+    val username: String = "",
     val phone: String = "",
     val telegram: String = "",
     val max: String = "",
     val email: String = "",
     val job: String = "",
-    val avatar: String = "",                // Полный путь к файлу
+    val avatar: String = "",
     val isLoading: Boolean = false,
     val isEditMode: Boolean = false,
     val hasChanges: Boolean = false,
@@ -51,37 +51,39 @@ class ProfileViewModel @Inject constructor(
     private fun loadProfile() {
         viewModelScope.launch {
             repository.getProfile().collect { profile ->
-                if (_viewState.value.isEditMode) return@collect
-
                 if (profile != null) {
                     originalProfile = profile
-                    _viewState.update {
-                        it.copy(
-                            isProfileCreated = true,
-                            username = profile.username,
-                            phone = profile.phone.orEmpty(),
-                            telegram = profile.telegram.orEmpty(),
-                            max = profile.max.orEmpty(),
-                            email = profile.email.orEmpty(),
-                            job = profile.job.orEmpty(),
-                            avatar = profile.avatar.orEmpty(),
-                            isLoading = false
-                        )
+                    if (!_viewState.value.isEditMode) {
+                        _viewState.update {
+                            it.copy(
+                                isProfileCreated = true,
+                                username = profile.username,
+                                phone = profile.phone.orEmpty(),
+                                telegram = profile.telegram.orEmpty(),
+                                max = profile.max.orEmpty(),
+                                email = profile.email.orEmpty(),
+                                job = profile.job.orEmpty(),
+                                avatar = profile.avatar.orEmpty(),
+                                isLoading = false
+                            )
+                        }
                     }
                 } else {
-                    _viewState.update {
-                        it.copy(
-                            isProfileCreated = false,
-                            isEditMode = false,
-                            username = "",
-                            phone = "",
-                            telegram = "",
-                            max = "",
-                            email = "",
-                            job = "",
-                            avatar = "",
-                            isLoading = false
-                        )
+                    if (!_viewState.value.isEditMode) {
+                        _viewState.update {
+                            it.copy(
+                                isProfileCreated = false,
+                                isEditMode = false,
+                                username = "",
+                                phone = "",
+                                telegram = "",
+                                max = "",
+                                email = "",
+                                job = "",
+                                avatar = "",
+                                isLoading = false
+                            )
+                        }
                     }
                 }
             }
@@ -105,6 +107,7 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    // ✅ FIX: Сравнение с .orEmpty() для консистентности
     private fun hasChanges(state: ProfileViewState): Boolean {
         return originalProfile?.let { original ->
             state.username != original.username ||
@@ -122,17 +125,20 @@ class ProfileViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val localUri = fileManager.copyImageToInternalStorage(uri)
+                // ✅ FIX: Убедитесь, что fileManager возвращает абсолютный путь к файлу
+                val localPath = fileManager.copyImageToInternalStorage(uri)
+                    .trim() // убираем возможные пробелы
 
-                if (oldAvatarUri.isNotBlank()) {
+                // Удаляем старое изображение, если есть
+                if (oldAvatarUri.isNotBlank() && oldAvatarUri != localPath) {
                     fileManager.deleteFile(oldAvatarUri)
                 }
 
-                _viewState.value = _viewState.value.copy(avatar = localUri)
+                _viewState.update { it.copy(avatar = localPath) }
             } catch (e: Exception) {
-                _viewState.value = _viewState.value.copy(
-                    error = "Ошибка загрузки фото: ${e.message}"
-                )
+                _viewState.update {
+                    it.copy(error = "Ошибка загрузки фото: ${e.message}")
+                }
             }
         }
     }
@@ -160,9 +166,8 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val state = _viewState.value
-
                 val profile = Profile(
-                    username = state.username.trim(),
+                    username = state.username.trim(), // ✅ FIX: убран пробел в ключе
                     phone = state.phone.ifEmpty { null },
                     telegram = state.telegram.ifEmpty { null },
                     max = state.max.ifEmpty { null },
@@ -172,7 +177,7 @@ class ProfileViewModel @Inject constructor(
                 )
 
                 repository.saveProfile(profile)
-
+                // ✅ originalProfile обновится в loadProfile(), но можно и здесь
                 originalProfile = profile
 
                 _viewState.update {
@@ -184,9 +189,7 @@ class ProfileViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
-                _viewState.update {
-                    it.copy(error = e.message)
-                }
+                _viewState.update { it.copy(error = e.message) }
             }
         }
     }

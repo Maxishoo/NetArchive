@@ -28,6 +28,7 @@ import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -90,7 +91,7 @@ fun BottomNavBar(
     NavigationBar(
         modifier = modifier,
         windowInsets = NavigationBarDefaults.windowInsets,
-        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+        containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f),
     ) {
         BottomNavItem.entries.forEachIndexed { index, tab ->
             NavigationBarItem(
@@ -108,74 +109,6 @@ fun BottomNavBar(
         }
     }
 }
-
-//@Composable
-//fun BottomNavBar(
-//    navController: NavHostController
-//) {
-//    var showAddMenu by remember { mutableStateOf(false) }
-//    var selectedTab by remember { mutableStateOf(BottomNavItem.entries[0]) }
-//
-//    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-//        if (showAddMenu) {
-//            Column(
-//                modifier = Modifier.padding(bottom = 25.dp),
-//                horizontalAlignment = Alignment.CenterHorizontally,
-//                verticalArrangement = Arrangement.spacedBy(20.dp)
-//            ) {
-//                AddMenuItem.entries.forEachIndexed { index, item ->
-//                    AddButtonItem(
-//                        item.label
-//                    ) {
-//                        showAddMenu = false
-//                        selectedTab = BottomNavItem.Add
-//                        navController.navigate(item.route){
-//                            launchSingleTop = true
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//
-//        NavigationBar(containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f)) {
-//            BottomNavItem.entries.forEachIndexed { index, item ->
-//                if (item.isPlusButton) {
-//                    NavigationBarItem(
-//                        selected = (selectedTab == item),
-//                        onClick = { showAddMenu = !showAddMenu },
-//                        icon = {
-//                            Icon(
-//                                imageVector = item.icon,
-//                                contentDescription = item.label,
-//                                modifier = Modifier.size(32.dp)
-//                            )
-//                        }
-//                    )
-//                } else {
-//                    NavigationBarItem(
-//                        icon = {
-//                            Icon(
-//                                imageVector = item.icon,
-//                                contentDescription = item.label,
-//                                modifier = Modifier.size(32.dp)
-//                            )
-//                        },
-//                        selected = (selectedTab == item),
-//                        onClick = {
-//                            if (selectedTab != item) {
-//                                navController.navigate(item.route){
-//                                    launchSingleTop = true
-//                                }
-//                                showAddMenu = false
-//                                selectedTab = item
-//                            }
-//                        }
-//                    )
-//                }
-//            }
-//        }
-//    }
-//}
 
 @Composable
 fun AddMenuOverlay(
