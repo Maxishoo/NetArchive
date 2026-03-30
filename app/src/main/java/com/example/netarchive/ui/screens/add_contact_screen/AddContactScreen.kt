@@ -4,6 +4,7 @@ import android.util.Log
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -11,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -56,76 +58,77 @@ fun AddContactScreen(
             onContactCreated()
         }
     }
-
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+        .fillMaxWidth()
+        .background(color = Color(0xFFECEBF4).copy(alpha = 0.95f))
+        .padding(top = 30.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
+    ){
+        ContactHeader(
+            title = "Добавить контакт",
+            onBackClick = onBackClick
+        )
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(top = 90.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
-                .padding(top = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            ContactHeader(
-                title = "Добавить контакт",
-                onBackClick = onBackClick
-            )
+        AvatarSelector(
+            avatarUri = avatar,
+            onClick = { imagePickerLauncher.launch("image/*") }
+        )
 
-            AvatarSelector(
-                avatarUri = avatar,
-                onClick = { imagePickerLauncher.launch("image/*") }
-            )
+        CategorySelector(
+            allCategories = allCategories,
+            selectedCategories = selectedCategories,
+            onCategoriesChanged = viewModel::setSelectedCategories,
+            onCreateCategory = viewModel::createCategory,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
 
-            CategorySelector(
-                allCategories = allCategories,
-                selectedCategories = selectedCategories,
-                onCategoriesChanged = viewModel::setSelectedCategories,
-                onCreateCategory = viewModel::createCategory,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
+        UsernameField(
+            value = username,
+            onValueChange = viewModel::onUsernameChange,
+            isError = error != null && username.isBlank()
+        )
+        PhoneField(
+            value = formState.phone,
+            onValueChange = viewModel::onPhoneChange
+        )
+        EmailField(
+            value = formState.email,
+            onValueChange = viewModel::onEmailChange
+        )
+        TelegramField(
+            value = formState.telegram,
+            onValueChange = viewModel::onTelegramChange
+        )
+        MaxField(
+            value = formState.max,
+            onValueChange = viewModel::onMaxChange
+        )
+        JobField(
+            value = formState.job,
+            onValueChange = viewModel::onJobChange
+        )
 
-            UsernameField(
-                value = username,
-                onValueChange = viewModel::onUsernameChange,
-                isError = error != null && username.isBlank()
-            )
-            PhoneField(
-                value = formState.phone,
-                onValueChange = viewModel::onPhoneChange
-            )
-            EmailField(
-                value = formState.email,
-                onValueChange = viewModel::onEmailChange
-            )
-            TelegramField(
-                value = formState.telegram,
-                onValueChange = viewModel::onTelegramChange
-            )
-            MaxField(
-                value = formState.max,
-                onValueChange = viewModel::onMaxChange
-            )
-            JobField(
-                value = formState.job,
-                onValueChange = viewModel::onJobChange
-            )
-
-            if (error != null) {
-                ErrorSection(errorMessage = error)
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            ContactActions(
-                isLoading = isLoading,
-                isUsernameFilled = username.isNotBlank(),
-                onBackClick = onBackClick,
-                onSaveClick = viewModel::saveContact
-            )
+        if (error != null) {
+            ErrorSection(errorMessage = error)
         }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        ContactActions(
+            isLoading = isLoading,
+            isUsernameFilled = username.isNotBlank(),
+            onBackClick = onBackClick,
+            onSaveClick = viewModel::saveContact
+        )
     }
 }
 
@@ -136,19 +139,11 @@ private fun ContactHeader(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onBackClick) {
-            Text("X", style = MaterialTheme.typography.headlineLarge)
-        }
-        Text(text = title, style = MaterialTheme.typography.headlineLarge)
-        Spacer(modifier = Modifier.size(40.dp)) // Для центрирования заголовка
-    }
+    Text(
+        text = "Добавить контакт",
+        style = MaterialTheme.typography.headlineLarge,
+        color = Color.Black
+    )
 }
 
 @Composable
