@@ -202,7 +202,6 @@ fun CreateNoteScreen(
                 )
             )
 
-// DatePicker Dialog
             if (showDatePicker) {
                 ShowDatePickerDialog(
                     initialDate = state.date,
@@ -231,7 +230,7 @@ fun CreateNoteScreen(
 
             // Кнопки
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(

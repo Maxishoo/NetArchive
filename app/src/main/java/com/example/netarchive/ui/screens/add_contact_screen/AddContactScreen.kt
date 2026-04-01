@@ -1,23 +1,26 @@
 package com.example.netarchive.ui.screens.add_contact_screen
 
-import android.util.Log
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.netarchive.ui.components.CategorySelector
+import com.example.netarchive.ui.components.QrScannerDialog
 import com.example.netarchive.ui.theme.NetArchiveTheme
-import kotlinx.coroutines.flow.map
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,24 +59,25 @@ fun AddContactScreen(
             onContactCreated()
         }
     }
-
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    if (formState.isQrImport) {
+        QrScannerDialog(
+            onQrUrlChange = { scannedData ->
+                viewModel.onQrUrlChange(scannedData)
+            },
+            onCloseClick = {
+                viewModel.closeQrImport()
+            }
+        )
+    } else {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
-                .padding(top = 16.dp),
+                .padding(top = 90.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ContactHeader(
-                title = "Добавить контакт",
-                onBackClick = onBackClick
-            )
-
             AvatarSelector(
                 avatarUri = avatar,
                 onClick = { imagePickerLauncher.launch("image/*") }
@@ -123,7 +127,19 @@ fun AddContactScreen(
                 isLoading = isLoading,
                 isUsernameFilled = username.isNotBlank(),
                 onBackClick = onBackClick,
-                onSaveClick = viewModel::saveContact
+                onSaveClick = viewModel::saveContact,
+                onQrAddClick = viewModel::openQrImport
+            )
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(color = Color(0xFFECEBF4).copy(alpha = 0.95f))
+                .padding(top = 30.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
+        ) {
+            ContactHeader(
+                title = "Добавить контакт",
+                onBackClick = onBackClick
             )
         }
     }
@@ -136,19 +152,11 @@ private fun ContactHeader(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onBackClick) {
-            Text("X", style = MaterialTheme.typography.headlineLarge)
-        }
-        Text(text = title, style = MaterialTheme.typography.headlineLarge)
-        Spacer(modifier = Modifier.size(40.dp)) // Для центрирования заголовка
-    }
+    Text(
+        text = "Добавить контакт",
+        style = MaterialTheme.typography.headlineLarge,
+        color = Color.Black
+    )
 }
 
 @Composable
@@ -170,8 +178,24 @@ private fun ContactActions(
     isUsernameFilled: Boolean,
     onBackClick: () -> Unit,
     onSaveClick: () -> Unit,
+    onQrAddClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    Button(
+        onClick = onQrAddClick,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Icon(
+            imageVector = Icons.Filled.QrCode,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = "По QR коду",
+            style = MaterialTheme.typography.labelLarge
+        )
+    }
     Row(
         modifier = modifier
             .fillMaxWidth()

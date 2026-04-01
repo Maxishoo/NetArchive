@@ -15,6 +15,7 @@ import com.example.netarchive.ui.screens.add_contact_screen.AddContactScreen
 import com.example.netarchive.ui.screens.contacts_list_screen.ContactListScreen
 import com.example.netarchive.ui.screens.contact_view_screen.ContactViewScreen
 import com.example.netarchive.ui.screens.add_note_screen.CreateNoteScreen
+import com.example.netarchive.ui.screens.profile_screen.ProfileViewScreen
 
 @Serializable
 sealed class Routes{
@@ -76,7 +77,7 @@ fun AppNavHost(
         }
 
         composable<Routes.Profile> {
-            Text("Profile", modifier = Modifier.padding(top = 100.dp), fontSize = 40.sp)
+            ProfileViewScreen()
         }
 
         composable<Routes.CreateContact> {
