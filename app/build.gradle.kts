@@ -7,7 +7,6 @@ plugins {
     id("com.google.dagger.hilt.android")
     kotlin("plugin.serialization") version "2.0.21"
 }
-
 android {
     namespace = "com.example.netarchive"
     compileSdk = 36
@@ -20,6 +19,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        val yandexToken = providers.gradleProperty("YANDEX_IAM_TOKEN").orNull ?: ""
+        val yandexFolder = providers.gradleProperty("YANDEX_FOLDER_ID").orNull ?: ""
+
+        buildConfigField("String", "YANDEX_IAM_TOKEN", "\"$yandexToken\"")
+        buildConfigField("String", "YANDEX_FOLDER_ID", "\"$yandexFolder\"")
+        buildConfigField("String", "TEST_VALUE", "\"Hello World\"")
     }
 
     buildTypes {
@@ -42,6 +47,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     kotlinOptions {
         freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
@@ -88,4 +94,16 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    // Retrofit core
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+
+// OkHttp
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+// Kotlinx Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+// ВАЖНО: Правильная версия конвертера!
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
 }

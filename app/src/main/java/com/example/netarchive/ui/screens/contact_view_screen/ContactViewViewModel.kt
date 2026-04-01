@@ -1,5 +1,7 @@
 package com.example.netarchive.ui.screens.contact_view_screen
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -22,6 +24,15 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import com.example.netarchive.BuildConfig
+import com.example.netarchive.data.remote.ai.model.AiFeatureConfig
+import com.example.netarchive.data.remote.ai.model.RetrofitClient
+import com.example.netarchive.data.remote.ai.model.CompletionOptions
+import com.example.netarchive.data.remote.ai.model.Message as AiMessage
+import com.example.netarchive.data.remote.ai.model.YandexGptRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 data class ContactViewState(
     val contactId: Int = 0,
@@ -68,6 +79,151 @@ class ContactViewViewModel @Inject constructor(
     init {
         loadContact()
         loadNotes()
+    }
+
+    private val _aiState = MutableStateFlow<AiState>(AiState.Idle)
+    val aiState: StateFlow<AiState> = _aiState.asStateFlow()
+
+    // === AI METHOD ===
+    fun generateConversationStarter() {
+        viewModelScope.launch {
+            if (!AiFeatureConfig.IS_AI_ENABLED) {
+                _aiState.value = AiState.Disabled
+                return@launch
+            }
+
+            _aiState.value = AiState.Loading
+
+            val state = _viewState.value
+
+            // Собираем контекст из контакта и заметок
+            val contextText = buildString {
+                append("Контакт: ${state.username}\n")
+                if (state.job.isNotBlank()) append("Работа: ${state.job}\n")
+
+                if (state.notes.isNotEmpty()) {
+                    append("\nПоследние заметки:\n")
+                    state.notes.take(5).forEachIndexed { index, note ->
+                        val noteText = if (note.text.length > 200) {
+                            note.text.take(200) + "..."
+                        } else {
+                            note.text
+                        }
+                        append("${index + 1}. $noteText\n")
+                    }
+                }
+
+                if (_selectedCategories.value.isNotEmpty()) {
+                    append("\nКатегории: ${_selectedCategories.value.joinToString { it.name }}")
+                }
+            }
+
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitClient.yandexGptApi.generateCompletion(
+                        iamToken = "Bearer ${BuildConfig.YANDEX_IAM_TOKEN}",
+                        folderId = BuildConfig.YANDEX_FOLDER_ID,
+
+                        request = YandexGptRequest(
+                            //modelUri = "gpt://${BuildConfig.YANDEX_FOLDER_ID}/yandexgpt-lite/latest",
+                            // или для полной версии:
+                             modelUri = "gpt://${BuildConfig.YANDEX_FOLDER_ID}/yandexgpt/latest",
+
+                            completionOptions = CompletionOptions(
+                                stream = false,
+                                temperature = 0.7f,
+                                maxTokens = "1000"
+                            ),
+                            messages = listOf(
+                                AiMessage(
+                                    role = "system",
+                                    text = """
+                                    Ты — помощник по нетворкингу. Помогаешь пользователю поддержать связь с контактами.
+    
+                                     ЗАДАЧА:
+                                    Предложи 3 варианта сообщения для мессенджера (Telegram/WhatsApp).
+                                    Длина: 1-3 предложения, естественно для переписки.
+                                    
+                                     ТОН ПО КАТЕГОРИЯМ:
+                                    - "Друг", "Знакомый" → Тёплый, дружеский, можно смайлики 
+                                    - "Коллега" → Дружелюбный, рабочий, без излишней формальности
+                                    - "Инвестор", "Партнёр", "Клиент" → Вежливый, уважительный, но не сухой
+                                    - Нет категорий → Нейтрально-дружелюбный
+                                    
+                                     РАБОТА С ЗАМЕТКАМИ:
+                                     - Если в заметке описано СОБЫТИЕ (встретились, сходили, обсудили) →
+                                      Ссылайся на него уверенно: "Было здорово на рыбалке!",
+                                    - НЕ используй "нашу/наше", если из заметки не ясно, что вы были ВМЕСТЕ
+                                    - Если заметка про ЕГО событие (рассказал про, съездил, был) →
+                                      Спроси с интересом: "Как твоя рыбалка? Удачно?", "Как съездил?"
+                                    - Если заметка о БУДУЩЕМ (договорились, планируем) → 
+                                      Спроси о статусе: "Как продвижение по тому вопросу?"
+                                    - Если заметок много (3+) → Опирайся на последние 1-2, не перечисляй всё
+                                    - Если заметок нет → Просто тёплое приветствие без выдумок
+                                    
+                                     ВАЖНО:
+                                    - НЕ выдумывай темы, которых нет в данных (проекты, встречи, сроки)
+                                    - НЕ пиши канцелярит ("Уважаемый", "Прошу сообщить") — это мессенджер!
+                                    - НЕ спрашивай "Как дела?" в лоб — привяжи к контексту
+                                    
+                                     ФОРМАТ:
+                                    - 3 варианта, каждый с новой строки с тире
+                                    - Без пояснений, только готовые сообщения
+                                """.trimIndent()
+                                ),
+                                AiMessage(
+                                    role = "user",
+                                    text = contextText
+                                )
+                            )
+                        )
+                    )
+                }
+
+                // Парсим ответ: нейронка вернёт текст вида "- Вариант 1\n- Вариант 2..."
+                val rawText = response.result?.alternatives?.firstOrNull()?.message?.text ?: ""
+                val suggestions = rawText
+                    .split("\n")
+                    .map { it.trim().removePrefix("-").removePrefix("•").trim() }
+                    .filter { it.isNotBlank() }
+                    .take(3)
+
+                if (suggestions.isNotEmpty()) {
+                    _aiState.value = AiState.Success(suggestions)
+                } else {
+                    _aiState.value = AiState.Error("Не удалось сгенерировать подсказки")
+                }
+
+            } catch (e: Exception) {
+                _aiState.value = AiState.Error("Ошибка AI: ${e.message ?: "Неизвестная ошибка"}")
+            }
+        }
+    }
+    fun copySuggestion(index: Int) {
+        val suggestions = when(val state = _aiState.value) {
+            is AiState.Success -> state.suggestions
+            else -> return
+        }
+
+        if (index in suggestions.indices) {
+            // Обновляем состояние, чтобы подсветить скопированный вариант
+            _aiState.value = AiState.Success(suggestions, copiedIndex = index)
+
+            // Копируем в буфер
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("ai_suggestion_${index}", suggestions[index])
+            clipboard.setPrimaryClip(clip)
+
+            // Возвращаем состояние в норму через 2 секунды (чтобы подсветка пропала)
+            viewModelScope.launch {
+                delay(2000)
+                _aiState.value = AiState.Success(suggestions, copiedIndex = null)
+            }
+        }
+    }
+
+    fun resetAiState() {
+        _aiState.value = AiState.Idle
     }
 
     private fun loadContact() {
