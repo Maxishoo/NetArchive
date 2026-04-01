@@ -20,10 +20,7 @@ import androidx.room.PrimaryKey
 data class NoteEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-
     val contactId: Int,
-
     val text: String,
-
     val date: Long = System.currentTimeMillis()
 )
