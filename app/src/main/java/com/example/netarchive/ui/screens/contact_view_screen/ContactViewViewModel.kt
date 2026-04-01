@@ -1,6 +1,7 @@
 package com.example.netarchive.ui.screens.contact_view_screen
 
 import android.content.Context
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,11 +18,11 @@ import javax.inject.Inject
 import com.example.netarchive.data.repository.NoteRepository
 import com.example.netarchive.domain.model.Note
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import dagger.hilt.android.qualifiers.ApplicationContext
+import qrgenerator.generateQrCode
 import java.io.File
+import java.net.URLEncoder
 
 data class ContactViewState(
     val contactId: Int = 0,
@@ -40,7 +41,11 @@ data class ContactViewState(
     val error: String? = null,
     val showDeleteDialog: Boolean = false,
     val deleteContactId: Int = 0,
-    val isContactDeleted: Boolean = false
+    val isContactDeleted: Boolean = false,
+
+    val showQrDialog: Boolean = false,
+    val qrGenerating: Boolean = false,
+    val qrBitmap:  ImageBitmap? = null
 )
 
 @HiltViewModel
@@ -350,6 +355,43 @@ class ContactViewViewModel @Inject constructor(
     }
     fun clearDeleteFlag() {
         _viewState.value = _viewState.value.copy(isContactDeleted = false)
+    }
+
+    fun openQr() {
+        _viewState.value = _viewState.value.copy(showQrDialog = true)
+
+
+        _viewState.value = _viewState.value.copy(qrGenerating = true)
+        try {
+            val rawData = buildString {
+                append("u=${_viewState.value.username.trim()}")
+                if (_viewState.value.phone.isNotBlank()) append(";p=${_viewState.value.phone}")
+                if (_viewState.value.email.isNotBlank()) append(";e=${_viewState.value.email}")
+                if (_viewState.value.telegram.isNotBlank()) append(";t=${_viewState.value.telegram}")
+                if (_viewState.value.max.isNotBlank()) append(";m=${_viewState.value.max}")
+                if (_viewState.value.job.isNotBlank()) append(";j=${_viewState.value.job}")
+            }
+            val encodedData = URLEncoder.encode(rawData, "UTF-8")
+            generateQrCode(
+                url = encodedData,
+                onSuccess = { info, qrCode ->
+                    _viewState.value = _viewState.value.copy(
+                        qrGenerating = false,
+                        qrBitmap = qrCode
+                    )
+                },
+                onFailure = {
+                    _viewState.value = _viewState.value.copy(qrGenerating = false)
+                },
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _viewState.value = _viewState.value.copy(qrGenerating = false)
+        }
+    }
+
+    fun closeQr(){
+        _viewState.value = _viewState.value.copy(showQrDialog = false)
     }
 
 }

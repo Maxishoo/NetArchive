@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.netarchive.ui.components.CategorySelector
+import com.example.netarchive.ui.components.QrScannerDialog
 import com.example.netarchive.ui.theme.NetArchiveTheme
 
 @OptIn(ExperimentalMaterial3Api::class)

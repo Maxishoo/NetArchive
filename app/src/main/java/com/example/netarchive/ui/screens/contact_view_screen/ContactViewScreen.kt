@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -30,7 +31,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.netarchive.domain.model.Note
 import com.example.netarchive.ui.components.CategorySelector
+import com.example.netarchive.ui.components.QrDialog
 import com.example.netarchive.ui.components.cards.NoteCard
 import com.example.netarchive.ui.theme.NetArchiveTheme
 import com.example.netarchive.ui.navigation.NoteNavigationData
@@ -52,7 +53,7 @@ fun ContactViewScreen(
     initialTab: Int = 0
 ) {
     val viewState by viewModel.viewState.collectAsState()
-    var selectedTab by rememberSaveable  { mutableIntStateOf(initialTab) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(initialTab) }
     val tabs = listOf("Информация", "Заметки")
     val contactId = viewState.contactId
     val contactName = viewState.username
@@ -72,35 +73,20 @@ fun ContactViewScreen(
             TopAppBar(
                 title = { Text("Контакт") },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick){
-                        Icon(imageVector = Icons.Default.Close,
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
                             contentDescription = "Закрыть"
                         )
                     }
                 },
                 actions = {
-                    if (selectedTab == 0) {
-                        if (viewState.isEditMode) {
-                            IconButton(
-                                onClick = { viewModel.saveContact() },
-                                enabled = viewState.hasChanges && !viewState.isLoading && viewState.username.isNotBlank()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Save,
-                                    contentDescription = "Сохранить",
-                                    tint = if (viewState.hasChanges)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        } else {
-                            IconButton(onClick = { viewModel.enableEditMode() }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Edit,
-                                    contentDescription = "Редактировать"
-                                )
-                            }
+                    if (!viewState.showQrDialog) {
+                        IconButton(onClick = viewModel::openQr) {
+                            Icon(
+                                imageVector = Icons.Filled.Share,
+                                contentDescription = "Показать qr код"
+                            )
                         }
                     }
                 }
@@ -152,12 +138,14 @@ fun ContactViewScreen(
                         0 -> ContactInfoTab(
                             viewState = viewState,
                             viewModel = viewModel,
+                            selectedTab,
                             onAvatarClick = {
                                 if (viewState.isEditMode) {
                                     imagePickerLauncher.launch("image/*")
                                 }
                             }
                         )
+
                         1 -> NotesTab(
                             notes = viewState.notes,
                             contactName = viewState.username,
@@ -197,8 +185,8 @@ fun ContactViewScreen(
     }
     LaunchedEffect(viewState.isContactDeleted) {
         if (viewState.isContactDeleted) {
-            onBackClick()  // ← Возврат на список контактов
-            viewModel.clearDeleteFlag()  // ← Сброс флага
+            onBackClick()
+            viewModel.clearDeleteFlag()
         }
     }
 
@@ -239,6 +227,13 @@ fun ContactViewScreen(
             }
         )
     }
+
+    if (viewState.showQrDialog) {
+        QrDialog(
+            qrCode = viewState.qrBitmap,
+            onCloseClick = viewModel::closeQr
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -246,6 +241,7 @@ fun ContactViewScreen(
 private fun ContactInfoTab(
     viewState: ContactViewState,
     viewModel: ContactViewViewModel,
+    selectedTab: Int,
     onAvatarClick: () -> Unit = {}
 ) {
     Column(
@@ -292,7 +288,7 @@ private fun ContactInfoTab(
                     )
                 }
             }
-            if (viewState.isEditMode){
+            if (viewState.isEditMode) {
                 Icon(
                     imageVector = Icons.Default.AddPhotoAlternate,
                     contentDescription = "Change Avatar",
@@ -477,12 +473,53 @@ private fun ContactInfoTab(
                 )
             }
         }
-        // Кнопка удаления контакта
+        if (selectedTab == 0) {
+            if (viewState.isEditMode) {
+                Button(
+                    onClick = viewModel::saveContact,
+                    enabled = viewState.username.isNotBlank() && viewState.hasChanges && !viewState.isLoading,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = if (viewState.hasChanges && viewState.username.isNotBlank())
+                            Color(0xFF4D5D8A)  // Синий при активности
+                        else
+                            Color.Gray.copy(alpha = 0.3f), // Серый при неактивности
+                        disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Save,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Сохранить",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            } else {
+                Button(
+                    onClick = viewModel::enableEditMode,
+                    enabled = !viewState.isLoading,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Редактировать",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
+        }
         if (!viewState.isEditMode) {
-            Spacer(modifier = Modifier.height(24.dp))
-
             Button(
-                onClick = { viewModel.showDeleteDialog() },  // ← Теперь через ViewModel
+                onClick = { viewModel.showDeleteDialog() },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error
@@ -496,14 +533,6 @@ private fun ContactInfoTab(
                 )
                 Text("Удалить контакт")
             }
-
-            Text(
-                text = "Все заметки этого контакта будут удалены",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp),
-                textAlign = TextAlign.Center
-            )
         }
     }
 }
@@ -565,7 +594,8 @@ private fun NotesTab(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(count = notes.size) { index ->
-                    NoteCard(note = notes[index],
+                    NoteCard(
+                        note = notes[index],
                         isEditMode = isEditMode,
                         onNoteClick = { onNoteClick(notes[index]) },
                         onDeleteClick = { onDeleteNoteClick(notes[index]) }

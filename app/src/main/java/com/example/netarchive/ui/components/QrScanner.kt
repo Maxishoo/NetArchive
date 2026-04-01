@@ -1,4 +1,4 @@
-package com.example.netarchive.ui.screens.add_contact_screen
+package com.example.netarchive.ui.components
 
 import android.content.Context
 import android.os.VibrationEffect
@@ -46,7 +46,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import qrscanner.CameraLens
-import qrscanner.OverlayShape
 import qrscanner.QrScanner
 
 @Composable
@@ -117,7 +116,6 @@ fun QrScannerDialog(
                         if (isScanning) {
                             QrScanner(
                                 modifier = Modifier
-                                    .padding(top = 20.dp)
                                     .clip(RoundedCornerShape(20.dp)),
                                 flashlightOn = flashlightOn,
                                 cameraLens = CameraLens.Back,
@@ -135,9 +133,6 @@ fun QrScannerDialog(
                                     println("Scanning failed: $exception")
                                     isScanning = true
                                 },
-                                overlayShape = OverlayShape.Square,
-                                overlayColor = Color(0x88000000),
-                                overlayBorderColor = Color.White,
                                 zoomLevel = 1.5f,
                                 maxZoomLevel = 3f
                             )
