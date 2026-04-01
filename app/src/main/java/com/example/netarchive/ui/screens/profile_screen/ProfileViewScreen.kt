@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,6 +37,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.netarchive.ui.components.QrDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,15 +79,20 @@ fun ProfileViewScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Профиль") },
-                actions = {if (viewState.isProfileCreated) {
-                        IconButton(onClick = viewModel::enableEditMode) {
+                title = { Text("Профиль", style = MaterialTheme.typography.headlineLarge) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFFECEBF4),
+                ),
+                actions = {
+                    if (!viewState.showQrDialog) {
+                        IconButton(onClick = viewModel::openQr) {
                             Icon(
-                                imageVector = Icons.Filled.Edit,
-                                contentDescription = "Редактировать"
+                                imageVector = Icons.Filled.Share,
+                                contentDescription = "Показать qr код"
                             )
                         }
                     }
+
                 }
             )
         }
@@ -127,6 +135,9 @@ fun ProfileViewScreen(
             }
         }
     }
+    if (viewState.showQrDialog) {
+        QrDialog(viewState.qrBitmap, viewModel::closeQr)
+    }
 }
 
 @Composable
@@ -148,8 +159,9 @@ fun NoProfile(onCreateClick: () -> Unit) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Создайте профиль",
-            style = MaterialTheme.typography.headlineSmall
+            text = "Создайте профиль, чтобы делиться им с другими",
+            style = MaterialTheme.typography.headlineSmall,
+            textAlign = TextAlign.Center,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -185,7 +197,6 @@ private fun ProfileInfo(
             .padding(bottom = 80.dp, top = 100.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // === Аватар ===
         Box(
             modifier = Modifier
                 .size(100.dp)
@@ -238,8 +249,6 @@ private fun ProfileInfo(
                 )
             }
         }
-
-        // === Поля ввода ===
         OutlinedTextField(
             value = viewState.username,
             onValueChange = viewModel::onUsernameChange,
@@ -279,7 +288,7 @@ private fun ProfileInfo(
         OutlinedTextField(
             value = viewState.max,
             onValueChange = viewModel::onMaxChange,
-            label = { Text("Адрес") },
+            label = { Text("MAX") },
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
@@ -294,9 +303,6 @@ private fun ProfileInfo(
             singleLine = true,
             colors = profileTextFieldColors()
         )
-
-        // === ✅ КНОПКА В КОНЦЕ СПИСКА ===
-        Spacer(modifier = Modifier.height(24.dp))
 
         if (viewState.isEditMode) {
             Button(
@@ -322,7 +328,25 @@ private fun ProfileInfo(
                     style = MaterialTheme.typography.labelLarge
                 )
             }
+        } else if (viewState.isProfileCreated) {
+            Button(
+                onClick = viewModel::enableEditMode,
+                enabled = !viewState.isLoading,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Edit,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Редактировать",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
         }
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 

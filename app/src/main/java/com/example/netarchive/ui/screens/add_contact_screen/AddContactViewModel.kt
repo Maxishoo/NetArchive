@@ -8,7 +8,6 @@ import com.example.netarchive.data.repository.CategoryRepository
 import com.example.netarchive.data.repository.ContactRepository
 import com.example.netarchive.domain.model.Contact
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,8 +16,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
-import androidx.core.net.toUri
 import com.example.netarchive.data.local.FileManager
+import java.net.URLDecoder
 
 @Stable
 data class ContactFormState(
@@ -31,6 +30,7 @@ data class ContactFormState(
     val avatar: String = "",
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
+    val isQrImport: Boolean =false,
     val error: String? = null
 )
 
@@ -61,6 +61,49 @@ class AddContactViewModel @Inject constructor(
 
     fun clearImagePickerResult() {
         _imagePickerResult.value = null
+    }
+
+    fun openQrImport(){
+        _formState.value = _formState.value.copy(isQrImport = true)
+    }
+
+    fun closeQrImport(){
+        _formState.value = _formState.value.copy(isQrImport = false)
+    }
+
+    fun onQrUrlChange(data: String) {
+        try {
+            // Декодируем данные
+            val decodedData = URLDecoder.decode(data, "UTF-8")
+
+            // Парсим параметры
+            val params: Map<String, String> = decodedData.split(';').associate { param ->
+                val parts = param.split('=', limit = 2)
+                parts[0] to (parts.getOrNull(1) ?: "")
+            }
+
+            // Обновляем форму с данными из QR кода
+            _formState.value = _formState.value.copy(
+                username = params["u"] ?: "",
+                phone = params["p"] ?: "",
+                email = params["e"] ?: "",
+                telegram = params["t"] ?: "",
+                max = params["m"] ?: "",
+                job = params["j"] ?: "",
+                error = null // Очищаем ошибку
+            )
+
+            // Закрываем диалог сканера
+            closeQrImport()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _formState.value = _formState.value.copy(
+                error = "Ошибка при разборе QR кода: ${e.message}"
+            )
+            // В случае ошибки тоже закрываем диалог
+            closeQrImport()
+        }
     }
 
     fun onUsernameChange(value: String) {

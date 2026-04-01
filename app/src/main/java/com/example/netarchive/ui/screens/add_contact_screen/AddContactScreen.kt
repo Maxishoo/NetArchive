@@ -7,6 +7,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.netarchive.ui.components.CategorySelector
+import com.example.netarchive.ui.components.QrScannerDialog
 import com.example.netarchive.ui.theme.NetArchiveTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,77 +59,89 @@ fun AddContactScreen(
             onContactCreated()
         }
     }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-            .verticalScroll(rememberScrollState())
-            .padding(top = 90.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        AvatarSelector(
-            avatarUri = avatar,
-            onClick = { imagePickerLauncher.launch("image/*") }
+    if (formState.isQrImport) {
+        QrScannerDialog(
+            onQrUrlChange = { scannedData ->
+                viewModel.onQrUrlChange(scannedData)
+            },
+            onCloseClick = {
+                viewModel.closeQrImport()
+            }
         )
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(top = 90.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            AvatarSelector(
+                avatarUri = avatar,
+                onClick = { imagePickerLauncher.launch("image/*") }
+            )
 
-        CategorySelector(
-            allCategories = allCategories,
-            selectedCategories = selectedCategories,
-            onCategoriesChanged = viewModel::setSelectedCategories,
-            onCreateCategory = viewModel::createCategory,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+            CategorySelector(
+                allCategories = allCategories,
+                selectedCategories = selectedCategories,
+                onCategoriesChanged = viewModel::setSelectedCategories,
+                onCreateCategory = viewModel::createCategory,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
 
-        UsernameField(
-            value = username,
-            onValueChange = viewModel::onUsernameChange,
-            isError = error != null && username.isBlank()
-        )
-        PhoneField(
-            value = formState.phone,
-            onValueChange = viewModel::onPhoneChange
-        )
-        EmailField(
-            value = formState.email,
-            onValueChange = viewModel::onEmailChange
-        )
-        TelegramField(
-            value = formState.telegram,
-            onValueChange = viewModel::onTelegramChange
-        )
-        MaxField(
-            value = formState.max,
-            onValueChange = viewModel::onMaxChange
-        )
-        JobField(
-            value = formState.job,
-            onValueChange = viewModel::onJobChange
-        )
+            UsernameField(
+                value = username,
+                onValueChange = viewModel::onUsernameChange,
+                isError = error != null && username.isBlank()
+            )
+            PhoneField(
+                value = formState.phone,
+                onValueChange = viewModel::onPhoneChange
+            )
+            EmailField(
+                value = formState.email,
+                onValueChange = viewModel::onEmailChange
+            )
+            TelegramField(
+                value = formState.telegram,
+                onValueChange = viewModel::onTelegramChange
+            )
+            MaxField(
+                value = formState.max,
+                onValueChange = viewModel::onMaxChange
+            )
+            JobField(
+                value = formState.job,
+                onValueChange = viewModel::onJobChange
+            )
 
-        if (error != null) {
-            ErrorSection(errorMessage = error)
+            if (error != null) {
+                ErrorSection(errorMessage = error)
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            ContactActions(
+                isLoading = isLoading,
+                isUsernameFilled = username.isNotBlank(),
+                onBackClick = onBackClick,
+                onSaveClick = viewModel::saveContact,
+                onQrAddClick = viewModel::openQrImport
+            )
         }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        ContactActions(
-            isLoading = isLoading,
-            isUsernameFilled = username.isNotBlank(),
-            onBackClick = onBackClick,
-            onSaveClick = viewModel::saveContact
-        )
-    }
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(color = Color(0xFFECEBF4).copy(alpha = 0.95f))
-            .padding(top = 30.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
-    ){
-        ContactHeader(
-            title = "Добавить контакт",
-            onBackClick = onBackClick
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(color = Color(0xFFECEBF4).copy(alpha = 0.95f))
+                .padding(top = 30.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
+        ) {
+            ContactHeader(
+                title = "Добавить контакт",
+                onBackClick = onBackClick
+            )
+        }
     }
 }
 
@@ -163,8 +178,24 @@ private fun ContactActions(
     isUsernameFilled: Boolean,
     onBackClick: () -> Unit,
     onSaveClick: () -> Unit,
+    onQrAddClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    Button(
+        onClick = onQrAddClick,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Icon(
+            imageVector = Icons.Filled.QrCode,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = "По QR коду",
+            style = MaterialTheme.typography.labelLarge
+        )
+    }
     Row(
         modifier = modifier
             .fillMaxWidth()
