@@ -1,6 +1,7 @@
 package com.example.netarchive.ui.screens.profile_screen
 
 import android.content.Context
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.netarchive.data.local.FileManager
@@ -13,6 +14,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import qrgenerator.generateQrCode
+import java.net.URLEncoder
 import javax.inject.Inject
 
 // ✅ FIX: Пустые строки вместо пробелов для консистентности
@@ -30,13 +33,16 @@ data class ProfileViewState(
     val isSuccess: Boolean = false,
     val error: String? = null,
     val isProfileCreated: Boolean = false,
+
+    val showQrDialog: Boolean = false,
+    val qrGenerating: Boolean = false,
+    val qrBitmap:  ImageBitmap? = null
 )
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val repository: ProfileRepository,
-    private val fileManager: FileManager,
-    @ApplicationContext private val context: Context
+    private val fileManager: FileManager
 ) : ViewModel() {
 
     private var originalProfile: Profile? = null
@@ -88,6 +94,42 @@ class ProfileViewModel @Inject constructor(
                 }
             }
         }
+    }
+    fun openQr() {
+        _viewState.value = _viewState.value.copy(showQrDialog = true)
+
+
+        _viewState.value = _viewState.value.copy(qrGenerating = true)
+        try {
+            val rawData = buildString {
+                append("u=${_viewState.value.username.trim()}")
+                if (_viewState.value.phone.isNotBlank()) append(";p=${_viewState.value.phone}")
+                if (_viewState.value.email.isNotBlank()) append(";e=${_viewState.value.email}")
+                if (_viewState.value.telegram.isNotBlank()) append(";t=${_viewState.value.telegram}")
+                if (_viewState.value.max.isNotBlank()) append(";m=${_viewState.value.max}")
+                if (_viewState.value.job.isNotBlank()) append(";j=${_viewState.value.job}")
+            }
+            val encodedData = URLEncoder.encode(rawData, "UTF-8")
+            generateQrCode(
+                url = encodedData,
+                onSuccess = { info, qrCode ->
+                    _viewState.value = _viewState.value.copy(
+                        qrGenerating = false,
+                        qrBitmap = qrCode
+                    )
+                },
+                onFailure = {
+                    _viewState.value = _viewState.value.copy(qrGenerating = false)
+                },
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _viewState.value = _viewState.value.copy(qrGenerating = false)
+        }
+    }
+
+    fun closeQr(){
+        _viewState.value = _viewState.value.copy(showQrDialog = false)
     }
 
     fun createProfile() {
