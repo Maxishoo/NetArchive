@@ -1,5 +1,6 @@
 package com.example.netarchive.ui.screens.contact_view_screen
 
+import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -9,6 +10,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,11 +19,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -30,12 +35,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.netarchive.data.remote.ai.model.AiFeatureConfig
 import com.example.netarchive.domain.model.Note
 import com.example.netarchive.ui.components.CategorySelector
 import com.example.netarchive.ui.components.QrDialog
@@ -59,6 +67,8 @@ fun ContactViewScreen(
     val contactName = viewState.username
     var isNotesEditMode by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val aiState by viewModel.aiState.collectAsState()
+    val context = LocalContext.current
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -81,6 +91,17 @@ fun ContactViewScreen(
                     }
                 },
                 actions = {
+                    if (!viewState.isEditMode) {
+                        IconButton(onClick = { viewModel.generateConversationStarter() }) {
+                            Icon(
+                                imageVector = Icons.Outlined.AutoAwesome,
+                                contentDescription = "AI подсказка",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+
                     if (!viewState.showQrDialog) {
                         IconButton(onClick = viewModel::openQr) {
                             Icon(
@@ -89,6 +110,7 @@ fun ContactViewScreen(
                             )
                         }
                     }
+
                 }
             )
         }
@@ -233,6 +255,136 @@ fun ContactViewScreen(
             qrCode = viewState.qrBitmap,
             onCloseClick = viewModel::closeQr
         )
+    }
+    when (val state = aiState) {
+        is AiState.Loading -> {
+            AlertDialog(
+                onDismissRequest = { viewModel.resetAiState() },
+                title = { Text("Генерирую подсказку...") },
+                text = {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Анализирую информацию о контакте",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = { viewModel.resetAiState() }) {
+                        Text("Отмена")
+                    }
+                }
+            )
+        }
+
+        is AiState.Success -> {
+            AlertDialog(
+                onDismissRequest = { viewModel.resetAiState() },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Outlined.AutoAwesome, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Идеи для сообщения")
+                    }
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        state.suggestions.forEachIndexed { index, suggestion ->
+                            val isCopied = state.copiedIndex == index
+
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { viewModel.copySuggestion(index) }
+                                    .then(if (isCopied) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier),
+                                shape = MaterialTheme.shapes.small,
+                                color = if (isCopied)
+                                    MaterialTheme.colorScheme.primaryContainer
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(14.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = suggestion,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    if (isCopied) {
+                                        Icon(
+                                            Icons.Default.Check,
+                                            contentDescription = "Скопировано",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    } else {
+                                        Icon(
+                                            Icons.Default.ContentCopy,
+                                            contentDescription = "Копировать",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        Text(
+                            text = "🔒 Данные обрабатываются анонимно",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.resetAiState() }) {
+                        Text("Закрыть")
+                    }
+                },
+                dismissButton = {}
+            )
+        }
+
+        is AiState.Error -> {
+            AlertDialog(
+                onDismissRequest = { viewModel.resetAiState() },
+                title = { Text("Ошибка") },
+                text = { Text(state.message) },
+                confirmButton = {
+                    Button(onClick = { viewModel.resetAiState() }) {
+                        Text("Понятно")
+                    }
+                }
+            )
+        }
+        is AiState.Disabled -> {
+            AlertDialog(
+                onDismissRequest = { viewModel.resetAiState() },
+                title = { Text("⚠️ AI отключен") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(AiFeatureConfig.AI_DISABLED_MESSAGE)
+
+                        // 🔮 Задел на будущее (кнопка в настройки)
+                        // TextButton(onClick = { navigateToSettings() }) {
+                        //     Text("Перейти в настройки")
+                        // }
+                    }
+                },
+                confirmButton = {
+                    Button(onClick = { viewModel.resetAiState() }) {
+                        Text("Понятно")
+                    }
+                }
+            )
+        }
+
+        is AiState.Idle -> { /* Ничего не показываем */ }
     }
 }
 
