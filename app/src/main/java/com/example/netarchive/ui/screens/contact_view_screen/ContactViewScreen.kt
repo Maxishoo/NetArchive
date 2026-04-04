@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -69,7 +70,7 @@ fun ContactViewScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     val aiState by viewModel.aiState.collectAsState()
     val context = LocalContext.current
-
+    val isGenerating by viewModel.isGenerating.collectAsState()
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: android.net.Uri? ->
@@ -341,9 +342,24 @@ fun ContactViewScreen(
                         )
                     }
                 },
+
                 confirmButton = {
-                    TextButton(onClick = { viewModel.resetAiState() }) {
-                        Text("Закрыть")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        TextButton(onClick = { viewModel.regenerateSuggestions() }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Refresh,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Ещё варианты")
+                        }
+                        TextButton(onClick = { viewModel.resetAiState() }) {
+                            Text("Закрыть")
+                        }
                     }
                 },
                 dismissButton = {}
