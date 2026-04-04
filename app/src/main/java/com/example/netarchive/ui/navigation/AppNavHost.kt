@@ -16,6 +16,7 @@ import com.example.netarchive.ui.screens.contacts_list_screen.ContactListScreen
 import com.example.netarchive.ui.screens.contact_view_screen.ContactViewScreen
 import com.example.netarchive.ui.screens.add_note_screen.CreateNoteScreen
 import com.example.netarchive.ui.screens.profile_screen.ProfileViewScreen
+import com.example.netarchive.ui.screens.settings_screen.SettingsScreen
 
 @Serializable
 sealed class Routes{
@@ -55,6 +56,9 @@ sealed class Routes{
         val fromScreen: String = "contact_view",
         val returnTab: Int = 0
     )
+
+    @Serializable
+    object Settings
 }
 
 @Composable
@@ -77,7 +81,18 @@ fun AppNavHost(
         }
 
         composable<Routes.Profile> {
-            ProfileViewScreen()
+            ProfileViewScreen(
+                onSettingsClick = {
+                    navController.navigate(Routes.Settings)
+                }
+            )
+        }
+        composable<Routes.Settings> {
+            SettingsScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         composable<Routes.CreateContact> {

@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,7 +60,8 @@ import com.example.netarchive.ui.components.QrDialog
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileViewScreen(
-    viewModel: ProfileViewModel = hiltViewModel()
+    viewModel: ProfileViewModel = hiltViewModel(),
+    onSettingsClick: ()->Unit
 ) {
     val viewState by viewModel.viewState.collectAsState()
     val context = LocalContext.current
@@ -89,6 +91,13 @@ fun ProfileViewScreen(
                             Icon(
                                 imageVector = Icons.Filled.Share,
                                 contentDescription = "Показать qr код"
+                            )
+                        }
+                        IconButton(onClick = onSettingsClick) {
+                            Icon(
+                                modifier = Modifier.size(28.dp),
+                                imageVector = Icons.Outlined.Settings,
+                                contentDescription = "Настройки"
                             )
                         }
                     }
