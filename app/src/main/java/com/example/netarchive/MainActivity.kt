@@ -76,9 +76,10 @@ fun Main() {
         } == true -> BottomNavItem.Profile
 
         currentDestination?.hierarchy?.any {
-            it.route == Routes.CreateContact::class.qualifiedName || it.route == Routes.CreateRemind::class.qualifiedName || it.route == Routes.CreateConnection::class.qualifiedName
+            it.route == Routes.CreateContact::class.qualifiedName ||
+                    it.route == Routes.CreateReminderRoute::class.qualifiedName ||
+                    it.route == Routes.CreateConnection::class.qualifiedName
         } == true -> BottomNavItem.Add
-
         else -> BottomNavItem.Contacts
     }
 
@@ -134,11 +135,19 @@ fun Main() {
                         AddMenuItem.CreateContact -> navController.navigate(Routes.CreateContact) {
                             launchSingleTop = true
                         }
-                        AddMenuItem.CreateRemind -> navController.navigate(Routes.CreateRemind) {
-                            launchSingleTop = true
+                        AddMenuItem.CreateReminder -> {
+                            navController.navigate(
+                                Routes.CreateConnection(type = Routes.CreateConnection.EntryType.REMINDER)
+                            ) {
+                                launchSingleTop = true
+                            }
                         }
-                        AddMenuItem.CreateConnection -> navController.navigate(Routes.CreateConnection) {
-                            launchSingleTop = true
+                        AddMenuItem.CreateNote -> {
+                            navController.navigate(
+                                Routes.CreateConnection(type = Routes.CreateConnection.EntryType.NOTE)
+                            ) {
+                                launchSingleTop = true
+                            }
                         }
                     }
                 },

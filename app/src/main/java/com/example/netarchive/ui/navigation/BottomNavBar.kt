@@ -70,15 +70,13 @@ enum class AddMenuItem(
         label = "Контакт",
         route = Routes.CreateContact
     ),
-
-    CreateConnection(
-        label = "Связь",
-        route = Routes.CreateConnection
+    CreateNote(
+    label = "Заметка",
+    route = Routes.CreateConnection(type = Routes.CreateConnection.EntryType.NOTE)
     ),
-
-    CreateRemind(
-        label = "Напоминание",
-        route = Routes.CreateRemind
+    CreateReminder(
+    label = "Напоминание",
+    route = Routes.CreateConnection(type = Routes.CreateConnection.EntryType.REMINDER)
     )
 }
 
