@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddCircleOutline
+import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
@@ -58,6 +59,11 @@ enum class BottomNavItem(
         icon = Icons.Outlined.Person,
         route = Routes.Profile,
         label = "Профиль",
+    ),
+    Analytics(
+        icon = Icons.Outlined.BarChart,  // или Icons.Outlined.ShowChart
+        route = Routes.Analytics,
+        label = "Аналитика"
     ),
 }
 

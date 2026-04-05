@@ -14,7 +14,7 @@ import com.example.netarchive.data.local.db.entity.ProfileEntity
 
 @Database(
     entities = [(ContactEntity::class), (NoteEntity::class), (CategoryEntity::class), (ContactCategoryCrossRef::class), (ProfileEntity::class)],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

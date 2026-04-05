@@ -72,6 +72,10 @@ fun Main() {
         } == true -> BottomNavItem.Contacts
 
         currentDestination?.hierarchy?.any {
+            it.route == Routes.Analytics::class.qualifiedName
+        } == true -> BottomNavItem.Analytics
+
+        currentDestination?.hierarchy?.any {
             it.route == Routes.Profile::class.qualifiedName
         } == true -> BottomNavItem.Profile
 
@@ -98,6 +102,14 @@ fun Main() {
                         BottomNavItem.Contacts -> {
                             showAddMenu = false
                             navController.navigate(Routes.Contacts) {
+                                popUpTo(0) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+
+                        BottomNavItem.Analytics -> {
+                            showAddMenu = false
+                            navController.navigate(Routes.Analytics) {
                                 popUpTo(0) { inclusive = true }
                                 launchSingleTop = true
                             }

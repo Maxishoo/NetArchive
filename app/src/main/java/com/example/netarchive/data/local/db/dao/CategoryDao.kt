@@ -1,5 +1,6 @@
 package com.example.netarchive.data.local.db.dao
 
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -65,4 +66,27 @@ interface CategoryDao {
     ORDER BY c.name
 """)
     suspend fun getUnusedCustomCategoriesList(): List<CategoryEntity>
+
+    @Query("""
+    SELECT 
+        c.id, 
+        c.name, 
+        c.isDefault, 
+        COUNT(ccr.contactId) as contactCount
+    FROM categories c
+    LEFT JOIN contact_category_cross_ref ccr ON c.id = ccr.categoryId
+    GROUP BY c.id
+    ORDER BY contactCount DESC
+""")
+    fun getCategoriesWithContactCount(): Flow<List<CategoryWithCount>>
 }
+data class CategoryWithCount(
+    @ColumnInfo(name = "id")
+    val id: Int,
+    @ColumnInfo(name = "name")
+    val name: String,
+    @ColumnInfo(name = "isDefault")
+    val isDefault: Boolean,
+    @ColumnInfo(name = "contactCount")
+    val contactCount: Int
+)
