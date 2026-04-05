@@ -7,7 +7,6 @@ plugins {
     id("com.google.dagger.hilt.android")
     kotlin("plugin.serialization") version "2.0.21"
 }
-
 android {
     namespace = "com.example.netarchive"
     compileSdk = 36
@@ -20,6 +19,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        val yandexToken = providers.gradleProperty("YANDEX_IAM_TOKEN").orNull ?: ""
+        val yandexFolder = providers.gradleProperty("YANDEX_FOLDER_ID").orNull ?: ""
+
+        buildConfigField("String", "YANDEX_IAM_TOKEN", "\"$yandexToken\"")
+        buildConfigField("String", "YANDEX_FOLDER_ID", "\"$yandexFolder\"")
+        buildConfigField("String", "TEST_VALUE", "\"Hello World\"")
     }
 
     buildTypes {
@@ -42,6 +47,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     kotlinOptions {
         freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
@@ -54,6 +60,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.animation)
+    implementation(libs.androidx.ui)
     annotationProcessor(libs.androidx.room.room.compiler)
     ksp(libs.androidx.room.room.compiler)
 
@@ -69,6 +77,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
 
+    implementation("network.chaintech:qr-kit:3.1.3")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -80,11 +90,22 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    // Retrofit core
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+
+// OkHttp
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+// Kotlinx Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+// ВАЖНО: Правильная версия конвертера!
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
 }

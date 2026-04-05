@@ -6,7 +6,9 @@ import com.example.netarchive.data.local.db.AppDatabase
 import com.example.netarchive.data.local.db.dao.CategoryDao
 import com.example.netarchive.data.local.db.dao.ContactDao
 import com.example.netarchive.data.local.db.dao.NoteDao
+
 import com.example.netarchive.data.local.db.dao.ReminderDao
+import com.example.netarchive.data.local.db.dao.ProfileDao
 import com.example.netarchive.data.repository.CategoryRepository
 import com.example.netarchive.data.repository.ReminderRepository
 import dagger.Module
@@ -48,6 +50,12 @@ object DatabaseModule {
     @Singleton
     fun provideCategoryDao(database: AppDatabase): CategoryDao {
         return database.categoryDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideProfileDao(database: AppDatabase): ProfileDao{
+        return database.profileDao()
     }
 
     @Provides

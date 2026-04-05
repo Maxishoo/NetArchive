@@ -28,4 +28,16 @@ class DatabaseInitializer @Inject constructor(
         }
 
     }
+    fun cleanupUnusedCategories() {
+        val lastCleanup = prefs.getLong("last_categories_cleanup", 0)
+        val now = System.currentTimeMillis()
+        val weekInMillis = 7 * 24 * 60 * 60 * 1000L  // 1 неделя
+
+        if (lastCleanup > 0 && now - lastCleanup > weekInMillis) {
+            CoroutineScope(Dispatchers.IO).launch {
+                categoryRepository.deleteUnusedCustomCategories()
+                prefs.edit().putLong("last_categories_cleanup", now).apply()
+            }
+        }
+    }
 }

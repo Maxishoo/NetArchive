@@ -1,5 +1,6 @@
 package com.example.netarchive.ui.screens.contact_view_screen
 
+import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -9,6 +10,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,10 +19,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -29,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,27 +44,33 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.netarchive.data.remote.ai.model.AiFeatureConfig
 import com.example.netarchive.domain.model.Note
 import com.example.netarchive.ui.components.CategorySelector
+import com.example.netarchive.ui.components.QrDialog
 import com.example.netarchive.ui.components.cards.NoteCard
 import com.example.netarchive.ui.theme.NetArchiveTheme
+import com.example.netarchive.ui.navigation.NoteNavigationData
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactViewScreen(
     viewModel: ContactViewViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
-    onAddNoteClick: (Int, String, String?, Int, String, Long,String,Int) -> Unit = { _,_, _, _, _, _, _, _ -> },
+    onAddNoteClick: (NoteNavigationData) -> Unit = {},
     initialTab: Int = 0
 ) {
     val viewState by viewModel.viewState.collectAsState()
-    var selectedTab by rememberSaveable  { mutableIntStateOf(initialTab) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(initialTab) }
     val tabs = listOf("Информация", "Заметки")
     val contactId = viewState.contactId
     val contactName = viewState.username
     var isNotesEditMode by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
-
+    val aiState by viewModel.aiState.collectAsState()
+    val context = LocalContext.current
+    val isGenerating by viewModel.isGenerating.collectAsState()
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: android.net.Uri? ->
@@ -70,37 +84,34 @@ fun ContactViewScreen(
             TopAppBar(
                 title = { Text("Контакт") },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick){
-                        Icon(imageVector = Icons.Default.Close,
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
                             contentDescription = "Закрыть"
                         )
                     }
                 },
                 actions = {
-                    if (selectedTab == 0) {
-                        if (viewState.isEditMode) {
-                            IconButton(
-                                onClick = { viewModel.saveContact() },
-                                enabled = viewState.hasChanges && !viewState.isLoading && viewState.username.isNotBlank()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Save,
-                                    contentDescription = "Сохранить",
-                                    tint = if (viewState.hasChanges)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        } else {
-                            IconButton(onClick = { viewModel.enableEditMode() }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Edit,
-                                    contentDescription = "Редактировать"
-                                )
-                            }
+                    if (!viewState.isEditMode) {
+                        IconButton(onClick = { viewModel.generateConversationStarter() }) {
+                            Icon(
+                                imageVector = Icons.Outlined.AutoAwesome,
+                                contentDescription = "AI подсказка",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
+
+
+                    if (!viewState.showQrDialog) {
+                        IconButton(onClick = viewModel::openQr) {
+                            Icon(
+                                imageVector = Icons.Filled.Share,
+                                contentDescription = "Показать qr код"
+                            )
+                        }
+                    }
+
                 }
             )
         }
@@ -119,7 +130,7 @@ fun ContactViewScreen(
                     .padding(paddingValues)
             ) {
                 // Табы
-                TabRow(
+                PrimaryTabRow(
                     selectedTabIndex = selectedTab,
                     containerColor = MaterialTheme.colorScheme.surface,
                     contentColor = MaterialTheme.colorScheme.onSurface,
@@ -150,35 +161,39 @@ fun ContactViewScreen(
                         0 -> ContactInfoTab(
                             viewState = viewState,
                             viewModel = viewModel,
-                            showDeleteDialog = showDeleteDialog,
-                            onShowDeleteDialog = { showDeleteDialog = true },
-                            onDeleteContact = {
-                                showDeleteDialog = false
-                                viewModel.deleteContact(onBackClick)
-                            },
+                            selectedTab,
                             onAvatarClick = {
                                 if (viewState.isEditMode) {
                                     imagePickerLauncher.launch("image/*")
                                 }
                             }
                         )
+
                         1 -> NotesTab(
                             notes = viewState.notes,
                             contactName = viewState.username,
                             isEditMode = isNotesEditMode,
                             onAddNoteClick = {
-                                onAddNoteClick(viewState.contactId, viewState.username, viewState.avatar, 0, "", 0L, "contact_view", selectedTab)
+                                onAddNoteClick(
+                                    NoteNavigationData.forNewNote(
+                                        contactId = viewState.contactId,
+                                        contactName = viewState.username,
+                                        contactAvatar = viewState.avatar,
+                                        source = "contact_view",
+                                        selectedTab = selectedTab
+                                    )
+                                )
                             },
                             onNoteClick = { note ->
                                 onAddNoteClick(
-                                    viewState.contactId,
-                                    viewState.username,
-                                    viewState.avatar,
-                                    note.id,
-                                    note.text,
-                                    note.date,
-                                    "contact_view",
-                                    selectedTab
+                                    NoteNavigationData.forEditNote(
+                                        contactId = viewState.contactId,
+                                        contactName = viewState.username,
+                                        contactAvatar = viewState.avatar,
+                                        note = note,
+                                        source = "contact_view",
+                                        selectedTab = selectedTab
+                                    )
                                 )
                             },
                             onDeleteNoteClick = { note ->
@@ -191,15 +206,21 @@ fun ContactViewScreen(
             }
         }
     }
+    LaunchedEffect(viewState.isContactDeleted) {
+        if (viewState.isContactDeleted) {
+            onBackClick()
+            viewModel.clearDeleteFlag()
+        }
+    }
 
     LaunchedEffect(viewState.isSuccess) {
         if (viewState.isSuccess && !viewState.isEditMode) {
             viewModel.clearError()
         }
     }
-    if (showDeleteDialog) {
+    if (viewState.showDeleteDialog) {
         AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
+            onDismissRequest = { viewModel.hideDeleteDialog() },
             title = { Text("Удалить контакт?") },
             text = {
                 Column {
@@ -214,10 +235,7 @@ fun ContactViewScreen(
             },
             confirmButton = {
                 Button(
-                    onClick = {
-                        showDeleteDialog = false
-                        viewModel.deleteContact(onBackClick)
-                    },
+                    onClick = { viewModel.deleteContact() },  // ← вызов ViewModel
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error
                     )
@@ -226,11 +244,163 @@ fun ContactViewScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
+                TextButton(onClick = { viewModel.hideDeleteDialog() }) {  // ← вызов ViewModel
                     Text("Отмена")
                 }
             }
         )
+    }
+
+    if (viewState.showQrDialog) {
+        QrDialog(
+            qrCode = viewState.qrBitmap,
+            onCloseClick = viewModel::closeQr
+        )
+    }
+    when (val state = aiState) {
+        is AiState.Loading -> {
+            AlertDialog(
+                onDismissRequest = { viewModel.resetAiState() },
+                title = { Text("Генерирую подсказку...") },
+                text = {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Анализирую информацию о контакте",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = { viewModel.resetAiState() }) {
+                        Text("Отмена")
+                    }
+                }
+            )
+        }
+
+        is AiState.Success -> {
+            AlertDialog(
+                onDismissRequest = { viewModel.resetAiState() },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Outlined.AutoAwesome, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Идеи для сообщения")
+                    }
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        state.suggestions.forEachIndexed { index, suggestion ->
+                            val isCopied = state.copiedIndex == index
+
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { viewModel.copySuggestion(index) }
+                                    .then(if (isCopied) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier),
+                                shape = MaterialTheme.shapes.small,
+                                color = if (isCopied)
+                                    MaterialTheme.colorScheme.primaryContainer
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(14.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = suggestion,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    if (isCopied) {
+                                        Icon(
+                                            Icons.Default.Check,
+                                            contentDescription = "Скопировано",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    } else {
+                                        Icon(
+                                            Icons.Default.ContentCopy,
+                                            contentDescription = "Копировать",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        Text(
+                            text = "🔒 Данные обрабатываются анонимно",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                },
+
+                confirmButton = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        TextButton(onClick = { viewModel.regenerateSuggestions() }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Refresh,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Ещё варианты")
+                        }
+                        TextButton(onClick = { viewModel.resetAiState() }) {
+                            Text("Закрыть")
+                        }
+                    }
+                },
+                dismissButton = {}
+            )
+        }
+
+        is AiState.Error -> {
+            AlertDialog(
+                onDismissRequest = { viewModel.resetAiState() },
+                title = { Text("Ошибка") },
+                text = { Text(state.message) },
+                confirmButton = {
+                    Button(onClick = { viewModel.resetAiState() }) {
+                        Text("Понятно")
+                    }
+                }
+            )
+        }
+        is AiState.Disabled -> {
+            AlertDialog(
+                onDismissRequest = { viewModel.resetAiState() },
+                title = { Text("⚠️ AI отключен") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(AiFeatureConfig.AI_DISABLED_MESSAGE)
+
+                        // 🔮 Задел на будущее (кнопка в настройки)
+                        // TextButton(onClick = { navigateToSettings() }) {
+                        //     Text("Перейти в настройки")
+                        // }
+                    }
+                },
+                confirmButton = {
+                    Button(onClick = { viewModel.resetAiState() }) {
+                        Text("Понятно")
+                    }
+                }
+            )
+        }
+
+        is AiState.Idle -> { /* Ничего не показываем */ }
     }
 }
 
@@ -239,9 +409,7 @@ fun ContactViewScreen(
 private fun ContactInfoTab(
     viewState: ContactViewState,
     viewModel: ContactViewViewModel,
-    showDeleteDialog: Boolean,                    // <-- Добавь
-    onShowDeleteDialog: () -> Unit,               // <-- Добавь
-    onDeleteContact: () -> Unit,
+    selectedTab: Int,
     onAvatarClick: () -> Unit = {}
 ) {
     Column(
@@ -288,7 +456,7 @@ private fun ContactInfoTab(
                     )
                 }
             }
-            if (viewState.isEditMode){
+            if (viewState.isEditMode) {
                 Icon(
                     imageVector = Icons.Default.AddPhotoAlternate,
                     contentDescription = "Change Avatar",
@@ -328,10 +496,9 @@ private fun ContactInfoTab(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.height(4.dp))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     selectedCategories.forEach { category ->
                         AssistChip(
@@ -344,11 +511,10 @@ private fun ContactInfoTab(
                                     MaterialTheme.colorScheme.secondaryContainer
                                 }
                             ),
-                            enabled = false
+                            enabled = true
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
             }
         }
 
@@ -475,12 +641,53 @@ private fun ContactInfoTab(
                 )
             }
         }
-        // Кнопка удаления контакта
+        if (selectedTab == 0) {
+            if (viewState.isEditMode) {
+                Button(
+                    onClick = viewModel::saveContact,
+                    enabled = viewState.username.isNotBlank() && viewState.hasChanges && !viewState.isLoading,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = if (viewState.hasChanges && viewState.username.isNotBlank())
+                            Color(0xFF4D5D8A)  // Синий при активности
+                        else
+                            Color.Gray.copy(alpha = 0.3f), // Серый при неактивности
+                        disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Save,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Сохранить",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            } else {
+                Button(
+                    onClick = viewModel::enableEditMode,
+                    enabled = !viewState.isLoading,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Редактировать",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
+        }
         if (!viewState.isEditMode) {
-            Spacer(modifier = Modifier.height(24.dp))
-
             Button(
-                onClick = onShowDeleteDialog,
+                onClick = { viewModel.showDeleteDialog() },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error
@@ -494,14 +701,6 @@ private fun ContactInfoTab(
                 )
                 Text("Удалить контакт")
             }
-
-            Text(
-                text = "Все заметки этого контакта будут удалены",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp),
-                textAlign = TextAlign.Center
-            )
         }
     }
 }
@@ -563,7 +762,8 @@ private fun NotesTab(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(count = notes.size) { index ->
-                    NoteCard(note = notes[index],
+                    NoteCard(
+                        note = notes[index],
                         isEditMode = isEditMode,
                         onNoteClick = { onNoteClick(notes[index]) },
                         onDeleteClick = { onDeleteNoteClick(notes[index]) }

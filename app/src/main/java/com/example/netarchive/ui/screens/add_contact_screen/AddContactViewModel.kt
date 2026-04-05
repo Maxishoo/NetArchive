@@ -1,7 +1,5 @@
 package com.example.netarchive.ui.screens.add_contact_screen
 
-import android.content.Context
-import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,7 +8,6 @@ import com.example.netarchive.data.repository.CategoryRepository
 import com.example.netarchive.data.repository.ContactRepository
 import com.example.netarchive.domain.model.Contact
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +16,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
-import androidx.core.net.toUri
+import com.example.netarchive.data.local.FileManager
+import java.net.URLDecoder
 
 @Stable
 data class ContactFormState(
@@ -32,14 +30,16 @@ data class ContactFormState(
     val avatar: String = "",
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
+    val isQrImport: Boolean =false,
     val error: String? = null
 )
+
 
 @HiltViewModel
 class AddContactViewModel @Inject constructor(
     private val repository: ContactRepository,
     private val categoryRepository: CategoryRepository,
-    @ApplicationContext private val context: Context
+    private val fileManager: FileManager
 ) : ViewModel() {
 
     val allCategories: StateFlow<List<CategoryEntity>> =
@@ -48,8 +48,63 @@ class AddContactViewModel @Inject constructor(
 
     private val _selectedCategories = MutableStateFlow<List<CategoryEntity>>(emptyList())
     val selectedCategories: StateFlow<List<CategoryEntity>> = _selectedCategories
+
     private val _formState = MutableStateFlow(ContactFormState())
     val formState: StateFlow<ContactFormState> = _formState.asStateFlow()
+
+    private val _imagePickerResult = MutableStateFlow<android.net.Uri?>(null)
+    val imagePickerResult: StateFlow<android.net.Uri?> = _imagePickerResult
+
+    fun onImagePickerResult(uri: android.net.Uri?) {
+        _imagePickerResult.value = uri
+    }
+
+    fun clearImagePickerResult() {
+        _imagePickerResult.value = null
+    }
+
+    fun openQrImport(){
+        _formState.value = _formState.value.copy(isQrImport = true)
+    }
+
+    fun closeQrImport(){
+        _formState.value = _formState.value.copy(isQrImport = false)
+    }
+
+    fun onQrUrlChange(data: String) {
+        try {
+            // Декодируем данные
+            val decodedData = URLDecoder.decode(data, "UTF-8")
+
+            // Парсим параметры
+            val params: Map<String, String> = decodedData.split(';').associate { param ->
+                val parts = param.split('=', limit = 2)
+                parts[0] to (parts.getOrNull(1) ?: "")
+            }
+
+            // Обновляем форму с данными из QR кода
+            _formState.value = _formState.value.copy(
+                username = params["u"] ?: "",
+                phone = params["p"] ?: "",
+                email = params["e"] ?: "",
+                telegram = params["t"] ?: "",
+                max = params["m"] ?: "",
+                job = params["j"] ?: "",
+                error = null // Очищаем ошибку
+            )
+
+            // Закрываем диалог сканера
+            closeQrImport()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _formState.value = _formState.value.copy(
+                error = "Ошибка при разборе QR кода: ${e.message}"
+            )
+            // В случае ошибки тоже закрываем диалог
+            closeQrImport()
+        }
+    }
 
     fun onUsernameChange(value: String) {
         if (_formState.value.username != value) {
@@ -87,34 +142,17 @@ class AddContactViewModel @Inject constructor(
         }
     }
 
-    private fun copyImageToInternalStorage(uri: Uri): String {
-        val inputStream = context.contentResolver.openInputStream(uri)
-            ?: throw IllegalStateException("Cannot  open URI")
-
-        val fileName = "avatar_${System.currentTimeMillis()}.jpg"
-        val outputFile = File(context.filesDir, "avatars/$fileName").apply {
-            parentFile?.mkdirs()
-        }
-
-        inputStream.use { input ->
-            outputFile.outputStream().use { output ->
-                input.copyTo(output)
-            }
-        }
-        return outputFile.toURI().toString() // Возвращаем file:// URI
-    }
-
-    /**
-     * Обновлённая функция: теперь принимает Uri и копирует файл
-     */
-    fun onAvatarChange(uri: Uri) {
-        _formState.value.avatar.takeIf { it.isNotBlank() }?.let { oldUri ->
-            File(oldUri.toUri().path!!).delete()
-        }
+    fun onAvatarChange(uri: android.net.Uri) {
+        val oldAvatarUri = _formState.value.avatar
 
         viewModelScope.launch {
             try {
-                val localUri = copyImageToInternalStorage(uri)
+                val localUri = fileManager.copyImageToInternalStorage(uri)
+
+                if (oldAvatarUri.isNotBlank()) {
+                    fileManager.deleteFile(oldAvatarUri)
+                }
+
                 _formState.value = _formState.value.copy(avatar = localUri)
             } catch (e: Exception) {
                 _formState.value = _formState.value.copy(
@@ -165,6 +203,11 @@ class AddContactViewModel @Inject constructor(
     fun resetForm() {
         _formState.value = ContactFormState()
     }
+
+    fun clearError() {
+        _formState.value = _formState.value.copy(error = null)
+    }
+
     fun createCategory(name: String) {
         viewModelScope.launch {
             val categoryId = categoryRepository.createCategoryIfNotExists(name)
@@ -190,6 +233,5 @@ class AddContactViewModel @Inject constructor(
     fun setSelectedCategories(categories: List<CategoryEntity>) {
         _selectedCategories.value = categories
     }
-
 }
 

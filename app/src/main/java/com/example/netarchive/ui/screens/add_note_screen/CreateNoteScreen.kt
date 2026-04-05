@@ -118,10 +118,14 @@ fun CreateNoteScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Карточка контакта
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .clip(RoundedCornerShape(12.dp))
             ) {
                 Row(
                     modifier = Modifier
@@ -198,7 +202,6 @@ fun CreateNoteScreen(
                 )
             )
 
-// DatePicker Dialog
             if (showDatePicker) {
                 ShowDatePickerDialog(
                     initialDate = state.date,
@@ -227,7 +230,7 @@ fun CreateNoteScreen(
 
             // Кнопки
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
