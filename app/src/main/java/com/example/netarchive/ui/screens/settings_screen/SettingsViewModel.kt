@@ -18,11 +18,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
     private val _viewState = MutableStateFlow(SettingsViewState())
     val viewState: StateFlow<SettingsViewState> = _viewState.asStateFlow()
 
-    fun backClick() {
-        _viewState.value = _viewState.value.copy(selectedPage = 0)
-    }
-
-    fun changeSelectedPage(newPage: Int) {
-        _viewState.value = _viewState.value.copy(selectedPage = newPage)
+    fun changeSelectedPage(newPage: Int, topBarText: String = "Настройки") {
+        _viewState.value = _viewState.value.copy(selectedPage = newPage, topBarText = topBarText)
     }
 }

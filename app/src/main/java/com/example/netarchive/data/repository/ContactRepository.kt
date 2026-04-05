@@ -1,6 +1,5 @@
 package com.example.netarchive.data.repository
 
-import android.net.Uri
 import com.example.netarchive.data.local.db.dao.ContactDao
 import com.example.netarchive.data.local.db.entity.ContactCategoryCrossRef
 import com.example.netarchive.data.local.db.entity.ContactWithCategories
@@ -30,6 +29,10 @@ class ContactRepository @Inject constructor(
             File(it.toUri().path!!).delete()
         }
         contactDao.deleteContact(contact.toEntity())
+    }
+
+    suspend fun deleteAllContacts(){
+        contactDao.clearContactsTable()
     }
 
     fun getContactById(id: Int): Flow<Contact?> {

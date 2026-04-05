@@ -1,5 +1,10 @@
 package com.example.netarchive.ui.screens.settings_screen
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +29,6 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Wallet
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,19 +46,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.netarchive.ui.screens.settings_screen.pages.AboutPage
+import com.example.netarchive.ui.screens.settings_screen.pages.AppDataPage
 import com.example.netarchive.ui.theme.CardBackground
 
 enum class SettingsPages(
     val icon: ImageVector,
     val title: String,
-){
-    Main(
-        icon = Icons.Outlined.Settings,
-        title = "Настройки"
-    ),
+) {
     Data(
         icon = Icons.Outlined.Folder,
         title = "Данные приложения"
+    ),
+    ContactsImport(
+        icon = Icons.Filled.EmojiPeople,
+        title = "Импорт контактов"
     ),
     Design(
         icon = Icons.Outlined.FormatPaint,
@@ -67,10 +73,6 @@ enum class SettingsPages(
     AI(
         icon = Icons.Outlined.AutoAwesome,
         title = "ИИ ассистент"
-    ),
-    ContactsImport(
-        icon = Icons.Filled.EmojiPeople,
-        title = "Импорт контактов"
     ),
     Language(
         icon = Icons.Outlined.Language,
@@ -92,10 +94,6 @@ enum class SettingsPages(
         icon = Icons.Filled.QuestionAnswer,
         title = "Задать вопрос"
     );
-
-    companion object {
-
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,26 +101,49 @@ enum class SettingsPages(
 fun SettingsScreen(
     onBackClick: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
-){
+) {
     val viewState by viewModel.viewState.collectAsState()
+
+    val onArrowClick = {
+        if (viewState.selectedPage == 0) onBackClick()
+        else viewModel.changeSelectedPage(0)
+    }
+
+    AnimatedContent(
+        targetState = viewState.selectedPage,
+        transitionSpec = {
+            if (targetState > initialState) {
+                slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(300)) togetherWith
+                        slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(300))
+            } else {
+                slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(300)) togetherWith
+                        slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(300))
+            }
+        },
+        label = "SettingsPageTransition"
+    ){page ->
+        when (page) {
+            0 -> MainSettings(viewModel)
+            1 -> AppDataPage()
+            9 -> AboutPage()
+        }
+    }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(color = Color(0xFFECEBF4).copy(alpha = 0.95f))
-            .padding(top = 30.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
-    ){
-        IconButton(onClick = onBackClick) {
+            .padding(top = 30.dp, bottom = 8.dp, start = 10.dp, end = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onArrowClick) {
             Icon(
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(30.dp),
                 imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                 contentDescription = viewState.topBarText
             )
         }
         Text(viewState.topBarText, style = MaterialTheme.typography.headlineLarge)
-    }
-    when (viewState.selectedPage){
-        0 -> MainSettings(viewModel)
     }
 }
 
@@ -139,7 +160,7 @@ fun MainSettings(viewModel: SettingsViewModel) {
         )
     ) {
         itemsIndexed(SettingsPages.entries) { index, page ->
-            PageCard(page) { viewModel.changeSelectedPage(index) }
+            PageCard(page) { viewModel.changeSelectedPage(index + 1, page.title) }
         }
     }
 }
@@ -156,14 +177,14 @@ fun PageCard(
         shape = RoundedCornerShape(0.dp),
         colors = CardDefaults.cardColors(containerColor = CardBackground),
         elevation = CardDefaults.cardElevation(2.dp)
-    ){
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ){
+        ) {
             Icon(
                 modifier = Modifier.size(35.dp),
                 imageVector = element.icon,

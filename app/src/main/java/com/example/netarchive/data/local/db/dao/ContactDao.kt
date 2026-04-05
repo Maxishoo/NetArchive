@@ -36,6 +36,9 @@ interface ContactDao{
             "OR job LIKE '%'||:query||'%'")
     fun getContacts(query : String) : Flow<List<ContactEntity>>
 
+    @Query("DELETE FROM contacts")
+    suspend fun clearContactsTable()
+
     @Transaction
     @Query("SELECT * FROM contacts WHERE id = :contactId")
     fun getContactWithCategories(contactId: Int): Flow<ContactWithCategories?>
@@ -52,6 +55,7 @@ interface ContactDao{
         WHERE categoryId = :categoryId
     )
 """)
+
     fun getContactsByCategory(categoryId: Int): Flow<List<ContactWithCategories>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
