@@ -1,5 +1,8 @@
 package com.example.netarchive.ui.screens.add_reminder_screen
 
+import android.app.DatePickerDialog
+import android.widget.DatePicker
+import android.widget.NumberPicker
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -7,59 +10,135 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import android.app.DatePickerDialog
-import androidx.compose.ui.res.stringResource
 import com.example.netarchive.R
-import com.example.netarchive.ui.components.*
 import com.example.netarchive.ui.components.cards.ActionButtonsSaveCancel
-import com.example.netarchive.ui.components.cards.DateTimeSelector
 import com.example.netarchive.ui.components.cards.DateTimeSelector_with_valid
 import com.example.netarchive.ui.components.cards.SimpleContactCard
-import java.util.Calendar
+import com.example.netarchive.ui.components.cards.TimeSelectorCard
+import java.text.SimpleDateFormat
+import java.util.*
 
 const val MAX_TEXT_LENGTH = 500
 
+@Composable
+private fun NumberPickerCard(
+    curvalue: Int,
+    onValueChange: (Int) -> Unit,
+    range: IntRange,
+    label: String
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(label, style = MaterialTheme.typography.bodySmall)
+        AndroidView(
+            factory = { context ->
+                NumberPicker(context).apply {
+                    minValue = range.first
+                    maxValue = range.last
+                    wrapSelectorWheel = true
+                    value = curvalue
+                    setOnValueChangedListener { _, _, newVal ->
+                        onValueChange(newVal)
+                    }
+                }
+            },
+            modifier = Modifier.width(80.dp).height(120.dp),
+            update = { picker ->
+                if (picker.value != curvalue) {
+                    picker.value = curvalue
+                }
+            }
+        )
+    }
+}
 
 @Composable
-private fun ShowDatePickerDialog(
-    initialDate: Long,
-    onDateSelected: (Long) -> Unit,
+private fun TimePickerDialogContent(
+    initialTime: Long,
+    selectedDate: Long,
+    onTimeSelected: (Long) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val calendar = Calendar.getInstance().apply {
-        timeInMillis = initialDate
-    }
-
-    val year = calendar.get(Calendar.YEAR)
-    val month = calendar.get(Calendar.MONTH)
-    val day = calendar.get(Calendar.DAY_OF_MONTH)
-
-    val dialog = DatePickerDialog(
-        LocalContext.current,
-        { _, selectedYear, selectedMonth, selectedDay ->
-            val selectedCalendar = Calendar.getInstance().apply {
-                set(selectedYear, selectedMonth, selectedDay)
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
+    var hour by remember {
+        mutableIntStateOf(
+            if (initialTime > 0) {
+                Calendar.getInstance().apply { timeInMillis = initialTime }.get(Calendar.HOUR_OF_DAY)
+            } else {
+                Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
             }
-            onDateSelected(selectedCalendar.timeInMillis)
-        },
-        year,
-        month,
-        day
-    ).apply {
-        datePicker.minDate = System.currentTimeMillis() - 1000
+        )
+    }
+    var minute by remember {
+        mutableIntStateOf(
+            if (initialTime > 0) {
+                Calendar.getInstance().apply { timeInMillis = initialTime }.get(Calendar.MINUTE)
+            } else {
+                Calendar.getInstance().get(Calendar.MINUTE)
+            }
+        )
     }
 
-    dialog.setOnDismissListener { onDismiss() }
-    dialog.show()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Выберите время") },
+        text = {
+            Column(
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .width(280.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    NumberPickerCard(
+                        curvalue = hour,
+                        onValueChange = { hour = it },
+                        range = 0..23,
+                        label = "Ч"
+                    )
+                    Text(":", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 24.dp))
+                    NumberPickerCard(
+                        curvalue = minute,
+                        onValueChange = { minute = it },
+                        range = 0..59,
+                        label = "М"
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val selectedCalendar = Calendar.getInstance().apply {
+                        if (selectedDate > 0) {
+                            timeInMillis = selectedDate
+                        }
+                        set(Calendar.HOUR_OF_DAY, hour)
+                        set(Calendar.MINUTE, minute)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }
+                    onTimeSelected(selectedCalendar.timeInMillis)
+                }
+            ) {
+                Text("OK")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Отмена")
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,37 +154,45 @@ fun CreateReminderScreen(
     onBackClick: () -> Unit,
     onReminderCreated: () -> Unit
 ) {
+    // === Сбор состояний из ViewModel ===
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val isSaveEnabled by viewModel.isSaveEnabled.collectAsStateWithLifecycle()
+
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // === Состояния диалогов ===
     var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
 
-    val stableContactName = remember { contactName }
-    val stableContactAvatar = remember { contactAvatar }
+    // === Обработчики событий ===
+    val onDateClick: () -> Unit = remember { { showDatePicker = true } }
+    val onTimeClick: () -> Unit = remember { { showTimePicker = true } }
 
-    val onDateClick = remember { { showDatePicker = true } }
-    val onDismissDatePicker = remember { { showDatePicker = false } }
-    val onSaveClick = remember(viewModel) { { viewModel.saveReminder() } }
+    val onDateSelected: (Long) -> Unit = remember { { selectedMillis ->
+        viewModel.onDateSelected(selectedMillis)
+        showDatePicker = false
+    } }
 
-    val isSaveEnabled by remember(
-        state.reminderText,
-        state.isLoading,
-        state.hasTextError,
-        state.hasDateError
-    ) {
-        derivedStateOf {
-            state.reminderText.isNotBlank() &&
-                    !state.isLoading &&
-                    !state.hasTextError &&
-                    !state.hasDateError
-        }
-    }
+    val onTimeSelected: (Long) -> Unit = remember { { selectedMillis ->
+        viewModel.onTimeSelected(selectedMillis)
+        showTimePicker = false
+    } }
 
+    val onDismissPickers: () -> Unit = remember { {
+        showDatePicker = false
+        showTimePicker = false
+        viewModel.clearDateTimeErrors()
+    } }
+
+    // === Обработка успеха ===
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             onReminderCreated()
+            viewModel.resetSuccess()
         }
     }
 
+    // === Обработка общих ошибок ===
     LaunchedEffect(state.error) {
         state.error?.let { error ->
             snackbarHostState.showSnackbar(error)
@@ -113,12 +200,18 @@ fun CreateReminderScreen(
         }
     }
 
+    // === Обработка ошибки даты/времени ===
+    LaunchedEffect(state.dateTimeErrorMessage) {
+        state.dateTimeErrorMessage?.let { error ->
+            snackbarHostState.showSnackbar(error)
+        }
+    }
+
+    // === UI ===
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(stringResource(R.string.add_reminder))
-                },
+                title = { Text(stringResource(R.string.add_reminder)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -141,26 +234,45 @@ fun CreateReminderScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             SimpleContactCard(
-                contactName = stableContactName,
-                contactAvatar = stableContactAvatar
+                contactName = state.contactName,
+                contactAvatar = state.contactAvatar
             )
 
+            // 📅 Поле выбора даты
             DateTimeSelector_with_valid(
-                selectedDate = state.date,
-                onDateClick = onDateClick
+                selectedDate = state.timestamp,
+                onDateClick = onDateClick,
+                isError = state.hasDateError,
+
             )
+
+            // 🕐 Поле выбора времени
+            TimeSelectorCard(
+                selectedTime = state.timestamp,
+                onTimeClick = onTimeClick,
+                isError = state.hasTimeError,
+                errorMessage = state.dateTimeErrorMessage
+            )
+
 
             if (showDatePicker) {
-                ShowDatePickerDialog(
-                    initialDate = state.date,
-                    onDateSelected = { selectedDate ->
-                        viewModel.onDateChange(selectedDate)
-                        showDatePicker = false
-                    },
-                    onDismiss = onDismissDatePicker
+                DatePickerDialogWrapper(
+                    initialDate = state.timestamp,
+                    onDateSelected = onDateSelected,
+                    onDismiss = onDismissPickers
                 )
             }
 
+            if (showTimePicker) {
+                TimePickerDialogContent(
+                    initialTime = state.timestamp,
+                    selectedDate = state.timestamp,
+                    onTimeSelected = onTimeSelected,
+                    onDismiss = onDismissPickers
+                )
+            }
+
+            // === Поле ввода текста ===
             ReminderTextField(
                 value = state.reminderText,
                 onValueChange = viewModel::onReminderTextChange,
@@ -171,14 +283,63 @@ fun CreateReminderScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
+            // === Кнопки действий ===
             ActionButtonsSaveCancel(
                 onCancelClick = onBackClick,
-                onSaveClick = onSaveClick,
+                onSaveClick = { viewModel.saveReminder() },
                 saveButtonText = stringResource(R.string.save),
                 isEnabled = isSaveEnabled,
                 isLoading = state.isLoading
             )
         }
+    }
+}
+
+@Composable
+private fun DatePickerDialogWrapper(
+    initialDate: Long,
+    onDateSelected: (Long) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance().apply {
+        timeInMillis = if (initialDate > 0) initialDate else System.currentTimeMillis()
+    }
+
+    DisposableEffect(Unit) {
+        val dialog = DatePickerDialog(
+            context,
+            { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
+                val selectedCal = Calendar.getInstance().apply {
+                    set(year, month, dayOfMonth)
+                    if (initialDate > 0) {
+                        val initCal = Calendar.getInstance().apply { timeInMillis = initialDate }
+                        set(Calendar.HOUR_OF_DAY, initCal.get(Calendar.HOUR_OF_DAY))
+                        set(Calendar.MINUTE, initCal.get(Calendar.MINUTE))
+                    }
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                onDateSelected(selectedCal.timeInMillis)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+
+        // Разрешаем выбор сегодня (фикс бага Android DatePicker)
+        val startOfToday = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        dialog.datePicker.minDate = startOfToday - 1000L
+
+        dialog.setOnDismissListener { onDismiss() }
+        dialog.show()
+
+        onDispose { dialog.dismiss() }
     }
 }
 

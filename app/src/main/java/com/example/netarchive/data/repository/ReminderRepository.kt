@@ -5,6 +5,7 @@ import com.example.netarchive.data.mapper.toEntity
 import com.example.netarchive.domain.model.Reminder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.Date
 import javax.inject.Inject
 
 class ReminderRepository @Inject constructor(
@@ -34,6 +35,10 @@ class ReminderRepository @Inject constructor(
 
     fun getAllReminders(): Flow<List<Reminder>> {
         return reminderDao.getAllReminders()
+            .map { entities -> entities.map { it.toDomain() } }
+    }
+    fun getAllFutureReminders(today: Long): Flow<List<Reminder>> {
+        return reminderDao.getAllFutureReminders(today)
             .map { entities -> entities.map { it.toDomain() } }
     }
 }

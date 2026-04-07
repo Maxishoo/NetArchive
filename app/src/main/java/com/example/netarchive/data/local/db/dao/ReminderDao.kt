@@ -3,6 +3,7 @@ package com.example.netarchive.data.local.db.dao
 import androidx.room.*
 import com.example.netarchive.data.local.db.entity.ReminderEntity
 import kotlinx.coroutines.flow.Flow
+import java.util.Date
 
 @Dao
 interface ReminderDao {
@@ -24,4 +25,7 @@ interface ReminderDao {
 
     @Query("SELECT * FROM reminders ORDER BY date DESC")
     fun getAllReminders(): Flow<List<ReminderEntity>>
+
+    @Query("SELECT * FROM reminders WHERE date >= :today")
+    fun getAllFutureReminders(today: Long): Flow<List<ReminderEntity>>
 }

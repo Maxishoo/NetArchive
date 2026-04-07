@@ -8,7 +8,7 @@ fun ReminderEntity.toDomain(): Reminder {
         id = id,
         contactId = contactId,
         text = text,
-        date = date,
+        timestamp = date,
         isCompleted = isCompleted
     )
 }
@@ -18,7 +18,7 @@ fun Reminder.toEntity(): ReminderEntity {
         id = id,
         contactId = contactId,
         text = text,
-        date = date,
+        date = timestamp,
         isCompleted = isCompleted
     )
 }
