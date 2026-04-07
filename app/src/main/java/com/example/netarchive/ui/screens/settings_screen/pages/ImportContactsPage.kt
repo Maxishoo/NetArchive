@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -96,7 +97,7 @@ fun ImportContactsPage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(80.dp),
-                shape = RoundedCornerShape(0.dp),
+                shape = RoundedCornerShape(10.dp),
                 colors = CardDefaults.cardColors(containerColor = CardBackground),
                 elevation = CardDefaults.cardElevation(1.dp)
             ) {
@@ -104,7 +105,7 @@ fun ImportContactsPage(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
@@ -170,7 +171,7 @@ fun ImportContactsPage(
                     verticalArrangement = Arrangement.spacedBy(1.dp)
                 ) {
                     item {
-                        Spacer(modifier = Modifier.height(200.dp))
+                        Spacer(modifier = Modifier.height(245.dp))
                     }
                     items(
                         items = state.previewContacts,
@@ -214,7 +215,10 @@ fun ImportContactsPage(
                         colors = CardDefaults.cardColors(containerColor = CardBackground.copy(alpha = 0.95f)),
                         elevation = CardDefaults.cardElevation(1.dp),
                     ) {
-                        Column(modifier = Modifier.padding(all = 10.dp),verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Column(
+                            modifier = Modifier.padding(all = 10.dp),
+                            verticalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth(),
@@ -236,13 +240,43 @@ fun ImportContactsPage(
                             }
                             Button(
                                 onClick = { viewModel.saveSelectedContacts() },
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
                                     .height(50.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
                                 ),
                             ) {
                                 Text("Импортировать выбранные", fontWeight = FontWeight.Medium)
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Button(
+                                    onClick = { viewModel.toggleChangeSelectedAll(true) },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(40.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = colorScheme.onPrimaryContainer.copy(alpha = 0.65f)
+                                    ),
+                                ) {
+                                    Text("Выбрать все", fontWeight = FontWeight.Medium)
+                                }
+
+                                Spacer(modifier = Modifier.width(4.dp))
+
+                                Button(
+                                    onClick = { viewModel.toggleChangeSelectedAll(false) },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(40.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = colorScheme.onPrimaryContainer.copy(alpha = 0.65f)
+                                    ),
+                                ) {
+                                    Text("Снять все", fontWeight = FontWeight.Medium)
+                                }
                             }
                         }
                     }
@@ -317,7 +351,6 @@ fun PreviewContactCard(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                Spacer(modifier = Modifier.weight(1f))
 
                 IconButton(
                     onClick = onToggleClick

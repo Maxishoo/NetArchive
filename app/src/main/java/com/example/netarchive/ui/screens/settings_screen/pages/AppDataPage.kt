@@ -61,7 +61,6 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
             .padding(top = 100.dp, start = 16.dp, end = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Размер БД
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
@@ -91,7 +90,6 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
             }
         }
 
-        // Кнопка очистки контактов
         Button(
             onClick = { showContactsDialog = true },
             enabled = !state.isLoading,
@@ -107,7 +105,6 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
             else Text("Очистить контакты", fontWeight = FontWeight.Medium)
         }
 
-        // Кнопка очистки профиля
         Button(
             onClick = { showProfileDialog = true },
             enabled = !state.isLoading,
@@ -143,7 +140,6 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
         )
     }
 
-    // Диалог: Профиль
     if (showProfileDialog) {
         AlertDialog(
             onDismissRequest = { showProfileDialog = false },

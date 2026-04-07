@@ -137,6 +137,30 @@ class ImportContactsViewModel @Inject constructor(
         }
     }
 
+    fun toggleChangeSelectedAll(selected: Boolean) {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    isContactsListLoading = true
+                )
+            }
+
+            _state.update { currentState ->
+                currentState.copy(
+                    previewContacts = currentState.previewContacts.map { item ->
+                        item.copy(isSelected = selected)
+                    }
+                )
+            }
+
+            _state.update {
+                it.copy(
+                    isContactsListLoading = false
+                )
+            }
+        }
+    }
+
     fun saveSelectedContacts() {
         val selected = _state.value.previewContacts.filter { it.isSelected }.map { it.contact }
         if (selected.isEmpty()) {
