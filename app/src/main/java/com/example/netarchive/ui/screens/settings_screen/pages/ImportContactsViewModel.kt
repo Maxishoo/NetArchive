@@ -20,7 +20,8 @@ import javax.inject.Inject
 data class ContactPreviewItem(
     val deviceContactId: Long,
     val contact: Contact,
-    val isSelected: Boolean = true
+    val isSelected: Boolean,
+    val isDuplicate: Boolean,
 )
 
 data class ImportContactsState(
@@ -54,10 +55,10 @@ class ImportContactsViewModel @Inject constructor(
         resolver.query(
             ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
             arrayOf(
-                ContactsContract.CommonDataKinds.Phone.CONTACT_ID, // [0]
-                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, // [1]
-                ContactsContract.CommonDataKinds.Phone.NUMBER, // [2]
-                ContactsContract.CommonDataKinds.Phone.PHOTO_URI // [3]
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                ContactsContract.CommonDataKinds.Phone.NUMBER,
+                ContactsContract.CommonDataKinds.Phone.PHOTO_URI
             ), null, null, null
         )?.use { cursor ->
             while (cursor.moveToNext()) {
@@ -95,17 +96,22 @@ class ImportContactsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             _state.update { it.copy(isContactsListLoading = true, error = null) }
             try {
-                val contacts = fetchContacts() // List<Pair<Long, Contact>>
-                val seenPhones = mutableSetOf<String>()
+                val contacts = fetchContacts()
+                val existingPhones = repository.getContactsPhones()
+
+                val phonesInDb = existingPhones
+                    .mapNotNull { normalizePhone(it).takeIf { it.isNotBlank() } }
+                    .toSet()
 
                 val previewItems = contacts.map { (deviceId, contact) ->
                     val normPhone = normalizePhone(contact.phone)
-                    val isDuplicate = normPhone.isNotBlank() && !seenPhones.add(normPhone)
+                    val isDuplicate = normPhone in phonesInDb
 
                     ContactPreviewItem(
                         deviceContactId = deviceId,
                         contact = contact,
-                        isSelected = !isDuplicate
+                        isSelected = !isDuplicate,
+                        isDuplicate = isDuplicate
                     )
                 }
 
@@ -162,7 +168,8 @@ class ImportContactsViewModel @Inject constructor(
     }
 
     fun saveSelectedContacts() {
-        val selected = _state.value.previewContacts.filter { it.isSelected }.map { it.contact }
+        val selected = _state.value.previewContacts.filter { it.isSelected && !it.isDuplicate }
+            .map { it.contact }
         if (selected.isEmpty()) {
             _state.update { it.copy(error = "Не выбрано ни одного контакта") }
             return
@@ -171,7 +178,9 @@ class ImportContactsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             _state.update { it.copy(isContactsListSaving = true, error = null) }
             try {
-                selected.forEach { repository.addContact(it) }
+                selected.forEach {
+                    repository.addContact(it)
+                }
 
                 _state.update {
                     it.copy(

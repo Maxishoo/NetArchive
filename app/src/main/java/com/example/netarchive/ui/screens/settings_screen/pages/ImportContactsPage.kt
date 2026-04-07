@@ -3,6 +3,8 @@ package com.example.netarchive.ui.screens.settings_screen.pages
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Circle
+import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.PersonAddAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -36,13 +39,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,7 +62,7 @@ fun ImportContactsPage(
     viewModel: ImportContactsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     val listState = rememberLazyListState()
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -76,11 +77,11 @@ fun ImportContactsPage(
 
     LaunchedEffect(state.successMessage, state.error) {
         state.successMessage?.let { message ->
-            snackbarHostState.showSnackbar(message)
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             viewModel.consumeMessage()
         }
         state.error?.let { err ->
-            snackbarHostState.showSnackbar(err)
+            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
             viewModel.consumeMessage()
         }
     }
@@ -138,12 +139,13 @@ fun ImportContactsPage(
         if (state.isContactsListLoading) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.CenterHorizontally
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 CircularProgressIndicator()
+                Spacer(modifier = Modifier.height(5.dp))
                 Text(
                     "Читаем контакты",
                     style = MaterialTheme.typography.bodyMedium
@@ -152,12 +154,13 @@ fun ImportContactsPage(
         } else if (state.isContactsListSaving) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
+                verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 CircularProgressIndicator()
+                Spacer(modifier = Modifier.height(5.dp))
                 Text(
                     "Сохранение в бд",
                     style = MaterialTheme.typography.bodyMedium
@@ -351,18 +354,23 @@ fun PreviewContactCard(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-
-                IconButton(
-                    onClick = onToggleClick
-                ) {
-                    if (contactPreviewItem.isSelected) {
+                if(contactPreviewItem.isDuplicate){
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        modifier = Modifier.padding(end = 12.dp)
+                    ) {
                         Icon(
-                            imageVector = Icons.Outlined.CheckCircle,
+                            imageVector = Icons.Outlined.Error,
                             contentDescription = null
                         )
-                    } else {
+                        Text("уже есть")
+                    }
+                }else{
+                    IconButton(
+                        onClick = onToggleClick
+                    ) {
                         Icon(
-                            imageVector = Icons.Outlined.Circle,
+                            imageVector = if (contactPreviewItem.isSelected) Icons.Outlined.CheckCircle else Icons.Outlined.Circle,
                             contentDescription = null
                         )
                     }

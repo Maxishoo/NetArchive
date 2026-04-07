@@ -50,6 +50,10 @@ class ContactRepository @Inject constructor(
             .map { entities -> entities.map { it.toDomain() } }
     }
 
+    suspend fun getContactsPhones(): List<String> {
+        return contactDao.getContactsPhones()
+    }
+
     suspend fun addCategoryToContact(contactId: Int, categoryId: Int) {
         contactDao.insertContactCategoryCrossRef(
             ContactCategoryCrossRef(contactId, categoryId)
