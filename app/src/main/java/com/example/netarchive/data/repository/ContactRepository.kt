@@ -15,7 +15,7 @@ import androidx.core.net.toUri
 class ContactRepository @Inject constructor(
     private val contactDao: ContactDao
 ) {
-    suspend fun addContact(contact: Contact):Int {
+    suspend fun addContact(contact: Contact): Int {
         val entity = contact.toEntity()
         return contactDao.insertContact(entity).toInt()
     }
@@ -31,7 +31,7 @@ class ContactRepository @Inject constructor(
         contactDao.deleteContact(contact.toEntity())
     }
 
-    suspend fun deleteAllContacts(){
+    suspend fun deleteAllContacts() {
         contactDao.clearContactsTable()
     }
 
@@ -49,6 +49,7 @@ class ContactRepository @Inject constructor(
         return contactDao.getContacts(query)
             .map { entities -> entities.map { it.toDomain() } }
     }
+
     suspend fun addCategoryToContact(contactId: Int, categoryId: Int) {
         contactDao.insertContactCategoryCrossRef(
             ContactCategoryCrossRef(contactId, categoryId)
@@ -56,28 +57,30 @@ class ContactRepository @Inject constructor(
     }
 
     suspend fun updateContactCategories(contactId: Int, categoryIds: List<Int>) {
-        // Удаляем все старые связи
         contactDao.deleteAllCategoriesForContact(contactId)
 
-        // Добавляем новые
         categoryIds.forEach { categoryId ->
             contactDao.insertContactCategoryCrossRef(
                 ContactCategoryCrossRef(contactId, categoryId)
             )
         }
     }
+
     suspend fun removeCategoryFromContact(contactId: Int, categoryId: Int) {  // <-- Int
         contactDao.deleteContactCategoryCrossRef(
             ContactCategoryCrossRef(contactId, categoryId)
         )
     }
+
     fun getContactWithCategories(contactId: Int): Flow<ContactWithCategories?> {
         return contactDao.getContactWithCategories(contactId)
     }
+
     fun getContactsByQueryAndCategory(query: String, categoryId: Int?): Flow<List<Contact>> {
         return contactDao.getContactsByQueryAndCategory(query, categoryId)
             .map { entities -> entities.map { it.toDomain() } }
     }
+
     fun getContactsWithCategoriesByQueryAndCategory(
         query: String,
         categoryId: Int?

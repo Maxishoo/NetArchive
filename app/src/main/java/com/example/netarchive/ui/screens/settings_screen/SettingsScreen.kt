@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.netarchive.ui.screens.settings_screen.pages.AboutPage
 import com.example.netarchive.ui.screens.settings_screen.pages.AppDataPage
+import com.example.netarchive.ui.screens.settings_screen.pages.ImportContactsPage
 import com.example.netarchive.ui.theme.CardBackground
 
 enum class SettingsPages(
@@ -113,18 +114,25 @@ fun SettingsScreen(
         targetState = viewState.selectedPage,
         transitionSpec = {
             if (targetState > initialState) {
-                slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(300)) togetherWith
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) togetherWith
                         slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(300))
             } else {
-                slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(300)) togetherWith
+                slideInHorizontally(
+                    initialOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) togetherWith
                         slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(300))
             }
         },
         label = "SettingsPageTransition"
-    ){page ->
+    ) { page ->
         when (page) {
             0 -> MainSettings(viewModel)
             1 -> AppDataPage()
+            2 -> ImportContactsPage()
             9 -> AboutPage()
         }
     }
