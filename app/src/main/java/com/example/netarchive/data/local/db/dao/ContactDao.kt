@@ -39,6 +39,9 @@ interface ContactDao{
     @Query("DELETE FROM contacts")
     suspend fun clearContactsTable()
 
+    @Query("SELECT phone FROM contacts")
+    suspend fun getContactsPhones() : List<String>
+
     @Transaction
     @Query("SELECT * FROM contacts WHERE id = :contactId")
     fun getContactWithCategories(contactId: Int): Flow<ContactWithCategories?>
