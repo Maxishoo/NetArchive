@@ -239,6 +239,7 @@ fun ImportContactsPage(
                                 Text(
                                     "Выберите контакты, которые нужно импортировать",
                                     style = MaterialTheme.typography.bodyLarge,
+                                    textAlign = TextAlign.Center
                                 )
                             }
                             Button(

@@ -154,7 +154,8 @@ class ImportContactsViewModel @Inject constructor(
             _state.update { currentState ->
                 currentState.copy(
                     previewContacts = currentState.previewContacts.map { item ->
-                        item.copy(isSelected = selected)
+                        if(!item.isDuplicate) item.copy(isSelected = selected)
+                        else item
                     }
                 )
             }

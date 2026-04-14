@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.netarchive.ui.screens.settings_screen.pages.AboutPage
 import com.example.netarchive.ui.screens.settings_screen.pages.AppDataPage
+import com.example.netarchive.ui.screens.settings_screen.pages.ChangeDesignPage
 import com.example.netarchive.ui.screens.settings_screen.pages.ImportContactsPage
 import com.example.netarchive.ui.theme.CardBackground
 
@@ -138,6 +139,7 @@ fun SettingsScreen(
             0 -> MainSettings(viewModel)
             1 -> AppDataPage()
             2 -> ImportContactsPage()
+            3 -> ChangeDesignPage()
             9 -> AboutPage()
             else -> EmptyPage()
         }
