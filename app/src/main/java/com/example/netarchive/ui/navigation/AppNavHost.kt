@@ -1,11 +1,7 @@
 package com.example.netarchive.ui.navigation
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import kotlinx.serialization.Serializable
 import androidx.navigation.compose.NavHost
@@ -15,7 +11,9 @@ import com.example.netarchive.ui.screens.add_contact_screen.AddContactScreen
 import com.example.netarchive.ui.screens.contacts_list_screen.ContactListScreen
 import com.example.netarchive.ui.screens.contact_view_screen.ContactViewScreen
 import com.example.netarchive.ui.screens.add_note_screen.CreateNoteScreen
+import com.example.netarchive.ui.screens.add_reminder_screen.CreateReminderScreen
 import com.example.netarchive.ui.screens.profile_screen.ProfileViewScreen
+import com.example.netarchive.ui.screens.settings_screen.SettingsScreen
 
 @Serializable
 sealed class Routes{
@@ -138,9 +136,13 @@ fun AppNavHost(
                 onBackClick = { navController.popBackStack() },
                 onNoteCreated = {
                     navController.popBackStack()
-                    if (route.fromScreen == "select_contact") {
-                        navController.popBackStack()
-                    }
+                    previousRoute?.let {
+                        if (!navController.popBackStack(it, false)) {
+                            navController.navigate(Routes.Contacts) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    } ?: navController.navigate(Routes.Contacts)
                 }
             )
         }
@@ -188,7 +190,13 @@ fun AppNavHost(
                 onBackClick = { navController.popBackStack() },
                 onReminderCreated = {
                     navController.popBackStack()
-                    if (route.fromScreen == "select_contact") navController.popBackStack()
+                    previousRoute?.let {
+                        if (!navController.popBackStack(it, false)) {
+                            navController.navigate(Routes.Contacts) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    } ?: navController.navigate(Routes.Contacts)
                 }
             )
         }

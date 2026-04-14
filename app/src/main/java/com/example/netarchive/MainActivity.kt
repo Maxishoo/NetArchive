@@ -34,7 +34,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
-import java.util.Date
 import javax.inject.Inject
 import androidx.activity.result.contract.ActivityResultContracts
 
@@ -136,11 +135,15 @@ fun Main() {
             it.route == Routes.Profile::class.qualifiedName || it.route == Routes.Settings::class.qualifiedName
         } == true -> BottomNavItem.Profile
 
-        currentDestination?.hierarchy?.any {
-            it.route == Routes.CreateContact::class.qualifiedName ||
-                    it.route == Routes.CreateReminderRoute::class.qualifiedName ||
-                    it.route == Routes.CreateConnection::class.qualifiedName
-        } == true -> BottomNavItem.Add
+        currentDestination?.hierarchy?.any { destination ->
+            val route = destination.route ?: ""
+            route.startsWith(Routes.CreateContact::class.qualifiedName ?: "") ||
+                    route.startsWith(Routes.CreateConnection::class.qualifiedName ?: "") ||
+                    route.startsWith(Routes.CreateNoteRoute::class.qualifiedName ?: "") ||
+                    route.startsWith(Routes.CreateReminderRoute::class.qualifiedName ?: "")
+        } == true -> {
+            BottomNavItem.Add
+        }
 
         else -> BottomNavItem.Contacts
     }
