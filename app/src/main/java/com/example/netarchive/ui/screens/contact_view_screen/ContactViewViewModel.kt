@@ -3,6 +3,7 @@ package com.example.netarchive.ui.screens.contact_view_screen
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -88,6 +89,8 @@ class ContactViewViewModel @Inject constructor(
 
     private val _aiState = MutableStateFlow<AiState>(AiState.Idle)
     val aiState: StateFlow<AiState> = _aiState.asStateFlow()
+    private val _isGenerating = MutableStateFlow(false)
+    val isGenerating: StateFlow<Boolean> = _isGenerating
 
     // === AI METHOD ===
     fun generateConversationStarter() {
@@ -204,6 +207,16 @@ class ContactViewViewModel @Inject constructor(
             }
         }
     }
+    fun regenerateSuggestions() {
+        if (_isGenerating.value) return
+
+        viewModelScope.launch {
+            _isGenerating.value = true
+            generateConversationStarter()
+            _isGenerating.value = false
+        }
+    }
+
     fun copySuggestion(index: Int) {
         val suggestions = when(val state = _aiState.value) {
             is AiState.Success -> state.suggestions

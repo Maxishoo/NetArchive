@@ -16,7 +16,6 @@ import com.example.netarchive.ui.screens.contacts_list_screen.ContactListScreen
 import com.example.netarchive.ui.screens.contact_view_screen.ContactViewScreen
 import com.example.netarchive.ui.screens.add_note_screen.CreateNoteScreen
 import com.example.netarchive.ui.screens.profile_screen.ProfileViewScreen
-import com.example.netarchive.ui.screens.settings_screen.SettingsScreen
 
 @Serializable
 sealed class Routes{
@@ -38,12 +37,26 @@ sealed class Routes{
     @Serializable
     object CreateContact
 
+
     @Serializable
-    object CreateConnection
+    data class CreateConnection(
+        val type: EntryType = EntryType.NOTE
+    ) {
+        enum class EntryType { NOTE, REMINDER }
+    }
 
 
     @Serializable
-    object CreateRemind
+    data class CreateReminderRoute(
+        val contactId: Int,
+        val contactName: String,
+        val contactAvatar: String?,
+        val reminderId: Int = 0,
+        val reminderText: String = "",
+        val reminderDate: Long = 0L,
+        val fromScreen: String = "contact_view",
+        val returnTab: Int = 0
+    )
 
     @Serializable
     data class CreateNoteRoute(
@@ -132,24 +145,52 @@ fun AppNavHost(
             )
         }
 
-        composable<Routes.CreateConnection> {
+        composable<Routes.CreateConnection> { backStackEntry ->
+            val route = backStackEntry.toRoute<Routes.CreateConnection>()
             ContactListScreen(
                 onContactClick = { contact ->
-                    navController.navigate(
-                        Routes.CreateNoteRoute(
-                            contactId = contact.id,
-                            contactName = contact.username,
-                            contactAvatar = contact.avatar,
-                            fromScreen = "select_contact"
-                        )
-                    )
+                    when (route.type) {
+                        Routes.CreateConnection.EntryType.NOTE -> {
+                            navController.navigate(
+                                Routes.CreateNoteRoute(
+                                    contactId = contact.id,
+                                    contactName = contact.username,
+                                    contactAvatar = contact.avatar,
+                                    fromScreen = "select_contact"
+                                )
+                            )
+                        }
+                        Routes.CreateConnection.EntryType.REMINDER -> {
+                            navController.navigate(
+                                Routes.CreateReminderRoute(
+                                    contactId = contact.id,
+                                    contactName = contact.username,
+                                    contactAvatar = contact.avatar,
+                                    fromScreen = "select_contact"
+                                )
+                            )
+                        }
+                    }
                 },
                 isSelectionMode = true
             )
         }
 
-        composable<Routes.CreateRemind> {
-            Text("CreateRemind", modifier = Modifier.padding(top = 100.dp), fontSize = 40.sp)
+        composable<Routes.CreateReminderRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<Routes.CreateReminderRoute>()
+            CreateReminderScreen(
+                contactId = route.contactId,
+                contactName = route.contactName,
+                contactAvatar = route.contactAvatar,
+                reminderId = route.reminderId,
+                reminderText = route.reminderText,
+                reminderDate = route.reminderDate,
+                onBackClick = { navController.popBackStack() },
+                onReminderCreated = {
+                    navController.popBackStack()
+                    if (route.fromScreen == "select_contact") navController.popBackStack()
+                }
+            )
         }
 
         composable<Routes.ContactDetail> { backStackEntry ->

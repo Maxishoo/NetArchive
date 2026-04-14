@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.netarchive.ui.theme.LightBlue
 
+
 enum class BottomNavItem(
     val icon: ImageVector,
     val route: Any,
@@ -69,15 +70,13 @@ enum class AddMenuItem(
         label = "Контакт",
         route = Routes.CreateContact
     ),
-
-    CreateConnection(
-        label = "Связь",
-        route = Routes.CreateConnection
+    CreateNote(
+    label = "Заметка",
+    route = Routes.CreateConnection(type = Routes.CreateConnection.EntryType.NOTE)
     ),
-
-    CreateRemind(
-        label = "Напоминание",
-        route = Routes.CreateRemind
+    CreateReminder(
+    label = "Напоминание",
+    route = Routes.CreateConnection(type = Routes.CreateConnection.EntryType.REMINDER)
     )
 }
 
