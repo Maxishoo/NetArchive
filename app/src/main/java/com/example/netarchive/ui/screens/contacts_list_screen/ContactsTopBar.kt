@@ -31,8 +31,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.example.netarchive.data.local.db.entity.CategoryEntity
 import com.example.netarchive.ui.theme.LightBlue
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.MutableState
 
 @Composable
 fun ContactsTopBar(
@@ -49,9 +48,10 @@ fun ContactsTopBar(
     isSelectionMode: Boolean = false,
     allCategories: List<CategoryEntity> = emptyList(),
     selectedCategoryId: Int? = null,
-    onCategoryFilterSelected: (Int?) -> Unit = {}
+    onCategoryFilterSelected: (Int?) -> Unit = {},
+    showSearchFieldState: MutableState<Boolean>
 ) {
-    var showSearchField by remember { mutableStateOf(false) }
+    var showSearchField by showSearchFieldState
 
     Column(
         modifier = Modifier
@@ -59,7 +59,6 @@ fun ContactsTopBar(
             .background(color = Color(0xFFECEBF4).copy(alpha = 0.95f))
             .padding(top = 30.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
     ) {
-        // Верхняя строка с заголовком и поиском
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -123,7 +122,6 @@ fun ContactsTopBar(
                                         selected = selectedCategoryId == null,
                                         onClick = {
                                             onCategoryFilterSelected(null)
-                                            showSearchField = false
                                                   },
                                         label = { Text("Все") },
                                         colors = FilterChipDefaults.filterChipColors(
@@ -138,7 +136,6 @@ fun ContactsTopBar(
                                         selected = selectedCategoryId == category.id,
                                         onClick = {
                                             onCategoryFilterSelected(category.id)
-                                            showSearchField = false
                                                   },
                                         label = { Text(category.name) },
                                         leadingIcon = if (category.isDefault) {

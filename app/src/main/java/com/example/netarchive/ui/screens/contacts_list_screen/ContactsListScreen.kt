@@ -1,5 +1,8 @@
 package com.example.netarchive.ui.screens.contacts_list_screen
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -37,7 +40,17 @@ fun ContactListScreen(
     val allCategories by viewModel.allCategories.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
-    val topBarHeight = 80.dp
+    val showSearchFieldState = remember { mutableStateOf(false) }
+    val searchFieldOffset by animateDpAsState(
+        targetValue = if (showSearchFieldState.value) 70.dp else 0.dp,
+        animationSpec = tween(
+            durationMillis = 300,
+            easing = FastOutSlowInEasing
+        ),
+        label = "circleOffset"
+    )
+
+    val topBarHeight = 80.dp + searchFieldOffset
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -121,7 +134,8 @@ fun ContactListScreen(
             onCategoryFilterSelected = { categoryId ->
                 selectedCategoryId = categoryId
                 viewModel.onCategoryFilterSelected(categoryId)
-            }
+            },
+            showSearchFieldState
         )
     }
 }

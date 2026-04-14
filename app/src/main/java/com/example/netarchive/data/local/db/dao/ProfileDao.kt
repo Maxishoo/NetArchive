@@ -14,4 +14,7 @@ interface ProfileDao {
 
     @Query("SELECT * FROM profile WHERE id = 1")
     fun getProfile(): Flow<ProfileEntity?>
+
+    @Query("DELETE FROM profile")
+    suspend fun clearProfileTable()
 }

@@ -133,7 +133,7 @@ fun Main() {
         } == true -> BottomNavItem.Contacts
 
         currentDestination?.hierarchy?.any {
-            it.route == Routes.Profile::class.qualifiedName
+            it.route == Routes.Profile::class.qualifiedName || it.route == Routes.Settings::class.qualifiedName
         } == true -> BottomNavItem.Profile
 
         currentDestination?.hierarchy?.any {

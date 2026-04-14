@@ -1,6 +1,5 @@
 package com.example.netarchive.data.repository
 
-import android.net.Uri
 import com.example.netarchive.data.local.db.dao.ContactDao
 import com.example.netarchive.data.local.db.entity.ContactCategoryCrossRef
 import com.example.netarchive.data.local.db.entity.ContactWithCategories
@@ -16,7 +15,7 @@ import androidx.core.net.toUri
 class ContactRepository @Inject constructor(
     private val contactDao: ContactDao
 ) {
-    suspend fun addContact(contact: Contact):Int {
+    suspend fun addContact(contact: Contact): Int {
         val entity = contact.toEntity()
         return contactDao.insertContact(entity).toInt()
     }
@@ -30,6 +29,10 @@ class ContactRepository @Inject constructor(
             File(it.toUri().path!!).delete()
         }
         contactDao.deleteContact(contact.toEntity())
+    }
+
+    suspend fun deleteAllContacts() {
+        contactDao.clearContactsTable()
     }
 
     fun getContactById(id: Int): Flow<Contact?> {
@@ -46,6 +49,11 @@ class ContactRepository @Inject constructor(
         return contactDao.getContacts(query)
             .map { entities -> entities.map { it.toDomain() } }
     }
+
+    suspend fun getContactsPhones(): List<String> {
+        return contactDao.getContactsPhones()
+    }
+
     suspend fun addCategoryToContact(contactId: Int, categoryId: Int) {
         contactDao.insertContactCategoryCrossRef(
             ContactCategoryCrossRef(contactId, categoryId)
@@ -53,28 +61,30 @@ class ContactRepository @Inject constructor(
     }
 
     suspend fun updateContactCategories(contactId: Int, categoryIds: List<Int>) {
-        // Удаляем все старые связи
         contactDao.deleteAllCategoriesForContact(contactId)
 
-        // Добавляем новые
         categoryIds.forEach { categoryId ->
             contactDao.insertContactCategoryCrossRef(
                 ContactCategoryCrossRef(contactId, categoryId)
             )
         }
     }
+
     suspend fun removeCategoryFromContact(contactId: Int, categoryId: Int) {  // <-- Int
         contactDao.deleteContactCategoryCrossRef(
             ContactCategoryCrossRef(contactId, categoryId)
         )
     }
+
     fun getContactWithCategories(contactId: Int): Flow<ContactWithCategories?> {
         return contactDao.getContactWithCategories(contactId)
     }
+
     fun getContactsByQueryAndCategory(query: String, categoryId: Int?): Flow<List<Contact>> {
         return contactDao.getContactsByQueryAndCategory(query, categoryId)
             .map { entities -> entities.map { it.toDomain() } }
     }
+
     fun getContactsWithCategoriesByQueryAndCategory(
         query: String,
         categoryId: Int?
