@@ -1,6 +1,8 @@
 package com.example.netarchive.ui.screens.contact_view_screen
 
-import android.content.Context
+import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -18,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -27,6 +30,8 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -38,7 +43,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,6 +55,7 @@ import com.example.netarchive.ui.components.QrDialog
 import com.example.netarchive.ui.components.cards.NoteCard
 import com.example.netarchive.ui.theme.NetArchiveTheme
 import com.example.netarchive.ui.navigation.NoteNavigationData
+import androidx.core.net.toUri
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,16 +69,13 @@ fun ContactViewScreen(
     val viewState by viewModel.viewState.collectAsState()
     var selectedTab by rememberSaveable { mutableIntStateOf(initialTab) }
     val tabs = listOf("Информация", "Заметки")
-    val contactId = viewState.contactId
-    val contactName = viewState.username
     var isNotesEditMode by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     val aiState by viewModel.aiState.collectAsState()
-    val context = LocalContext.current
     val isGenerating by viewModel.isGenerating.collectAsState()
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri: android.net.Uri? ->
+    ) { uri: Uri? ->
         uri?.let {
             viewModel.onAvatarSelected(it)
         }
@@ -404,6 +406,7 @@ fun ContactViewScreen(
     }
 }
 
+@SuppressLint("UseKtx")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ContactInfoTab(
@@ -412,6 +415,8 @@ private fun ContactInfoTab(
     selectedTab: Int,
     onAvatarClick: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -543,6 +548,27 @@ private fun ContactInfoTab(
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
+            trailingIcon = {
+                if (!viewState.isEditMode && viewState.phone.isNotBlank()) {
+                    IconButton(
+                        onClick = {
+                            try {
+                                val intent = Intent(Intent.ACTION_DIAL).apply {
+                                    data = "tel:${viewState.phone}".toUri()
+                                }
+                                context.startActivity(intent)
+                            } catch (_: Exception) {
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Call,
+                            contentDescription = "Позвонить",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xFF64B5F6),
                 unfocusedBorderColor = Color(0xFF90CAF9),
@@ -561,6 +587,27 @@ private fun ContactInfoTab(
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
+            trailingIcon = {
+                if (!viewState.isEditMode && viewState.email.isNotBlank()) {
+                    IconButton(
+                        onClick = {
+                            try {
+                                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                    data = "mailto:${viewState.email}".toUri()
+                                }
+                                context.startActivity(intent)
+                            } catch (_: Exception) {
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Email,
+                            contentDescription = "Написать email",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xFF64B5F6),
                 unfocusedBorderColor = Color(0xFF90CAF9),
@@ -579,6 +626,36 @@ private fun ContactInfoTab(
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
+            trailingIcon = {
+                if (!viewState.isEditMode && viewState.telegram.isNotBlank()) {
+                    IconButton(
+                        onClick = {
+                            try {
+                                val username = viewState.telegram.trimStart('@')
+                                val intent = Intent(Intent.ACTION_VIEW).apply {
+                                    data = Uri.parse("tg://resolve?domain=$username")
+                                }
+                                context.startActivity(intent)
+                            } catch (_: Exception) {
+                                try {
+                                    val username = viewState.telegram.trimStart('@')
+                                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                                        data = Uri.parse("https://t.me/$username")
+                                    }
+                                    context.startActivity(intent)
+                                } catch (_: Exception) {
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.Send,
+                            contentDescription = "Открыть Telegram",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xFF64B5F6),
                 unfocusedBorderColor = Color(0xFF90CAF9),
@@ -593,7 +670,7 @@ private fun ContactInfoTab(
         OutlinedTextField(
             value = viewState.max,
             onValueChange = { viewModel.onMaxChange(it) },
-            label = { Text("Адрес") },
+            label = { Text("MAX") },
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
@@ -647,11 +724,11 @@ private fun ContactInfoTab(
                     onClick = viewModel::saveContact,
                     enabled = viewState.username.isNotBlank() && viewState.hasChanges && !viewState.isLoading,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = if (viewState.hasChanges && viewState.username.isNotBlank())
-                            Color(0xFF4D5D8A)  // Синий при активности
+                            Color(0xFF4D5D8A)
                         else
-                            Color.Gray.copy(alpha = 0.3f), // Серый при неактивности
+                            Color.Gray.copy(alpha = 0.3f),
                         disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
                     )
                 ) {

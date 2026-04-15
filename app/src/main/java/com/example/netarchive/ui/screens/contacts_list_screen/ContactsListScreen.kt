@@ -42,7 +42,7 @@ fun ContactListScreen(
 
     val showSearchFieldState = remember { mutableStateOf(false) }
     val searchFieldOffset by animateDpAsState(
-        targetValue = if (showSearchFieldState.value) 70.dp else 0.dp,
+        targetValue = if (showSearchFieldState.value) 60.dp else 0.dp,
         animationSpec = tween(
             durationMillis = 300,
             easing = FastOutSlowInEasing
@@ -50,7 +50,7 @@ fun ContactListScreen(
         label = "circleOffset"
     )
 
-    val topBarHeight = 80.dp + searchFieldOffset
+    val topBarHeight = 90.dp + searchFieldOffset
 
     Box(
         modifier = modifier.fillMaxSize()
