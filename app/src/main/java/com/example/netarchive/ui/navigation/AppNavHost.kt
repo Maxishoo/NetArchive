@@ -133,7 +133,10 @@ fun AppNavHost(
                 noteId = route.noteId,
                 noteText = route.noteText,
                 noteDate = route.noteDate,
-                onBackClick = { navController.popBackStack() },
+                onBackClick = {
+                    navController.popBackStack()
+                    navController.popBackStack()
+                              },
                 onNoteCreated = {
                     navController.popBackStack()
                     previousRoute?.let {

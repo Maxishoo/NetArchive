@@ -1,5 +1,8 @@
 package com.example.netarchive.ui.screens.contacts_list_screen
 
+import android.content.Context
+import android.os.VibrationEffect
+import android.os.Vibrator
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -40,6 +43,7 @@ import com.example.netarchive.data.local.db.entity.CategoryEntity
 import com.example.netarchive.ui.theme.LightBlue
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun ContactsTopBar(
@@ -53,11 +57,14 @@ fun ContactsTopBar(
 ) {
     var showSearchField by showSearchFieldState
 
+    val context = LocalContext.current
+    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(color = Color(0xFFECEBF4).copy(alpha = 0.95f))
-            .padding(top = 30.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
+            .padding(top = 35.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -90,6 +97,9 @@ fun ContactsTopBar(
                             },
                             trailingIcon = {
                                 IconButton(onClick = {
+                                    if (vibrator.hasVibrator()) {
+                                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
+                                    }
                                     showSearchField = false
                                     onQueryChange("")
                                 }) {
@@ -160,8 +170,8 @@ fun ContactsTopBar(
                     }
                 } else {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
@@ -169,7 +179,14 @@ fun ContactsTopBar(
                             style = MaterialTheme.typography.headlineLarge,
                             color = Color.Black
                         )
-                        IconButton(onClick = { showSearchField = true }) {
+                        IconButton(
+                            onClick = {
+                                if (vibrator.hasVibrator()) {
+                                    vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
+                                }
+                                showSearchField = true
+                            }
+                        ) {
                             Icon(
                                 imageVector = Icons.Outlined.Search,
                                 contentDescription = "Поиск",
