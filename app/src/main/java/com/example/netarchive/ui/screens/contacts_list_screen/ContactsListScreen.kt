@@ -1,5 +1,8 @@
 package com.example.netarchive.ui.screens.contacts_list_screen
 
+import android.content.Context
+import android.os.VibrationEffect
+import android.os.Vibrator
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -17,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,6 +43,8 @@ fun ContactListScreen(
     var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
     val allCategories by viewModel.allCategories.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
+    val context = LocalContext.current
+    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
     val showSearchFieldState = remember { mutableStateOf(false) }
     val searchFieldOffset by animateDpAsState(
@@ -112,7 +118,17 @@ fun ContactListScreen(
                                         avatar = contactWithCategories.contact.avatar
                                     )
                                 )
+                            },
+                            onDragEnd = {
+                                if (vibrator.hasVibrator()) {
+                                    vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+                                }
+                            },
+                            onDragswipeThreshold = {
+                            if (vibrator.hasVibrator()) {
+                                vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
                             }
+                        }
                         )
                     }
                     item {

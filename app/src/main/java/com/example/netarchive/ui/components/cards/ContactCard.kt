@@ -1,8 +1,11 @@
 package com.example.netarchive.ui.components.cards
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
@@ -19,114 +22,171 @@ import androidx.compose.ui.unit.dp
 import com.example.netarchive.domain.model.Contact
 import com.example.netarchive.ui.theme.*
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.AssistChipDefaults
 
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import com.example.netarchive.data.local.db.entity.CategoryEntity
 import coil.compose.AsyncImage
+import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @Composable
 fun ContactCard(
     contact: Contact,
     modifier: Modifier = Modifier,
     categories: List<CategoryEntity> = emptyList(),
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    onDragswipeThreshold: () -> Unit,
+    onDragEnd: () -> Unit = {},
 ) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(0.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBackground),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Column(
+    val offsetX = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+
+    val density = LocalDensity.current
+
+    val backgroundWidth = 160.dp
+    val backgroundWidthPx = with(density) { backgroundWidth.toPx() }
+
+    val swipeThreshold = 100.dp
+    val swipeThresholdPx = with(density) { swipeThreshold.toPx() }
+
+    var hasDragThresholdGot by remember { mutableStateOf(false) }
+
+    Box(){
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .height(88.dp)
+                .background(MaterialTheme.colorScheme.primaryContainer)
+                .padding(end = 16.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Аватар или инициалы
-                if (contact.avatar != null) {
-                    AsyncImage(
-                        model = contact.avatar,
-                        contentDescription = "Avatar of ${contact.username}",
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(CircleShape)
-                            .background(color = Color(0xFFDBE0F7)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = contact.username.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    }
-                }
-                Column{
-                    // Имя контакта
-                    Text(
-                        text = contact.username,
-                        style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
-//                        modifier = Modifier.weight(1f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    // 🔥 Категории (если есть)
-                    if (categories.isNotEmpty()) {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            items(categories.take(3)) { category ->  // Показываем максимум 3 категории
-                                AssistChip(
-                                    onClick = { },
-                                    label = {
-                                        Text(
-                                            text = "#${category.name}",
-                                            style = MaterialTheme.typography.labelMedium,
-                                            maxLines = 1
-                                        )
-                                    },
-                                    modifier = Modifier
-                                        .border(
-                                            width = 1.dp,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            shape = RoundedCornerShape(10.dp)
-                                        )
-                                        .heightIn(max = 20.dp),
-                                    border = null,
-                                    colors = AssistChipDefaults.assistChipColors(
-                                        containerColor = Color.Transparent, // или любой другой цвет фона
-                                        labelColor = MaterialTheme.colorScheme.primary, // яркий цвет для текста
-                                        disabledLabelColor = MaterialTheme.colorScheme.primary // для отключенного состояния
-                                    ),
-                                    enabled = false,
+            Text(
+                text = "ЗАКРЕПИТЬ",
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Icon(
+                imageVector = Icons.Outlined.PushPin,
+                contentDescription = "Pin contact",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset { IntOffset(offsetX.value.toInt(), 0) }
+                .pointerInput(contact.id) {
+                    detectHorizontalDragGestures(
+                        onDragEnd = {
+                            scope.launch {
+                                if (abs(offsetX.value) >= swipeThresholdPx) {
+                                    onDragEnd()
+                                }
+                                hasDragThresholdGot = false
+                                offsetX.animateTo(
+                                    targetValue = 0f,
+                                    animationSpec = tween(durationMillis = 200)
                                 )
                             }
+                        },
+                        onHorizontalDrag = { change, dragAmount ->
+                            change.consume()
 
-                            if (categories.size > 3) {
-                                item {
+                            val newOffset = (offsetX.value + dragAmount).coerceIn(
+                                minimumValue = -backgroundWidthPx,
+                                maximumValue = 0f
+                            )
+
+                            if (!hasDragThresholdGot && abs(newOffset) >= swipeThresholdPx){
+                                onDragswipeThreshold()
+                                hasDragThresholdGot = true
+                            }
+
+                            scope.launch {
+                                offsetX.snapTo(newOffset)
+                            }
+                        }
+                    )
+                }
+                .clickable {
+                    if (abs(offsetX.value) < 5f) {
+                        onClick()
+                    }
+                },
+            shape = RoundedCornerShape(0.dp),
+            colors = CardDefaults.cardColors(containerColor = CardBackground),
+            elevation = CardDefaults.cardElevation(2.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (contact.avatar != null) {
+                        AsyncImage(
+                            model = contact.avatar,
+                            contentDescription = "Avatar of ${contact.username}",
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(CircleShape)
+                                .background(color = Color(0xFFDBE0F7)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = contact.username.firstOrNull()?.uppercaseChar()?.toString()
+                                    ?: "?",
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        }
+                    }
+                    Column {
+                        Text(
+                            text = contact.username,
+                            style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (categories.isNotEmpty()) {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                items(categories.take(3)) { category ->
                                     AssistChip(
                                         onClick = { },
                                         label = {
                                             Text(
-                                                text = "+${categories.size - 3}",
+                                                text = "#${category.name}",
                                                 style = MaterialTheme.typography.labelMedium,
                                                 maxLines = 1
                                             )
@@ -147,12 +207,41 @@ fun ContactCard(
                                         enabled = false,
                                     )
                                 }
+
+                                if (categories.size > 3) {
+                                    item {
+                                        AssistChip(
+                                            onClick = { },
+                                            label = {
+                                                Text(
+                                                    text = "+${categories.size - 3}",
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    maxLines = 1
+                                                )
+                                            },
+                                            modifier = Modifier
+                                                .border(
+                                                    width = 1.dp,
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    shape = RoundedCornerShape(10.dp)
+                                                )
+                                                .heightIn(max = 20.dp),
+                                            border = null,
+                                            colors = AssistChipDefaults.assistChipColors(
+                                                containerColor = Color.Transparent, // или любой другой цвет фона
+                                                labelColor = MaterialTheme.colorScheme.primary, // яркий цвет для текста
+                                                disabledLabelColor = MaterialTheme.colorScheme.primary // для отключенного состояния
+                                            ),
+                                            enabled = false,
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
 
+            }
         }
     }
 }
