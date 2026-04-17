@@ -3,6 +3,7 @@ package com.example.netarchive.ui.screens.contacts_list_screen
 import android.content.Context
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -93,6 +94,7 @@ fun ContactListScreen(
                     verticalArrangement = Arrangement.spacedBy(1.dp)
                 ) {
                     items(contactsWithCategories, key = { it.contact.id }) { contactWithCategories ->
+                        Log.e("Cont12", "all!  ${contactWithCategories.contact.pinnedOrder}")
                         ContactCard(
                             contact = Contact(
                                 id = contactWithCategories.contact.id,
@@ -102,7 +104,8 @@ fun ContactListScreen(
                                 max = contactWithCategories.contact.max,
                                 email = contactWithCategories.contact.email,
                                 job = contactWithCategories.contact.job,
-                                avatar = contactWithCategories.contact.avatar
+                                avatar = contactWithCategories.contact.avatar,
+                                pinnedOrder = contactWithCategories.contact.pinnedOrder
                             ),
                             categories = contactWithCategories.categories,
                             onClick = {
@@ -115,16 +118,19 @@ fun ContactListScreen(
                                         max = contactWithCategories.contact.max,
                                         email = contactWithCategories.contact.email,
                                         job = contactWithCategories.contact.job,
-                                        avatar = contactWithCategories.contact.avatar
+                                        avatar = contactWithCategories.contact.avatar,
+                                        pinnedOrder = contactWithCategories.contact.pinnedOrder
                                     )
                                 )
                             },
                             onDragEnd = {
-                                if (vibrator.hasVibrator()) {
-                                    vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+                                if (contactWithCategories.contact.pinnedOrder > 0) {
+                                    viewModel.unpinContact(contactWithCategories.contact.id)
+                                } else {
+                                    viewModel.pinContact(contactWithCategories.contact.id)
                                 }
                             },
-                            onDragswipeThreshold = {
+                            onDragSwipeThreshold = {
                             if (vibrator.hasVibrator()) {
                                 vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
                             }

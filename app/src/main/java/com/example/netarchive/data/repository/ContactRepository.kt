@@ -91,4 +91,16 @@ class ContactRepository @Inject constructor(
     ): Flow<List<ContactWithCategories>> {
         return contactDao.getContactsByQueryAndCategoryWithCategories(query, categoryId)
     }
+
+    suspend fun pinContact(contactId: Int){
+        contactDao.pinContact(contactId)
+    }
+
+    suspend fun unpinContact(contactId: Int){
+        contactDao.unpinContact(contactId)
+    }
+
+    suspend fun swapPinnedContacts(contact1Id: Int, contact2Id: Int) {
+        contactDao.swapPinnedContacts(contact1Id, contact2Id)
+    }
 }
