@@ -1,6 +1,5 @@
 package com.example.netarchive.ui.screens.profile_screen
 
-import android.content.Context
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,7 +7,6 @@ import com.example.netarchive.data.local.FileManager
 import com.example.netarchive.data.repository.ProfileRepository
 import com.example.netarchive.domain.model.Profile
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +16,6 @@ import qrgenerator.generateQrCode
 import java.net.URLEncoder
 import javax.inject.Inject
 
-// ✅ FIX: Пустые строки вместо пробелов для консистентности
 data class ProfileViewState(
     val username: String = "",
     val phone: String = "",

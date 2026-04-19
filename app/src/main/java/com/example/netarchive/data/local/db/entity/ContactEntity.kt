@@ -17,7 +17,8 @@ data class ContactEntity(
     val email : String? = null,
     val job : String? = null,
     val avatar : String? = null,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val pinnedOrder: Int = 0
 
 )
 data class ContactWithCategories(

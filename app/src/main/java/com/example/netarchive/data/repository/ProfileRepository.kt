@@ -18,4 +18,8 @@ class ProfileRepository @Inject constructor(
     suspend fun saveProfile(profile: Profile) {
         profileDao.saveProfile(profile.toEntity())
     }
+
+    suspend fun deleteProfile(){
+        profileDao.clearProfileTable()
+    }
 }

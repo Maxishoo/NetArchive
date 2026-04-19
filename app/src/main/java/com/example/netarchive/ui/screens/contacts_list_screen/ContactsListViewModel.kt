@@ -6,7 +6,6 @@ import com.example.netarchive.data.local.db.entity.CategoryEntity
 import com.example.netarchive.data.local.db.entity.ContactWithCategories
 import com.example.netarchive.data.repository.CategoryRepository
 import com.example.netarchive.data.repository.ContactRepository
-import com.example.netarchive.domain.model.Contact
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -22,6 +21,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
@@ -47,14 +47,14 @@ class ContactListViewModel @Inject constructor(
         categoryRepository.allCategories
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    private val contactsFlow: Flow<LoadState<List<ContactWithCategories>>> =  // <-- Изменили тип
+    private val contactsFlow: Flow<LoadState<List<ContactWithCategories>>> =
         combine(searchQueryFlow, selectedCategoryIdFlow) { query, categoryId ->
             query to categoryId
         }
             .debounce(100)
             .distinctUntilChanged()
             .flatMapLatest { (query, categoryId) ->
-                repository.getContactsWithCategoriesByQueryAndCategory(query, categoryId)  // <-- Новый метод
+                repository.getContactsWithCategoriesByQueryAndCategory(query, categoryId)
                     .map { contacts ->
                         if (contacts.isEmpty()) LoadState.Empty
                         else LoadState.Success(contacts, searchQuery = query)
@@ -63,7 +63,7 @@ class ContactListViewModel @Inject constructor(
                     .catch { e -> emit(LoadState.Error(e.message ?: "Error")) }
             }
 
-    val state: StateFlow<LoadState<List<ContactWithCategories>>> = contactsFlow.stateIn(  // <-- Изменили тип
+    val state: StateFlow<LoadState<List<ContactWithCategories>>> = contactsFlow.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = LoadState.Loading
@@ -74,5 +74,23 @@ class ContactListViewModel @Inject constructor(
     }
     fun onCategoryFilterSelected(categoryId: Int?) {
         selectedCategoryIdFlow.value = categoryId
+    }
+
+    fun pinContact(contactId: Int) {
+        viewModelScope.launch {
+            repository.pinContact(contactId)
+        }
+    }
+
+    fun unpinContact(contactId: Int) {
+        viewModelScope.launch {
+            repository.unpinContact(contactId)
+        }
+    }
+
+    fun swapPinnedContact(indexMain: Int, indexSwapped: Int) {
+        viewModelScope.launch {
+            repository.swapPinnedContacts(indexMain,indexSwapped)
+        }
     }
 }

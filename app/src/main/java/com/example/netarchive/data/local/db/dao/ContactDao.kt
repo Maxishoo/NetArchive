@@ -6,7 +6,6 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Transaction
 import androidx.room.Update
 import com.example.netarchive.data.local.db.entity.ContactEntity
 import com.example.netarchive.data.local.db.entity.ContactCategoryCrossRef
@@ -38,15 +37,18 @@ interface ContactDao{
             "OR job LIKE '%'||:query||'%'")
     fun getContacts(query : String) : Flow<List<ContactEntity>>
 
-    @Transaction
+    @Query("DELETE FROM contacts")
+    suspend fun clearContactsTable()
+
+    @Query("SELECT phone FROM contacts")
+    suspend fun getContactsPhones() : List<String>
+
     @Query("SELECT * FROM contacts WHERE id = :contactId")
     fun getContactWithCategories(contactId: Int): Flow<ContactWithCategories?>
 
-    @Transaction
     @Query("SELECT * FROM contacts")
     fun getAllContactsWithCategories(): Flow<List<ContactWithCategories>>
 
-    @Transaction
     @Query("""
     SELECT * FROM contacts 
     WHERE id IN (
@@ -68,7 +70,6 @@ interface ContactDao{
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertContact(contact: ContactEntity): Long
 
-    @Transaction
     @Query("""
     SELECT * FROM contacts 
     WHERE 
@@ -90,7 +91,6 @@ interface ContactDao{
 """)
     fun getContactsByQueryAndCategory(query: String, categoryId: Int?): Flow<List<ContactEntity>>
 
-    @Transaction
     @Query("""
     SELECT * FROM contacts 
     WHERE 
@@ -108,12 +108,40 @@ interface ContactDao{
             SELECT contactId FROM contact_category_cross_ref 
             WHERE categoryId = :categoryId
         ))
-    ORDER BY username ASC
+    ORDER BY
+        CASE WHEN pinnedOrder > 0 THEN 0 ELSE 1 END,
+        pinnedOrder ASC,
+        username ASC
 """)
     fun getContactsByQueryAndCategoryWithCategories(
         query: String,
         categoryId: Int?
     ): Flow<List<ContactWithCategories>>
+
+    @Query("SELECT MAX(pinnedOrder) FROM contacts")
+    suspend fun getMaxPinnedOrder(): Int?
+
+    @Query("UPDATE contacts SET pinnedOrder = :order WHERE id = :contactId")
+    suspend fun updatePinnedOrder(contactId: Int, order: Int)
+
+    suspend fun pinContact(contactId: Int) {
+        val maxOrder = getMaxPinnedOrder() ?: 0
+        updatePinnedOrder(contactId, maxOrder + 1)
+    }
+
+    @Query("UPDATE contacts SET pinnedOrder = 0 WHERE id = :contactId")
+    suspend fun unpinContact(contactId: Int)
+
+    @Query("SELECT pinnedOrder FROM contacts WHERE id = :contactId")
+    suspend fun getPinnedOrder(contactId: Int): Int
+
+    suspend fun swapPinnedContacts(contact1Id: Int, contact2Id: Int) {
+        val order1 = getPinnedOrder(contact1Id)
+        val order2 = getPinnedOrder(contact2Id)
+
+        updatePinnedOrder(contact1Id, order2)
+        updatePinnedOrder(contact2Id, order1)
+    }
 
     @Query("""
     SELECT c.*, COUNT(n.id) as noteCount, MAX(n.date) as lastNoteDate

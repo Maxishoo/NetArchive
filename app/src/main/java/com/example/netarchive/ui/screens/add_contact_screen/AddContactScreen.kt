@@ -75,7 +75,7 @@ fun AddContactScreen(
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
                 .padding(top = 90.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AvatarSelector(
@@ -199,10 +199,8 @@ private fun ContactActions(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp)
             .padding(bottom = 120.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
     ) {
         Button(
             onClick = onBackClick,

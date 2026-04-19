@@ -1,34 +1,29 @@
 package com.example.netarchive.ui.screens.add_note_screen
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import java.text.SimpleDateFormat
-import java.util.*
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Event
 import android.app.DatePickerDialog
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import coil.compose.AsyncImage
+import android.content.Context
+import android.os.VibrationEffect
+import android.os.Vibrator
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.ui.res.stringResource
+import com.example.netarchive.R
+import com.example.netarchive.ui.components.cards.ActionButtonsSaveCancel
+import com.example.netarchive.ui.components.cards.SimpleContactCard
+import com.example.netarchive.ui.components.cards.DateTimeSelector
+
 import java.util.Calendar
-
-
 
 @Composable
 private fun ShowDatePickerDialog(
@@ -78,6 +73,9 @@ fun CreateNoteScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showDatePicker by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             onNoteCreated()
@@ -95,12 +93,17 @@ fun CreateNoteScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(if (state.isEditMode) "Редактировать запись" else "Добавьте запись")
+                    Text(text = if (state.isEditMode) stringResource(R.string.modify_note) else stringResource(
+                            R.string.add_note,
+                        ),
+                        style = MaterialTheme.typography.headlineLarge,
+                    )
                 },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick){
-                        Icon(imageVector = Icons.Default.Close,
-                            contentDescription = "Закрыть"
+                actions = {
+                    IconButton(onClick = { viewModel.openVoicePage() }) {
+                        Icon(
+                            imageVector = Icons.Rounded.Mic,
+                            contentDescription = stringResource(R.string.close)
                         )
                     }
                 }
@@ -114,92 +117,16 @@ fun CreateNoteScreen(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 80.dp),
+                .padding(bottom = 100.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Карточка контакта
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    .clip(RoundedCornerShape(12.dp))
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Аватар
-                    if (contactAvatar != "") {
-                        AsyncImage(
-                            model = contactAvatar,
-                            contentDescription = "Avatar of $contactName",
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(color = Color(0xFFDBE0F7)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = contactName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                        }
-                    }
-
-                    // Имя контакта
-                    Text(
-                        text = state.contactName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-
-            // Дата
-            val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            val dateString = dateFormat.format(Date(state.date))
-
-            OutlinedTextField(
-                value = dateString,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Дата") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Filled.CalendarToday,
-                        contentDescription = null
-                    )
-                },
-                trailingIcon = {
-                    IconButton(onClick = { showDatePicker = true }) {
-                        Icon(
-                            imageVector = Icons.Filled.Event,
-                            contentDescription = "Выбрать дату",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                )
+            SimpleContactCard(
+                contactName = state.contactName,
+                contactAvatar = contactAvatar
+            )
+            DateTimeSelector(
+                selectedDate = state.date,
+                onDateClick = { showDatePicker = true }
             )
 
             if (showDatePicker) {
@@ -214,58 +141,40 @@ fun CreateNoteScreen(
                     }
                 )
             }
-
-            // Текст заметки
             OutlinedTextField(
                 value = state.noteText,
                 onValueChange = viewModel::onNoteTextChange,
-                label = { Text("Текст заметки") },
+                label = { Text(stringResource(R.string.note_text)) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp),
+                    .height(300.dp),
                 maxLines = Int.MAX_VALUE
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Кнопки
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Button(
-                    onClick = onBackClick,
-                    modifier = Modifier.weight(1f),
-                    enabled = !state.isLoading,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Text("Отмена")
-                }
-
-                Button(
-                    onClick = {
-                        if (state.isEditMode) {
-                            viewModel.saveNote()  // Обновить заметку
-                        } else {
-                            viewModel.saveNote()
-                        }
-                    },
-                    modifier = Modifier.weight(1f),
-                    enabled = !state.isLoading && state.noteText.isNotBlank()
-                ) {
-                    if (state.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    } else {
-                        Text(if (state.isEditMode) "Сохранить" else "Создать")
+            ActionButtonsSaveCancel(
+                onCancelClick = {
+                    if (vibrator.hasVibrator()) {
+                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
                     }
-                }
-            }
+                    onBackClick()
+                },
+                onSaveClick = {
+                    if (vibrator.hasVibrator()) {
+                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
+                    }
+                    viewModel.saveNote()
+                },
+                saveButtonText = if (state.isEditMode) stringResource(R.string.save) else stringResource(
+                    R.string.create
+                ),
+                isEnabled = state.noteText.isNotBlank(),
+                isLoading = state.isLoading
+            )
         }
     }
+    if (state.isVoicePageOpen) {
+        VoiceRecordingScreen()
+    }
 }
-

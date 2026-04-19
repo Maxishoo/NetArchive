@@ -12,7 +12,8 @@ fun ContactEntity.toDomain(): Contact {
         max = this.max,
         email = this.email,
         job = this.job,
-        avatar = this.avatar
+        avatar = this.avatar,
+        pinnedOrder = this.pinnedOrder
     )
 }
 
@@ -25,6 +26,7 @@ fun Contact.toEntity(): ContactEntity {
         max = this.max,
         email = this.email,
         job = this.job,
-        avatar = this.avatar
+        avatar = this.avatar,
+        pinnedOrder = this.pinnedOrder
     )
 }
