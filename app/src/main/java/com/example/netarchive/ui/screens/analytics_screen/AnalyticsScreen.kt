@@ -4,14 +4,11 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -24,7 +21,7 @@ import coil.compose.AsyncImage
 import com.example.netarchive.data.local.db.dao.CategoryWithCount
 import com.example.netarchive.domain.model.Contact
 import com.example.netarchive.domain.model.OverallStats
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextOverflow
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,7 +46,7 @@ fun AnalyticsScreen(
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFECEBF4)
+                    containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f)
                 )
             )
         }
@@ -60,12 +57,13 @@ fun AnalyticsScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(
-                top = paddingValues.calculateTopPadding() + 16.dp,
+                top = paddingValues.calculateTopPadding() + 10.dp,
                 bottom = 140.dp
             )
         ) {
 
             item {
+                SectionTitle("📈 Общая статистика")
                 OverallStatsCard(stats = overallStats)
             }
 
@@ -131,9 +129,14 @@ fun OverallStatsCard(stats: OverallStats?, modifier: Modifier = Modifier) {
         modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = Color(0xFFECEBF4))
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("📈 Общая статистика", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
                 StatItem("Всего", stats?.totalContacts?.toString() ?: "–")
                 StatItem("Новых за мес.", stats?.newContactsThisMonth?.toString() ?: "–")
                 StatItem("Активных", "${stats?.activeContactsPercent?.toInt() ?: 0}%")
@@ -145,24 +148,36 @@ fun OverallStatsCard(stats: OverallStats?, modifier: Modifier = Modifier) {
 @Composable
 fun StatItem(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, fontSize = 24.sp),
-            color = MaterialTheme.colorScheme.onPrimaryContainer)
-        Text(label, style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f))
+        Text(
+            value,
+            style = MaterialTheme.typography.headlineSmall.copy(
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp
+            ),
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Text(
+            label, style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+        )
     }
 }
 
 @Composable
 fun SectionTitle(title: String) {
-    Text(title, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-        modifier = Modifier.padding(vertical = 8.dp))
+    Text(
+        title, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+        modifier = Modifier.padding(vertical = 8.dp)
+    )
 }
 
 @Composable
 fun EmptyStateText(text: String) {
-    Text(text, style = MaterialTheme.typography.bodyMedium,
+    Text(
+        text, style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-        modifier = Modifier.padding(vertical = 12.dp))
+        modifier = Modifier.padding(vertical = 12.dp)
+    )
 }
 
 @Composable
@@ -181,7 +196,9 @@ fun ContactListItem(
         )
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -200,7 +217,7 @@ fun ContactListItem(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(color = Color(0xFFECEBF4)),
+                        .background(color = Color(0xFFDDDDE7)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -210,7 +227,7 @@ fun ContactListItem(
                     )
                 }
             }
-            Column (modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = contact.username,
                     style = MaterialTheme.typography.bodyLarge,
@@ -227,7 +244,6 @@ fun ContactListItem(
         }
     }
 }
-
 
 @Composable
 fun CategoryPieChart(categories: List<CategoryWithCount>) {
@@ -252,16 +268,15 @@ fun CategoryPieChart(categories: List<CategoryWithCount>) {
 
     val palette = listOf(
         Color(0xFF4CAF50), Color(0xFF2196F3), Color(0xFFFF9800),
-        Color(0xFFE91E63), Color(0xFF9C27B0), Color(0xFF00BCD4),
+        Color(0xFFE05080), Color(0xFF9C27B0), Color(0xFF00BCD4),
         Color(0xFF795548), Color(0xFF607D8B)
     )
 
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally // Диаграмма по центру
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 🥧 График
             Canvas(
                 modifier = Modifier
                     .size(180.dp)
@@ -280,26 +295,31 @@ fun CategoryPieChart(categories: List<CategoryWithCount>) {
                 }
             }
 
-            Column(modifier = Modifier.fillMaxWidth()) {
-                categories.chunked(2).forEach { rowItems ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                categories.chunked(2).forEachIndexed { rowIndex, rowItems ->
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
                     ) {
                         rowItems.forEach { cat ->
+                            val colorIndex = (rowIndex * 2 + rowItems.indexOf(cat)) % palette.size
                             Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.weight(1f)
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Box(
                                     modifier = Modifier
                                         .size(10.dp)
                                         .background(
-                                            palette[categories.indexOf(cat) % palette.size],
+                                            palette[colorIndex],
                                             CircleShape
                                         )
                                 )
-                                Spacer(modifier = Modifier.width(6.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "${cat.name} (${cat.contactCount})",
                                     style = MaterialTheme.typography.bodySmall,

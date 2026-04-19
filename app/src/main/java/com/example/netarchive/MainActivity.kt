@@ -187,6 +187,10 @@ fun Main() {
                                 launchSingleTop = true
                             }
                         }
+                        BottomNavItem.Reminds -> {
+                            showAddMenu = false
+                            // TODO //
+                        }
                     }
                 }
             )
