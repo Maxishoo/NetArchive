@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -22,87 +24,102 @@ import coil.compose.AsyncImage
 import com.example.netarchive.data.local.db.dao.CategoryWithCount
 import com.example.netarchive.domain.model.Contact
 import com.example.netarchive.domain.model.OverallStats
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.ui.text.style.TextOverflow
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalyticsScreen(
     viewModel: AnalyticsViewModel = hiltViewModel(),
     onContactClick: (Int) -> Unit = {}
 ) {
-    // 🔄 Собираем каждый Flow отдельно
     val overallStats by viewModel.overallStats.collectAsState()
     val topContacts by viewModel.topContacts.collectAsState()
     val contactsToWrite by viewModel.contactsToWrite.collectAsState()
     val forgottenContacts by viewModel.forgottenContacts.collectAsState()
     val categories by viewModel.categoriesWithCount.collectAsState()
     val monthlyActivity by viewModel.monthlyActivity.collectAsState()
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(top = 16.dp, bottom = 140.dp)
-    ) {
-        item {
-            Text(
-                text = "📊 Аналитика",
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Аналитика",
+                        style = MaterialTheme.typography.headlineLarge
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFFECEBF4)
+                )
             )
         }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(
+                top = paddingValues.calculateTopPadding() + 16.dp,
+                bottom = 140.dp
+            )
+        ) {
 
-        item {
-            OverallStatsCard(stats = overallStats)
-        }
-
-
-        item {
-            SectionTitle("🔥 Топ контактов")
-            if (topContacts.isEmpty()) {
-                EmptyStateText("Пока нет данных")
-            } else {
-                topContacts.take(5).forEach { contact ->
-                    ContactListItem(contact = contact,onClick = { onContactClick(contact.id) })
-                }
+            item {
+                OverallStatsCard(stats = overallStats)
             }
-        }
 
-        item {
-            var showAllWriteSoon by remember { mutableStateOf(false) }
 
-            SectionTitle("💬 Пора написать!")
-
-            if (contactsToWrite.isEmpty()) {
-                EmptyStateText("Все контакты в порядке! 🎉")
-            } else {
-                val displayedList = if (showAllWriteSoon) contactsToWrite else contactsToWrite.take(5)
-
-                displayedList.forEach { contact ->
-                    ContactListItem(
-                        contact = contact,
-                        highlight = true,
-                        onClick = { onContactClick(contact.id) }
-                    )
-                }
-
-                if (contactsToWrite.size > 5) {
-                    TextButton(
-                        onClick = { showAllWriteSoon = !showAllWriteSoon },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = if (showAllWriteSoon) "Свернуть ▲"
-                            else "Показать всех (${contactsToWrite.size - 5} ещё) ▼",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium
-                        )
+            item {
+                SectionTitle("🔥 Топ контактов")
+                if (topContacts.isEmpty()) {
+                    EmptyStateText("Пока нет данных")
+                } else {
+                    topContacts.take(5).forEach { contact ->
+                        ContactListItem(contact = contact, onClick = { onContactClick(contact.id) })
                     }
                 }
             }
-        }
 
-        item {
-            SectionTitle("📁 Распределение по категориям")
-            CategoryPieChart(categories = categories)
+            item {
+                var showAllWriteSoon by remember { mutableStateOf(false) }
+
+                SectionTitle("💬 Пора написать")
+
+                if (contactsToWrite.isEmpty()) {
+                    EmptyStateText("Все контакты в порядке! 🎉")
+                } else {
+                    val displayedList =
+                        if (showAllWriteSoon) contactsToWrite else contactsToWrite.take(5)
+
+                    displayedList.forEach { contact ->
+                        ContactListItem(
+                            contact = contact,
+                            highlight = true,
+                            onClick = { onContactClick(contact.id) }
+                        )
+                    }
+
+                    if (contactsToWrite.size > 5) {
+                        TextButton(
+                            onClick = { showAllWriteSoon = !showAllWriteSoon },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = if (showAllWriteSoon) "Свернуть ▲"
+                                else "Показать всех (${contactsToWrite.size - 5} ещё) ▼",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
+                SectionTitle("📁 Распределение по категориям")
+                CategoryPieChart(categories = categories)
+            }
         }
     }
 }
@@ -112,7 +129,7 @@ fun AnalyticsScreen(
 fun OverallStatsCard(stats: OverallStats?, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFECEBF4))
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("📈 Общая статистика", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
@@ -160,9 +177,7 @@ fun ContactListItem(
             .padding(vertical = 4.dp)
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
-            containerColor = if (highlight)
-                MaterialTheme.colorScheme.tertiaryContainer
-            else MaterialTheme.colorScheme.surfaceVariant
+            if (highlight) Color(0xFFECEBF4) else Color(0xFFECEBF4)
         )
     ) {
         Row(
@@ -185,12 +200,13 @@ fun ContactListItem(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(color = Color(0xFFDBE0F7)),
+                        .background(color = Color(0xFFECEBF4)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = contact.username.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -198,13 +214,13 @@ fun ContactListItem(
                 Text(
                     text = contact.username,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = if (highlight) FontWeight.SemiBold else FontWeight.Normal
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 if (highlight) {
                     Text(
                         text = "Давно не общались",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.error
+                        color = Color(0xFFD75C5C)
                     )
                 }
             }
@@ -241,11 +257,15 @@ fun CategoryPieChart(categories: List<CategoryWithCount>) {
     )
 
     Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally // Диаграмма по центру
+        ) {
+            // 🥧 График
             Canvas(
                 modifier = Modifier
-                    .size(200.dp)
-                    .align(Alignment.CenterHorizontally)
+                    .size(180.dp)
+                    .padding(bottom = 16.dp)
             ) {
                 var startAngle = 0f
                 categories.forEachIndexed { index, cat ->
@@ -260,24 +280,40 @@ fun CategoryPieChart(categories: List<CategoryWithCount>) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            categories.forEachIndexed { index, cat ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .background(palette[index % palette.size], RoundedCornerShape(2.dp))
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "${cat.name} (${cat.contactCount})",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+            Column(modifier = Modifier.fillMaxWidth()) {
+                categories.chunked(2).forEach { rowItems ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        rowItems.forEach { cat ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(10.dp)
+                                        .background(
+                                            palette[categories.indexOf(cat) % palette.size],
+                                            CircleShape
+                                        )
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "${cat.name} (${cat.contactCount})",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
     }
 }
+
