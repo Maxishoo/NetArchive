@@ -88,9 +88,9 @@ class ContactListViewModel @Inject constructor(
         }
     }
 
-    fun swapPinnedContact(contact1Id: Int, contact2Id: Int) {
+    fun swapPinnedContact(indexMain: Int, indexSwapped: Int) {
         viewModelScope.launch {
-            repository.swapPinnedContacts(contact1Id, contact2Id)
+            repository.swapPinnedContacts(indexMain,indexSwapped)
         }
     }
 }

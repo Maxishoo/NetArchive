@@ -1,13 +1,16 @@
 package com.example.netarchive.ui.components.cards
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
@@ -20,7 +23,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.netarchive.domain.model.Contact
 import com.example.netarchive.ui.theme.*
-import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.material3.AssistChipDefaults
 
 import androidx.compose.material3.Card
@@ -39,6 +43,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.example.netarchive.data.local.db.entity.CategoryEntity
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
@@ -48,11 +53,12 @@ import com.example.netarchive.R
 @Composable
 fun ContactCard(
     contact: Contact,
-    modifier: Modifier = Modifier,
     categories: List<CategoryEntity> = emptyList(),
     onClick: () -> Unit = {},
     onDragSwipeThreshold: () -> Unit,
     onDragEnd: () -> Unit = {},
+    onVerticalDragStart: () -> Unit = {},
+    onVerticalDragEnd: (_: Boolean) -> Unit = {}
 ) {
     val offsetX = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
@@ -64,14 +70,57 @@ fun ContactCard(
 
     val swipeThreshold = 120.dp
     val swipeThresholdPx = with(density) { swipeThreshold.toPx() }
+    var hasHorizontalDragThresholdGot by remember { mutableStateOf(false) }
 
-    var hasDragThresholdGot by remember { mutableStateOf(false) }
+    val offsetY = remember { Animatable(0f) }
+    var hasVerticalDragThresholdGot by remember { mutableStateOf(false) }
+    var isVerticalMove by remember { mutableStateOf(false) }
 
-    Box() {
+    val verticalDragModifier = if (contact.pinnedOrder > 0) {
+        Modifier
+            .offset { IntOffset(0, offsetY.value.toInt()) }
+            .pointerInput(contact.id, contact.pinnedOrder) {
+                detectDragGesturesAfterLongPress(
+                    onDragStart = {
+                        hasVerticalDragThresholdGot = false
+                        isVerticalMove = true
+                        scope.launch { offsetY.snapTo(0f) }
+                        onVerticalDragStart()
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        if (hasVerticalDragThresholdGot) return@detectDragGesturesAfterLongPress
+
+                        val newOffsetY = offsetY.value + dragAmount.y
+
+                        if (abs(newOffsetY) > 300f) {
+                            hasVerticalDragThresholdGot = true
+                            isVerticalMove = false
+                            onVerticalDragEnd(newOffsetY > 0f)
+                            scope.launch { offsetY.snapTo(0f) }
+                        } else {
+                            scope.launch { offsetY.snapTo(newOffsetY) }
+                        }
+                    },
+                    onDragEnd = {
+                        hasVerticalDragThresholdGot = false
+                        isVerticalMove = false
+                        scope.launch { offsetY.animateTo(targetValue = 0f, animationSpec = tween(200)) }
+                    },
+                )
+            }
+            .zIndex(if (isVerticalMove) 1f else 0f)
+    } else {
+        Modifier
+    }
+
+    Box(
+        modifier = verticalDragModifier
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(88.dp)
+                .height(80.dp)
                 .background(MaterialTheme.colorScheme.primaryContainer)
                 .padding(end = 16.dp),
             horizontalArrangement = Arrangement.End,
@@ -105,7 +154,7 @@ fun ContactCard(
                                 if (abs(offsetX.value) >= swipeThresholdPx) {
                                     onDragEnd()
                                 }
-                                hasDragThresholdGot = false
+                                hasHorizontalDragThresholdGot = false
                                 offsetX.animateTo(
                                     targetValue = 0f,
                                     animationSpec = tween(durationMillis = 200)
@@ -120,9 +169,9 @@ fun ContactCard(
                                 maximumValue = 0f
                             )
 
-                            if (!hasDragThresholdGot && abs(newOffset) >= swipeThresholdPx) {
+                            if (!hasHorizontalDragThresholdGot && abs(newOffset) >= swipeThresholdPx) {
                                 onDragSwipeThreshold()
-                                hasDragThresholdGot = true
+                                hasHorizontalDragThresholdGot = true
                             }
 
                             scope.launch {
@@ -141,7 +190,9 @@ fun ContactCard(
             elevation = CardDefaults.cardElevation(2.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -169,7 +220,9 @@ fun ContactCard(
                         )
                     }
                 }
-                Column {
+                Column(
+                    modifier = Modifier.weight(1f)
+                )  {
                     Text(
                         text = contact.username,
                         style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
@@ -177,70 +230,47 @@ fun ContactCard(
                         overflow = TextOverflow.Ellipsis
                     )
                     if (categories.isNotEmpty()) {
-                        LazyRow(
+                        Row(
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
                         ) {
-                            items(categories.take(3)) { category ->
+                            categories.take(2).forEach { category ->
                                 AssistChip(
                                     onClick = { },
-                                    label = {
-                                        Text(
-                                            text = "#${category.name}",
-                                            style = MaterialTheme.typography.labelMedium,
-                                            maxLines = 1
-                                        )
-                                    },
+                                    label = { Text(text = "#${category.name}", style = MaterialTheme.typography.labelMedium, maxLines = 1) },
                                     modifier = Modifier
-                                        .border(
-                                            width = 1.dp,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            shape = RoundedCornerShape(10.dp)
-                                        )
+                                        .border(width = 1.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(10.dp))
                                         .heightIn(max = 20.dp),
                                     border = null,
                                     colors = AssistChipDefaults.assistChipColors(
-                                        containerColor = Color.Transparent, // или любой другой цвет фона
-                                        labelColor = MaterialTheme.colorScheme.primary, // яркий цвет для текста
-                                        disabledLabelColor = MaterialTheme.colorScheme.primary // для отключенного состояния
+                                        containerColor = Color.Transparent,
+                                        labelColor = MaterialTheme.colorScheme.primary,
+                                        disabledLabelColor = MaterialTheme.colorScheme.primary
                                     ),
                                     enabled = false,
                                 )
                             }
-
-                            if (categories.size > 3) {
-                                item {
-                                    AssistChip(
-                                        onClick = { },
-                                        label = {
-                                            Text(
-                                                text = "+${categories.size - 3}",
-                                                style = MaterialTheme.typography.labelMedium,
-                                                maxLines = 1
-                                            )
-                                        },
-                                        modifier = Modifier
-                                            .border(
-                                                width = 1.dp,
-                                                color = MaterialTheme.colorScheme.primary,
-                                                shape = RoundedCornerShape(10.dp)
-                                            )
-                                            .heightIn(max = 20.dp),
-                                        border = null,
-                                        colors = AssistChipDefaults.assistChipColors(
-                                            containerColor = Color.Transparent, // или любой другой цвет фона
-                                            labelColor = MaterialTheme.colorScheme.primary, // яркий цвет для текста
-                                            disabledLabelColor = MaterialTheme.colorScheme.primary // для отключенного состояния
-                                        ),
-                                        enabled = false,
-                                    )
-                                }
+                            if (categories.size > 2) {
+                                AssistChip(
+                                    onClick = { },
+                                    label = { Text(text = "+${categories.size - 3}", style = MaterialTheme.typography.labelMedium, maxLines = 1) },
+                                    modifier = Modifier
+                                        .border(width = 1.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(10.dp))
+                                        .heightIn(max = 20.dp),
+                                    border = null,
+                                    colors = AssistChipDefaults.assistChipColors(
+                                        containerColor = Color.Transparent,
+                                        labelColor = MaterialTheme.colorScheme.primary,
+                                        disabledLabelColor = MaterialTheme.colorScheme.primary
+                                    ),
+                                    enabled = false,
+                                )
                             }
                         }
                     }
                 }
-                if(contact.pinnedOrder > 0){
-                    Spacer(modifier = Modifier.weight(1f))
+                if (contact.pinnedOrder > 0) {
                     Icon(
                         modifier = Modifier.size(30.dp),
                         painter = painterResource(
@@ -249,6 +279,26 @@ fun ContactCard(
                         contentDescription = "Pin contact",
                         tint = MaterialTheme.colorScheme.primary
                     )
+                    Row(){
+                        AnimatedVisibility(
+                            visible = isVerticalMove,
+                            enter = expandHorizontally(
+                                expandFrom = Alignment.End,
+                                animationSpec = tween(250)
+                            ),
+                            exit = shrinkHorizontally(
+                                shrinkTowards = Alignment.End,
+                                animationSpec = tween(200)
+                            )
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(30.dp),
+                                imageVector = Icons.Outlined.SwapVert,
+                                contentDescription = "Swap",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -130,13 +130,14 @@ interface ContactDao{
     @Query("UPDATE contacts SET pinnedOrder = 0 WHERE id = :contactId")
     suspend fun unpinContact(contactId: Int)
 
-    @Query("""
-        UPDATE contacts 
-        SET pinnedOrder = CASE 
-            WHEN id = :contact1Id THEN (SELECT pinnedOrder FROM Contacts WHERE id = :contact2Id)
-            WHEN id = :contact2Id THEN (SELECT pinnedOrder FROM Contacts WHERE id = :contact1Id)
-        END
-        WHERE id IN (:contact1Id, :contact2Id)
-    """)
-    suspend fun swapPinnedContacts(contact1Id: Int, contact2Id: Int)
+    @Query("SELECT pinnedOrder FROM contacts WHERE id = :contactId")
+    suspend fun getPinnedOrder(contactId: Int): Int
+
+    suspend fun swapPinnedContacts(contact1Id: Int, contact2Id: Int) {
+        val order1 = getPinnedOrder(contact1Id)
+        val order2 = getPinnedOrder(contact2Id)
+
+        updatePinnedOrder(contact1Id, order2)
+        updatePinnedOrder(contact2Id, order1)
+    }
 }
