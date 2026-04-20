@@ -8,5 +8,6 @@ data class Profile(
     val max : String?,
     val email : String?,
     val job : String?,
-    val avatar : String?
+    val avatar : String?,
+    val birthday: Long? = null
 )

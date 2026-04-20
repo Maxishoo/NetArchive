@@ -28,6 +28,8 @@ data class ContactFormState(
     val email: String = "",
     val job: String = "",
     val avatar: String = "",
+    val birthday: Long? = null,
+    val description: String = "",
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val isQrImport: Boolean =false,
@@ -90,6 +92,7 @@ class AddContactViewModel @Inject constructor(
                 telegram = params["t"] ?: "",
                 max = params["m"] ?: "",
                 job = params["j"] ?: "",
+                birthday = params["b"]?.toLongOrNull(),
                 error = null // Очищаем ошибку
             )
 
@@ -161,6 +164,13 @@ class AddContactViewModel @Inject constructor(
             }
         }
     }
+    fun onBirthdayChange(timestamp: Long?) {
+        _formState.value = _formState.value.copy(birthday = timestamp)
+    }
+
+    fun onDescriptionChange(value: String) {
+        _formState.value = _formState.value.copy(description = value)
+    }
 
     fun saveContact() {
         val state = _formState.value
@@ -181,7 +191,9 @@ class AddContactViewModel @Inject constructor(
                     max = state.max.trim().takeIf { it.isNotBlank() },
                     email = state.email.trim().takeIf { it.isNotBlank() },
                     job = state.job.trim().takeIf { it.isNotBlank() },
-                    avatar = state.avatar.trim().takeIf { it.isNotBlank() }
+                    avatar = state.avatar.trim().takeIf { it.isNotBlank() },
+                    birthday = state.birthday,
+                    description = state.description.takeIf { it.isNotBlank() }
                 )
 
                 val contactId = repository.addContact(contact)

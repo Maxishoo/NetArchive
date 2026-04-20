@@ -32,7 +32,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "archive.db"
         )
-            .fallbackToDestructiveMigration(false)
+            .fallbackToDestructiveMigration()
             .build()
     }
 

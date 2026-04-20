@@ -4,10 +4,12 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,6 +23,52 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.netarchive.ui.components.CategorySelector
 import com.example.netarchive.ui.components.QrScannerDialog
 import com.example.netarchive.ui.theme.NetArchiveTheme
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberDatePickerState
+import android.app.DatePickerDialog
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
+import java.text.SimpleDateFormat
+import java.util.*
+
+
+@Composable
+private fun ShowDatePickerDialog(
+    initialDate: Long,
+    onDateSelected: (Long) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val calendar = Calendar.getInstance().apply {
+        timeInMillis = initialDate
+    }
+
+    val year = calendar.get(Calendar.YEAR)
+    val month = calendar.get(Calendar.MONTH)
+    val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+    val dialog = DatePickerDialog(
+        LocalContext.current,
+        { _, selectedYear, selectedMonth, selectedDay ->
+            val selectedCalendar = Calendar.getInstance().apply {
+                set(selectedYear, selectedMonth, selectedDay)
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            onDateSelected(selectedCalendar.timeInMillis)
+        },
+        year,
+        month,
+        day
+    )
+
+    dialog.setOnDismissListener { onDismiss() }
+    dialog.show()
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,6 +144,12 @@ fun AddContactScreen(
                 onValueChange = viewModel::onUsernameChange,
                 isError = error != null && username.isBlank()
             )
+            BirthdayField(
+                timestamp = formState.birthday,
+                onDateSelected = viewModel::onBirthdayChange,
+                isEditMode = true
+            )
+
             PhoneField(
                 value = formState.phone,
                 onValueChange = viewModel::onPhoneChange
@@ -116,6 +170,11 @@ fun AddContactScreen(
                 value = formState.job,
                 onValueChange = viewModel::onJobChange
             )
+            DescriptionField(
+                value = formState.description,
+                onValueChange = viewModel::onDescriptionChange,
+            )
+
 
             if (error != null) {
                 ErrorSection(errorMessage = error)
@@ -334,7 +393,9 @@ private fun FormTextField(
         onValueChange = onValueChange,
         label = { Text(label) },
         modifier = modifier.fillMaxWidth(),
-        singleLine = true,
+        singleLine = label != "Описание",
+        minLines = if (label == "Описание") 3 else 1,
+        maxLines = if (label == "Описание") 5 else 1,
         isError = isError,
         supportingText = supportingText?.let { { Text(it) } },
         colors = OutlinedTextFieldDefaults.colors(
@@ -345,6 +406,91 @@ private fun FormTextField(
         )
     )
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BirthdayField(
+    timestamp: Long?,
+    onDateSelected: (Long?) -> Unit,
+    isEditMode: Boolean,
+    isError: Boolean = false,
+    modifier: Modifier = Modifier
+) {
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    // Форматируем дату для отображения
+    val displayText = timestamp?.let {
+        SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(it))
+    } ?: ""
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    LaunchedEffect(isFocused, isEditMode) {
+        if (isFocused && isEditMode) {
+            showDatePicker = true
+        }
+    }
+
+    OutlinedTextField(
+        value = displayText,
+        onValueChange = { }, // ReadOnly
+        label = { Text("Дата рождения") },
+        placeholder = { Text("") },
+        modifier = modifier.fillMaxWidth(),
+        enabled = isEditMode,
+        readOnly = true,
+        singleLine = true,
+        interactionSource = interactionSource,
+        trailingIcon = {
+            Icon(
+                imageVector = Icons.Default.CalendarToday,
+                contentDescription = "Выбрать дату",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = modifier.clickable(enabled = isEditMode) {
+                    showDatePicker = true  // ✅ Клик по иконке тоже работает
+                }
+            )
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = if (isError)
+                MaterialTheme.colorScheme.error
+            else
+                MaterialTheme.colorScheme.primary
+        )
+    )
+
+    // ✅ Используем нативный диалог как в заметках
+    if (showDatePicker) {
+        ShowDatePickerDialog(
+            initialDate = timestamp ?: System.currentTimeMillis(),
+            onDateSelected = { selectedDate ->
+                onDateSelected(selectedDate)
+                showDatePicker = false
+            },
+            onDismiss = {
+                showDatePicker = false
+            }
+        )
+    }
+}
+
+
+@Composable
+private fun DescriptionField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FormTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = "Описание",
+        modifier = modifier,
+        isError = false
+    )
+}
+
 
 @Preview(showBackground = true)
 @Composable
