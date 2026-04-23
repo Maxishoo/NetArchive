@@ -111,6 +111,10 @@ class ContactViewViewModel @Inject constructor(
                 append("Контакт: ${state.username}\n")
                 if (state.job.isNotBlank()) append("Работа: ${state.job}\n")
 
+                if (state.description.isNotBlank()) {
+                    append("Описание: $state.description\n")
+                }
+
                 if (state.notes.isNotEmpty()) {
                     append("\nПоследние заметки:\n")
                     state.notes.take(5).forEachIndexed { index, note ->
@@ -170,6 +174,7 @@ class ContactViewViewModel @Inject constructor(
                                       Спроси о статусе: "Как продвижение по тому вопросу?"
                                     - Если заметок много (3+) → Опирайся на последние 1-2, не перечисляй всё
                                     - Если заметок нет → Просто тёплое приветствие без выдумок
+                                    - Если есть описание → используй для персонализации (интересы, общие темы)
                                     
                                      ВАЖНО:
                                     - НЕ выдумывай темы, которых нет в данных (проекты, встречи, сроки)
