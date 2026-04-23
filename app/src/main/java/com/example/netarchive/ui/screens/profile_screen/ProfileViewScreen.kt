@@ -39,10 +39,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,6 +59,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.netarchive.ui.components.QrDialog
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import androidx.compose.material.icons.filled.Cake
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.rememberDatePickerState
+import java.util.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -267,6 +284,13 @@ private fun ProfileInfo(
             singleLine = true,
             colors = profileTextFieldColors()
         )
+
+        ProfileBirthdayField(
+            timestamp = viewState.birthday,
+            onDateSelected = viewModel::onBirthdayChange,
+            isEditMode = viewState.isEditMode
+        )
+
         OutlinedTextField(
             value = viewState.phone,
             onValueChange = viewModel::onPhoneChange,
@@ -357,6 +381,112 @@ private fun ProfileInfo(
         }
         Spacer(modifier = Modifier.height(24.dp))
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ProfileBirthdayField(
+    timestamp: Long?,
+    onDateSelected: (Long?) -> Unit,
+    isEditMode: Boolean,
+    modifier: Modifier = Modifier
+) {
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    // Форматируем дату для отображения
+    val displayText = timestamp?.let {
+        SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(it))
+    } ?: ""
+
+    LaunchedEffect(isFocused, isEditMode) {
+        if (isFocused && isEditMode) {
+            showDatePicker = true
+        }
+    }
+
+    OutlinedTextField(
+        value = displayText,
+        onValueChange = { }, // ReadOnly
+        label = { Text("Дата рождения") },
+        placeholder = { Text("") },
+        modifier = modifier.fillMaxWidth(),
+        enabled = isEditMode,
+        readOnly = true,
+        singleLine = true,
+        interactionSource = interactionSource,
+        trailingIcon = {
+            Icon(
+                imageVector = Icons.Default.CalendarToday,
+                contentDescription = "Выбрать дату",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = modifier.clickable(enabled = isEditMode) {
+                    showDatePicker = true  // ✅ Клик по иконке тоже работает
+                }
+            )
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Color(0xFF64B5F6),
+            unfocusedBorderColor = Color(0xFF90CAF9),
+            disabledBorderColor = Color(0xFF90CAF9),
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            focusedLabelColor = Color(0xFF64B5F6),
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    )
+
+
+    // ✅ Используем нативный диалог как в заметках
+    if (showDatePicker) {
+        ShowDatePickerDialog(
+            initialDate = timestamp ?: System.currentTimeMillis(),
+            onDateSelected = { selectedDate ->
+                onDateSelected(selectedDate)
+                showDatePicker = false
+            },
+            onDismiss = {
+                showDatePicker = false
+            }
+        )
+    }
+}
+@Composable
+private fun ShowDatePickerDialog(
+    initialDate: Long,
+    onDateSelected: (Long) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val calendar = Calendar.getInstance().apply {
+        timeInMillis = initialDate
+    }
+
+    val year = calendar.get(Calendar.YEAR)
+    val month = calendar.get(Calendar.MONTH)
+    val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+    val dialog = android.app.DatePickerDialog(
+        LocalContext.current,
+        { _, selectedYear, selectedMonth, selectedDay ->
+            val selectedCalendar = Calendar.getInstance().apply {
+                set(selectedYear, selectedMonth, selectedDay)
+                // ✅ Обнуляем время, чтобы была только дата
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            onDateSelected(selectedCalendar.timeInMillis)
+        },
+        year,
+        month,
+        day
+    )
+
+    dialog.setOnDismissListener { onDismiss() }
+    dialog.show()
 }
 
 @Composable

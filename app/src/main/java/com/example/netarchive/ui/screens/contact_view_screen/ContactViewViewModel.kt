@@ -45,6 +45,8 @@ data class ContactViewState(
     val email: String = "",
     val job: String = "",
     val avatar: String = "",
+    val birthday: Long? = null,
+    val description: String = "",
     val notes: List<Note> = emptyList(),
     val isLoading: Boolean = false,
     val isEditMode: Boolean = false,
@@ -260,7 +262,10 @@ class ContactViewViewModel @Inject constructor(
                             max = it.contact.max ?: "",
                             email = it.contact.email ?: "",
                             job = it.contact.job ?: "",
-                            avatar = it.contact.avatar ?: ""
+                            avatar = it.contact.avatar ?: "",
+                            birthday = it.contact.birthday,
+                            description = it.contact.description ?: ""
+
                         )
 
                         _selectedCategories.value = it.categories
@@ -322,6 +327,13 @@ class ContactViewViewModel @Inject constructor(
 
     fun onJobChange(value: String) {
         _viewState.value = _viewState.value.copy(job = value, hasChanges = true)
+    }
+    fun onBirthdayChange(timestamp: Long?) {
+        _viewState.value = _viewState.value.copy(birthday = timestamp, hasChanges = true )
+    }
+
+    fun onDescriptionChange(value: String) {
+        _viewState.value = _viewState.value.copy(description = value, hasChanges = true)
     }
 
     private fun copyAvatarToInternalStorage(uri: android.net.Uri): String {
@@ -441,7 +453,9 @@ class ContactViewViewModel @Inject constructor(
                     max = state.max.trim().takeIf { it.isNotBlank() },
                     email = state.email.trim().takeIf { it.isNotBlank() },
                     job = state.job.trim().takeIf { it.isNotBlank() },
-                    avatar = state.avatar.trim().takeIf { it.isNotBlank() }
+                    avatar = state.avatar.trim().takeIf { it.isNotBlank() },
+                    birthday = state.birthday,
+                    description = state.description.takeIf { it.isNotBlank() }
                 )
 
                 repository.updateContact(contact)
@@ -505,7 +519,9 @@ class ContactViewViewModel @Inject constructor(
                     max = currentState.max,
                     email = currentState.email,
                     job = currentState.job,
-                    avatar = currentState.avatar
+                    avatar = currentState.avatar,
+                    birthday = currentState.birthday,
+                    description = currentState.description
                 )
 
                 repository.deleteContact(contact)
@@ -539,6 +555,7 @@ class ContactViewViewModel @Inject constructor(
                 if (_viewState.value.telegram.isNotBlank()) append(";t=${_viewState.value.telegram}")
                 if (_viewState.value.max.isNotBlank()) append(";m=${_viewState.value.max}")
                 if (_viewState.value.job.isNotBlank()) append(";j=${_viewState.value.job}")
+                if (_viewState.value.birthday != null) append(";b=${_viewState.value.birthday}")
             }
             val encodedData = URLEncoder.encode(rawData, "UTF-8")
             generateQrCode(

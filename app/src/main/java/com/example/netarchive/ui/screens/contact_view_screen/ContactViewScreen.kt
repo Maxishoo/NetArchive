@@ -22,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
@@ -33,6 +34,8 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.filled.Cake
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -56,6 +59,14 @@ import com.example.netarchive.ui.components.cards.NoteCard
 import com.example.netarchive.ui.theme.NetArchiveTheme
 import com.example.netarchive.ui.navigation.NoteNavigationData
 import androidx.core.net.toUri
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import android.app.DatePickerDialog
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.runtime.getValue
+import java.util.Calendar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -540,6 +551,11 @@ private fun ContactInfoTab(
                 unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         )
+        BirthdayField(
+            timestamp = viewState.birthday,
+            onDateSelected = viewModel::onBirthdayChange,
+            isEditMode = viewState.isEditMode
+        )
 
         OutlinedTextField(
             value = viewState.phone,
@@ -703,6 +719,12 @@ private fun ContactInfoTab(
             )
         )
 
+        DescriptionField(
+            value = viewState.description,
+            onValueChange = viewModel::onDescriptionChange,
+            isEditMode = viewState.isEditMode
+        )
+
         // Ошибка
         viewState.error?.let { error ->
             Card(
@@ -857,6 +879,137 @@ private fun NotesTab(
             }
         }
     }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BirthdayField(
+    timestamp: Long?,
+    onDateSelected: (Long?) -> Unit,
+    isEditMode: Boolean,
+    modifier: Modifier = Modifier
+) {
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    val displayText = timestamp?.let {
+        SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(it))
+    } ?: ""
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    LaunchedEffect(isFocused, isEditMode) {
+        if (isFocused && isEditMode) {
+            showDatePicker = true
+        }
+    }
+
+    OutlinedTextField(
+        value = displayText,
+        onValueChange = { }, // ReadOnly
+        label = { Text("Дата рождения") },
+        placeholder = { Text("") },
+        modifier = modifier.fillMaxWidth(),
+        enabled = isEditMode,
+        readOnly = true,
+        singleLine = true,
+        interactionSource = interactionSource,
+        trailingIcon = {
+            Icon(
+                imageVector = Icons.Default.CalendarToday,
+                contentDescription = "Выбрать дату",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = modifier.clickable(enabled = isEditMode) {
+                    showDatePicker = true  // ✅ Клик по иконке тоже работает
+                }
+            )
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Color(0xFF64B5F6),
+            unfocusedBorderColor = Color(0xFF90CAF9),
+            disabledBorderColor = Color(0xFF90CAF9),
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            focusedLabelColor = Color(0xFF64B5F6),
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    )
+
+    // ✅ Используем нативный диалог как в заметках
+    if (showDatePicker) {
+        ShowDatePickerDialog(
+            initialDate = timestamp ?: System.currentTimeMillis(),
+            onDateSelected = { selectedDate ->
+                onDateSelected(selectedDate)
+                showDatePicker = false
+            },
+            onDismiss = {
+                showDatePicker = false
+            }
+        )
+    }
+}
+@Composable
+private fun ShowDatePickerDialog(
+    initialDate: Long,
+    onDateSelected: (Long) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val calendar = Calendar.getInstance().apply {
+        timeInMillis = initialDate
+    }
+
+    val year = calendar.get(Calendar.YEAR)
+    val month = calendar.get(Calendar.MONTH)
+    val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+    val dialog = DatePickerDialog(
+        LocalContext.current,
+        { _, selectedYear, selectedMonth, selectedDay ->
+            val selectedCalendar = Calendar.getInstance().apply {
+                set(selectedYear, selectedMonth, selectedDay)
+                // ✅ Обнуляем время, чтобы была только дата
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            onDateSelected(selectedCalendar.timeInMillis)
+        },
+        year,
+        month,
+        day
+    )
+
+    dialog.setOnDismissListener { onDismiss() }
+    dialog.show()
+}
+
+@Composable
+private fun DescriptionField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    isEditMode: Boolean,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text("Описание") },
+        modifier = modifier.fillMaxWidth(),
+        enabled = isEditMode, // Если false — режим просмотра (серый фон/текст)
+        singleLine = false,
+        minLines = 3, // Минимальная высота поля
+        maxLines = 6,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Color(0xFF64B5F6),
+            unfocusedBorderColor = Color(0xFF90CAF9),
+            disabledBorderColor = Color(0xFF90CAF9),
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            focusedLabelColor = Color(0xFF64B5F6),
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    )
 }
 
 @Preview(showBackground = true)

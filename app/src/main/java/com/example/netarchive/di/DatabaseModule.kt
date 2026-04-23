@@ -2,21 +2,27 @@ package com.example.netarchive.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.sqlite.db.SupportSQLiteOpenHelper
 import com.example.netarchive.data.local.db.AppDatabase
 import com.example.netarchive.data.local.db.dao.CategoryDao
 import com.example.netarchive.data.local.db.dao.ContactDao
 import com.example.netarchive.data.local.db.dao.NoteDao
-
+import com.example.netarchive.data.local.security.SecurityHelper
 import com.example.netarchive.data.local.db.dao.ReminderDao
 import com.example.netarchive.data.local.db.dao.ProfileDao
 import com.example.netarchive.data.repository.CategoryRepository
 import com.example.netarchive.data.repository.ReminderRepository
+
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import net.sqlcipher.database.SupportHelper
+import net.sqlcipher.database.SupportFactory
+
+
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -27,14 +33,27 @@ object DatabaseModule {
     fun provideAppDatabase(
         @ApplicationContext context: Context
     ): AppDatabase {
+        // Получаем пароль как CharArray
+        val passwordChars = SecurityHelper.getDatabasePassword()
+
+        // 🔐 Конвертируем CharArray -> ByteArray
+        val passwordBytes = String(passwordChars).toByteArray()
+
+        // Создаём фабрику (теперь тип совпадает!)
+        val cipherFactory = SupportFactory(passwordBytes)
+
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
             "archive.db"
         )
-            .fallbackToDestructiveMigration(false)
+            .openHelperFactory(cipherFactory)
+            .fallbackToDestructiveMigration()
             .build()
     }
+
+
+
 
     @Provides
     @Singleton
