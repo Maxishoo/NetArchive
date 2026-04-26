@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.androidx.animation)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.transport.runtime)
     annotationProcessor(libs.androidx.room.room.compiler)
     ksp(libs.androidx.room.room.compiler)
 
@@ -81,6 +82,11 @@ dependencies {
     implementation("network.chaintech:qr-kit:3.1.3")
 
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation ("androidx.hilt:hilt-work:1.1.0")
+
+    // Если используешь KSP (современный вариант):
+    ksp ("androidx.hilt:hilt-compiler:1.1.0")
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

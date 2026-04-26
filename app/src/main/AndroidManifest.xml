@@ -37,7 +37,14 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
+        <receiver android:name=".receiver.ReminderActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.example.netarchive.ACTION_COMPLETE_REMINDER" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

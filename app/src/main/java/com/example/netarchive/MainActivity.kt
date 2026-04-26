@@ -107,11 +107,12 @@ class MainActivity : ComponentActivity() {
                     reminderId = reminder.id,
                     title = "Напоминание",
                     text = reminder.text,
-                    timestamp = reminder.timestamp
+                    timestamp = reminder.date
                 )
             }
         }
     }
+
 
 }
 

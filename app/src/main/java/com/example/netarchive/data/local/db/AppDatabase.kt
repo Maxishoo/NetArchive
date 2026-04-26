@@ -1,6 +1,8 @@
 package com.example.netarchive.data.local.db
 
+import android.content.Context
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.netarchive.data.local.db.dao.CategoryDao
 import com.example.netarchive.data.local.db.dao.ContactDao
@@ -33,4 +35,19 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun profileDao(): ProfileDao
 
+    // AppDatabase.kt
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getInstance(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "app_database"
+                ).build().also { INSTANCE = it }
+            }
+        }
+    }
 }

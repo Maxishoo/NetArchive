@@ -1,6 +1,9 @@
 package com.example.netarchive.ui.screens.add_reminder_screen
 
 import android.app.DatePickerDialog
+import android.content.Context
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.widget.DatePicker
 import android.widget.NumberPicker
 import androidx.compose.foundation.layout.*
@@ -144,27 +147,18 @@ private fun TimePickerDialogContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateReminderScreen(
-    contactId: Int,
-    contactName: String,
-    contactAvatar: String?,
-    reminderId: Int = 0,
-    reminderText: String = "",
-    reminderDate: Long = 0L,
     viewModel: CreateReminderViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onReminderCreated: () -> Unit
 ) {
-    // === Сбор состояний из ViewModel ===
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isSaveEnabled by viewModel.isSaveEnabled.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // === Состояния диалогов ===
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
-    // === Обработчики событий ===
     val onDateClick: () -> Unit = remember { { showDatePicker = true } }
     val onTimeClick: () -> Unit = remember { { showTimePicker = true } }
 
@@ -184,7 +178,9 @@ fun CreateReminderScreen(
         viewModel.clearDateTimeErrors()
     } }
 
-    // === Обработка успеха ===
+    val context = LocalContext.current
+    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             onReminderCreated()
@@ -192,7 +188,6 @@ fun CreateReminderScreen(
         }
     }
 
-    // === Обработка общих ошибок ===
     LaunchedEffect(state.error) {
         state.error?.let { error ->
             snackbarHostState.showSnackbar(error)
@@ -200,18 +195,22 @@ fun CreateReminderScreen(
         }
     }
 
-    // === Обработка ошибки даты/времени ===
     LaunchedEffect(state.dateTimeErrorMessage) {
         state.dateTimeErrorMessage?.let { error ->
             snackbarHostState.showSnackbar(error)
         }
     }
 
-    // === UI ===
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.add_reminder)) },
+                title = {
+                    Text(text = if (state.isEditMode) stringResource(R.string.modify_note) else stringResource(
+                        R.string.add_note,
+                    ),
+                        style = MaterialTheme.typography.headlineLarge,
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -230,23 +229,19 @@ fun CreateReminderScreen(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 80.dp),
+                .padding(bottom = 100.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             SimpleContactCard(
                 contactName = state.contactName,
                 contactAvatar = state.contactAvatar
             )
-
-            // 📅 Поле выбора даты
             DateTimeSelector_with_valid(
                 selectedDate = state.timestamp,
                 onDateClick = onDateClick,
                 isError = state.hasDateError,
 
-            )
-
-            // 🕐 Поле выбора времени
+                )
             TimeSelectorCard(
                 selectedTime = state.timestamp,
                 onTimeClick = onTimeClick,
@@ -271,8 +266,6 @@ fun CreateReminderScreen(
                     onDismiss = onDismissPickers
                 )
             }
-
-            // === Поле ввода текста ===
             ReminderTextField(
                 value = state.reminderText,
                 onValueChange = viewModel::onReminderTextChange,
@@ -283,10 +276,19 @@ fun CreateReminderScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // === Кнопки действий ===
             ActionButtonsSaveCancel(
-                onCancelClick = onBackClick,
-                onSaveClick = { viewModel.saveReminder() },
+                onCancelClick = {
+                    if (vibrator.hasVibrator()) {
+                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
+                    }
+                    onBackClick()
+                },
+                onSaveClick = {
+                    if (vibrator.hasVibrator()) {
+                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
+                    }
+                    viewModel.saveReminder()
+                },
                 saveButtonText = stringResource(R.string.save),
                 isEnabled = isSaveEnabled,
                 isLoading = state.isLoading
