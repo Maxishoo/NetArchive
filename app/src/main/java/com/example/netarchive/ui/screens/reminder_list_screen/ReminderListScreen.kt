@@ -1,9 +1,11 @@
 package com.example.netarchive.ui.screens.reminder_list_screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -22,7 +24,12 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.compose.runtime.mutableStateSetOf
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeApi::class)
@@ -232,16 +239,36 @@ private fun ContactHeader(contact: com.example.netarchive.domain.model.Contact?)
             verticalAlignment = Alignment.CenterVertically
 
         ) {
-            // Аватарка – можно использовать Icons.Default.Person или кастомную заглушку
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = stringResource(R.string.contact_label),
-                modifier = Modifier.size(40.dp)
-            )
+            if (contact?.avatar != null) {
+                AsyncImage(
+                    model = contact.avatar,
+                    contentDescription = "Avatar of ${contact.username}",
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(color = Color(0xFFDBE0F7)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = contact?.username?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
+            }
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = contact?.username ?: stringResource(R.string.no_contact),
-                style = MaterialTheme.typography.titleLarge
+                text = contact?.username ?: "?",
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+//                        modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
 }
