@@ -12,7 +12,8 @@ fun ProfileEntity.toDomain(): Profile {
         max = this.max,
         email = this.email,
         job = this.job,
-        avatar = this.avatar
+        avatar = this.avatar,
+        birthday = this.birthday,
     )
 }
 
@@ -25,6 +26,7 @@ fun Profile.toEntity(): ProfileEntity {
         max = this.max,
         email = this.email,
         job = this.job,
-        avatar = this.avatar
+        avatar = this.avatar,
+        birthday = this.birthday,
     )
 }

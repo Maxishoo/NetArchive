@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddCircleOutline
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
@@ -48,11 +50,23 @@ enum class BottomNavItem(
         label = "Контакты"
     ),
 
+    Reminds(
+        icon = Icons.Outlined.Notifications,
+        route = Routes.Contacts,
+        label = "Напоминания"
+    ),
+
     Add(
         icon = Icons.Outlined.AddCircleOutline,
         route = Routes.AddButt,
         label = "Добавить",
         isPlusButton = true
+    ),
+
+    Analytics(
+        icon = Icons.Outlined.BarChart,
+        route = Routes.Analytics,
+        label = "Аналитика"
     ),
 
     Profile(

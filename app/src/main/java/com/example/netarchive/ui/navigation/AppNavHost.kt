@@ -13,7 +13,6 @@ import com.example.netarchive.ui.screens.contact_view_screen.ContactViewScreen
 import com.example.netarchive.ui.screens.add_note_screen.CreateNoteScreen
 import com.example.netarchive.ui.screens.add_reminder_screen.CreateReminderScreen
 import com.example.netarchive.ui.screens.profile_screen.ProfileViewScreen
-import com.example.netarchive.ui.screens.reminder_list_screen.ReminderListScreen
 import com.example.netarchive.ui.screens.settings_screen.SettingsScreen
 
 @Serializable
@@ -71,9 +70,6 @@ sealed class Routes{
 
     @Serializable
     object Settings
-
-    @Serializable
-    object RemindersList
 }
 
 @Composable
@@ -91,9 +87,6 @@ fun AppNavHost(
             ContactListScreen(
                 onContactClick = { contact ->
                     navController.navigate(Routes.ContactDetail(contact.id))
-                },
-                onReminderClick = {
-                    navController.navigate(Routes.RemindersList)
                 }
             )
         }
@@ -188,7 +181,8 @@ fun AppNavHost(
             )
         }
 
-        composable<Routes.CreateReminderRoute> {
+        composable<Routes.CreateReminderRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<Routes.CreateReminderRoute>()
             CreateReminderScreen(
                 onBackClick = { navController.popBackStack() },
                 onReminderCreated = {
@@ -227,26 +221,5 @@ fun AppNavHost(
                 }
             )
         }
-
-        composable<Routes.RemindersList> {
-            ReminderListScreen(
-                onReminderClick = { reminderContact ->
-                    val contact = reminderContact.contact
-                    navController.navigate(
-                        Routes.CreateReminderRoute(
-                            contactId = reminderContact.reminder.contactId,
-                            contactName = contact?.username ?: "",
-                            contactAvatar = contact?.avatar,
-                            reminderId = reminderContact.reminder.id,
-                            reminderText = reminderContact.reminder.text,
-                            reminderDate = reminderContact.reminder.date,
-                            fromScreen = "reminders_list",
-                            returnTab = 0
-                        )
-                    )
-                }
-            )
-        }
-
     }
 }

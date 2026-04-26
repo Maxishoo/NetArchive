@@ -4,6 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
+<<<<<<< HEAD
         <DropdownSelection timestamp="2026-04-17T14:26:16.513268800Z">
           <Target type="DEFAULT_BOOT">
             <handle>
@@ -12,6 +13,17 @@
           </Target>
         </DropdownSelection>
         <DialogSelection />
+=======
+      </SelectionState>
+      <SelectionState runConfigName="Note Card - Dark Theme - NoteCardDarkThemePreview">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="NoteCardNormalModePreview">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="NotesList10NotesPreview">
+        <option name="selectionMode" value="DROPDOWN" />
+>>>>>>> develop
       </SelectionState>
     </selectionStates>
   </component>

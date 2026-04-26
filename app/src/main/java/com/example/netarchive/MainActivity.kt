@@ -133,6 +133,10 @@ fun Main() {
         } == true -> BottomNavItem.Contacts
 
         currentDestination?.hierarchy?.any {
+            it.route == Routes.Analytics::class.qualifiedName
+        } == true -> BottomNavItem.Analytics
+
+        currentDestination?.hierarchy?.any {
             it.route == Routes.Profile::class.qualifiedName || it.route == Routes.Settings::class.qualifiedName
         } == true -> BottomNavItem.Profile
 
@@ -168,12 +172,25 @@ fun Main() {
                                 launchSingleTop = true
                             }
                         }
+
+                        BottomNavItem.Analytics -> {
+                            showAddMenu = false
+                            navController.navigate(Routes.Analytics) {
+                                popUpTo(0) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+
                         BottomNavItem.Profile -> {
                             showAddMenu = false
                             navController.navigate(Routes.Profile) {
                                 popUpTo(0) { inclusive = true }
                                 launchSingleTop = true
                             }
+                        }
+                        BottomNavItem.Reminds -> {
+                            showAddMenu = false
+                            // TODO //
                         }
                     }
                 }

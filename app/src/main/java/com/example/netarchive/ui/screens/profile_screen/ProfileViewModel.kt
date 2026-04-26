@@ -24,6 +24,7 @@ data class ProfileViewState(
     val email: String = "",
     val job: String = "",
     val avatar: String = "",
+    val birthday: Long? = null,
     val isLoading: Boolean = false,
     val isEditMode: Boolean = false,
     val hasChanges: Boolean = false,
@@ -67,6 +68,7 @@ class ProfileViewModel @Inject constructor(
                                 email = profile.email.orEmpty(),
                                 job = profile.job.orEmpty(),
                                 avatar = profile.avatar.orEmpty(),
+                                birthday = profile.birthday,
                                 isLoading = false
                             )
                         }
@@ -84,6 +86,7 @@ class ProfileViewModel @Inject constructor(
                                 email = "",
                                 job = "",
                                 avatar = "",
+                                birthday = null,
                                 isLoading = false
                             )
                         }
@@ -105,6 +108,7 @@ class ProfileViewModel @Inject constructor(
                 if (_viewState.value.telegram.isNotBlank()) append(";t=${_viewState.value.telegram}")
                 if (_viewState.value.max.isNotBlank()) append(";m=${_viewState.value.max}")
                 if (_viewState.value.job.isNotBlank()) append(";j=${_viewState.value.job}")
+                if (_viewState.value.birthday != null) append(";b=${_viewState.value.birthday}")
             }
             val encodedData = URLEncoder.encode(rawData, "UTF-8")
             generateQrCode(
@@ -141,6 +145,7 @@ class ProfileViewModel @Inject constructor(
                 email = "",
                 job = "",
                 avatar = "",
+                birthday = null,
                 hasChanges = true
             )
         }
@@ -155,7 +160,8 @@ class ProfileViewModel @Inject constructor(
                     state.max != original.max.orEmpty() ||
                     state.email != original.email.orEmpty() ||
                     state.job != original.job.orEmpty() ||
-                    state.avatar != original.avatar.orEmpty()
+                    state.avatar != original.avatar.orEmpty() ||
+                    state.birthday != original.birthday
         } ?: true
     }
 
@@ -196,6 +202,10 @@ class ProfileViewModel @Inject constructor(
     fun onEmailChange(value: String) = updateField { copy(email = value) }
     fun onJobChange(value: String) = updateField { copy(job = value) }
 
+    fun onBirthdayChange(timestamp: Long?) {
+        updateField { copy(birthday = timestamp) }
+    }
+
     fun saveProfile() {
         if (_viewState.value.username.isBlank()) {
             _viewState.update { it.copy(error = "Имя обязательно") }
@@ -212,7 +222,8 @@ class ProfileViewModel @Inject constructor(
                     max = state.max.ifEmpty { null },
                     email = state.email.ifEmpty { null },
                     job = state.job.ifEmpty { null },
-                    avatar = state.avatar.ifEmpty { null }
+                    avatar = state.avatar.ifEmpty { null },
+                    birthday = state.birthday
                 )
 
                 repository.saveProfile(profile)

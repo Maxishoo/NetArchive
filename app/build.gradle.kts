@@ -107,16 +107,15 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    // Retrofit core
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
 
-// OkHttp
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-// Kotlinx Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
-// ВАЖНО: Правильная версия конвертера!
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+
+    implementation("net.zetetic:android-database-sqlcipher:4.5.3@aar")
+    implementation("androidx.sqlite:sqlite-ktx:2.4.0")
 }

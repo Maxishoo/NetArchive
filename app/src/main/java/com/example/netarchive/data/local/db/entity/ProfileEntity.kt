@@ -13,4 +13,5 @@ data class ProfileEntity(
     val email : String? = null,
     val job : String? = null,
     val avatar : String? = null,
+    val birthday: Long? = null
     )
