@@ -4,7 +4,7 @@ import androidx.room.*
 import com.example.netarchive.data.local.db.entity.ReminderEntity
 import com.example.netarchive.domain.model.ReminderContact
 import kotlinx.coroutines.flow.Flow
-import java.util.Date
+
 
 @Dao
 interface ReminderDao {
@@ -30,6 +30,8 @@ interface ReminderDao {
     @Query("SELECT * FROM reminders WHERE date >= :today")
     fun getAllFutureReminders(today: Long): Flow<List<ReminderEntity>>
 
+
+    @Transaction
     @Query("""
     SELECT 
         reminders.*,
@@ -40,9 +42,12 @@ interface ReminderDao {
         contacts.max AS contact_max,
         contacts.email AS contact_email,
         contacts.job AS contact_job,
-        contacts.avatar AS contact_avatar
+        contacts.avatar AS contact_avatar,
+        contacts.pinnedOrder AS contact_pinnedOrder,      
+        contacts.birthday AS contact_birthday,            
+        contacts.description AS contact_description 
     FROM reminders
-    LEFT JOIN contacts ON reminders.contactId = contacts.id
+    INNER JOIN contacts ON reminders.contactId = contacts.id  
     ORDER BY reminders.date DESC
 """)
     fun getRemindersWithContact(): Flow<List<ReminderContact>>
@@ -50,12 +55,7 @@ interface ReminderDao {
 
 
     @Query("DELETE FROM reminders WHERE id IN (:ids)")
-    suspend fun deleteRemindersByIds(ids: List<Int>): Int // ← возвращает Int (кол-во удалённых)
+    suspend fun deleteRemindersByIds(ids: List<Int>): Int
 
-    @Query("SELECT id FROM reminders")
-    suspend fun debugGetAllIds(): List<Int>
-
-    @Query("SELECT COUNT(*) FROM reminders")
-    suspend fun countReminders(): Int
 
 }

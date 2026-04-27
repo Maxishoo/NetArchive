@@ -36,6 +36,15 @@ import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
 import androidx.activity.result.contract.ActivityResultContracts
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+
+
+
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
 
 
 @AndroidEntryPoint
@@ -97,23 +106,36 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
     private fun rescheduleAllReminders() {
         lifecycleScope.launch {
-            val todayMillis = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-            val futureReminders = reminderRepository.getAllFutureReminders(todayMillis).first()
-            futureReminders.forEach { reminder ->
-                ReminderScheduler.scheduleReminder(
-                    context = this@MainActivity,
-                    reminderId = reminder.id,
-                    title = "Напоминание",
-                    text = reminder.text,
-                    timestamp = reminder.date
-                )
+            // ✅ 1. Читаем данные из БД в фоне
+            val reminders = withContext(Dispatchers.IO) {
+                val todayMillis = LocalDate.now()
+                    .atStartOfDay(ZoneId.systemDefault())
+                    .toInstant()
+                    .toEpochMilli()
+
+                reminderRepository
+                    .getAllFutureReminders(todayMillis)
+                    .first()
             }
+
+            // ✅ 2. Планируем уведомления ПАРАЛЛЕЛЬНО в фоне
+            // Ограничиваем до 20 напоминаний за раз
+            reminders.take(20).map { reminder ->
+                async(Dispatchers.IO) {
+                    ReminderScheduler.scheduleReminder(
+                        context = this@MainActivity,
+                        reminderId = reminder.id,
+                        title = "Напоминание",
+                        text = reminder.text,
+                        timestamp = reminder.date
+                    )
+                }
+            }.awaitAll()
         }
     }
-
-
 }
 
 
@@ -190,7 +212,10 @@ fun Main() {
                         }
                         BottomNavItem.Reminds -> {
                             showAddMenu = false
-                            // TODO //
+                            navController.navigate(Routes.RemindersList) {
+                                popUpTo(0) { inclusive = true }
+                                launchSingleTop = true
+                            }
                         }
                     }
                 }

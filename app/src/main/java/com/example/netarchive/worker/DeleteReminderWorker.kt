@@ -5,8 +5,9 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.netarchive.data.local.db.AppDatabase
+import com.example.netarchive.utils.RefreshBus
 
-// ❌ Убираем @HiltWorker и @AssistedInject — используем обычный конструктор
+
 class DeleteReminderWorker(
     context: Context,
     params: WorkerParameters
@@ -17,12 +18,19 @@ class DeleteReminderWorker(
         Log.d("DeleteReminderWorker", "🗑️ Starting delete for reminderId=$reminderId")
 
         return try {
-            // ✅ Прямой доступ к БД через синглтон
             val database = AppDatabase.getInstance(applicationContext)
             val deleted = database.reminderDao().deleteRemindersByIds(listOf(reminderId))
 
             Log.d("DeleteReminderWorker", "✅ Deleted $deleted reminder(s) with ID=$reminderId")
-            if (deleted > 0) Result.success() else Result.failure()
+            if (deleted > 0)
+            {
+                Log.d("DeleteReminderWorker", "✅ Deleted $deleted reminder(s) with ID=$reminderId")
+
+
+                RefreshBus.refreshFlow.tryEmit(Unit)
+                Result.success()
+            }
+            else Result.failure()
         } catch (e: Exception) {
             Log.e("DeleteReminderWorker", "💥 Error", e)
             Result.failure()

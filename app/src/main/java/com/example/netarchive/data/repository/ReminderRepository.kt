@@ -50,6 +50,7 @@ class ReminderRepository @Inject constructor(
     fun getRemindersWithContact(): Flow<List<ReminderContact>> {
         return reminderDao.getRemindersWithContact()
     }
+
      suspend fun deleteRemindersByIds(ids: List<Int>): Int {
         return reminderDao.deleteRemindersByIds(ids)
     }

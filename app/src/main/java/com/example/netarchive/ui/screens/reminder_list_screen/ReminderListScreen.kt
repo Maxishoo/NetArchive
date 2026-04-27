@@ -37,7 +37,8 @@ import coil.compose.AsyncImage
 fun ReminderListScreen(
     modifier: Modifier = Modifier,
     viewModel: ReminderListViewModel = hiltViewModel(),
-    onReminderClick: (ReminderContact) -> Unit = {}
+    onReminderClick: (ReminderContact) -> Unit = {},
+    onBackClick: () -> Boolean
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val sortingMode by viewModel.sortingMode.collectAsStateWithLifecycle()
@@ -51,6 +52,17 @@ fun ReminderListScreen(
     // Режим группировки по контакту: теперь переключается (true/false)
     var groupByContact by remember { mutableStateOf(false) }
     val deleteMessage = stringResource(R.string.reminders_deleted)
+
+
+    // ✅ ✅ ✅ ВСТАВЬ ЭТОТ БЛОК СЮДА (после переменных, до Scaffold) ✅ ✅ ✅
+    LaunchedEffect(state) {
+        android.util.Log.d("🔄 UI_DEBUG", "🎨 State changed: ${state::class.simpleName}")
+        if (state is LoadState.Success) {
+            val list = (state as LoadState.Success<List<ReminderContact>>).data
+            android.util.Log.d("🔄 UI_DEBUG", "📊 Reminders count: ${list.size}")
+        }
+    }
+    // ✅ ✅ ✅ КОНЕЦ ВСТАВКИ ✅ ✅ ✅
 
     Scaffold(
         topBar = {

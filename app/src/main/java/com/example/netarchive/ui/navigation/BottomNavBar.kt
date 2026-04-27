@@ -52,7 +52,7 @@ enum class BottomNavItem(
 
     Reminds(
         icon = Icons.Outlined.Notifications,
-        route = Routes.Contacts,
+        route = Routes.RemindersList,
         label = "Напоминания"
     ),
 

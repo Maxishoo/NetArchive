@@ -20,7 +20,7 @@ import com.example.netarchive.data.local.db.entity.ReminderEntity
 
 @Database(
     entities = [(ContactEntity::class), (NoteEntity::class), (ReminderEntity::class), (CategoryEntity::class), (ContactCategoryCrossRef::class), (ProfileEntity::class)],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -34,7 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun profileDao(): ProfileDao
 
-    // AppDatabase.kt
+
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -44,7 +44,7 @@ abstract class AppDatabase : RoomDatabase() {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "app_database"
+                    "archive.db"
                 ).build().also { INSTANCE = it }
             }
         }

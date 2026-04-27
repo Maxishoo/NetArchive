@@ -202,13 +202,6 @@ fun ContactsTopBar(
                                     tint = Color.Black
                                 )
                             }
-                            IconButton(onClick = onReminderClick) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Notifications,
-                                    contentDescription = "Напоминания",
-                                    tint = Color.Black
-                                )
-                            }
                         }
                     }
 
