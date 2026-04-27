@@ -21,10 +21,11 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val yandexToken = providers.gradleProperty("YANDEX_IAM_TOKEN").orNull ?: ""
         val yandexFolder = providers.gradleProperty("YANDEX_FOLDER_ID").orNull ?: ""
+        val yandexApiKey = providers.gradleProperty("YANDEX_API_KEY").orNull ?: ""
 
         buildConfigField("String", "YANDEX_IAM_TOKEN", "\"$yandexToken\"")
         buildConfigField("String", "YANDEX_FOLDER_ID", "\"$yandexFolder\"")
-        buildConfigField("String", "TEST_VALUE", "\"Hello World\"")
+        buildConfigField("String", "YANDEX_API_KEY", "\"$yandexApiKey\"")
     }
 
     buildTypes {

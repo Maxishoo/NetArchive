@@ -12,7 +12,7 @@ interface YandexGptApiService {
     @Headers("Content-Type: application/json")
     @POST("completion")
     suspend fun generateCompletion(
-        @Header("Authorization") iamToken: String,
+        @Header("Authorization") apiKey: String,
         @Header("x-folder-id") folderId: String,
         @Body request: YandexGptRequest
     ): YandexGptResponse

@@ -135,7 +135,7 @@ class ContactViewViewModel @Inject constructor(
             try {
                 val response = withContext(Dispatchers.IO) {
                     RetrofitClient.yandexGptApi.generateCompletion(
-                        iamToken = "Bearer ${BuildConfig.YANDEX_IAM_TOKEN}",
+                        apiKey = "Api-Key ${BuildConfig.YANDEX_API_KEY}",
                         folderId = BuildConfig.YANDEX_FOLDER_ID,
 
                         request = YandexGptRequest(
