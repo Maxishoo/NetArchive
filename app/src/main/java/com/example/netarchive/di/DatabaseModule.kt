@@ -9,6 +9,7 @@ import com.example.netarchive.data.local.db.dao.NoteDao
 
 import com.example.netarchive.data.local.db.dao.ReminderDao
 import com.example.netarchive.data.local.db.dao.ProfileDao
+import com.example.netarchive.data.local.security.SecurityHelper
 import com.example.netarchive.data.repository.CategoryRepository
 import com.example.netarchive.data.repository.ReminderRepository
 import dagger.Module
@@ -27,11 +28,20 @@ object DatabaseModule {
     fun provideAppDatabase(
         @ApplicationContext context: Context
     ): AppDatabase {
+        val password = SecurityHelper.getDatabasePassword()
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
             "archive.db"
         )
+            .openHelperFactory { config ->
+                net.zetetic.database.sqlcipher.SupportHelper(
+                    config,
+                    password,
+                    null,
+                    false
+                )
+            }
             .fallbackToDestructiveMigration(false)
             .build()
     }
