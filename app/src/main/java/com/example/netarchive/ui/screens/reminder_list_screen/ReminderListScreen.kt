@@ -1,7 +1,6 @@
 package com.example.netarchive.ui.screens.reminder_list_screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,6 +8,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.GroupOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,8 +32,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeApi::class)
+@Suppress("UNUSED_PARAMETER")
 @Composable
 fun ReminderListScreen(
     modifier: Modifier = Modifier,
@@ -41,7 +42,6 @@ fun ReminderListScreen(
     onBackClick: () -> Boolean
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val sortingMode by viewModel.sortingMode.collectAsStateWithLifecycle()
 
     var selectionMode by remember { mutableStateOf(false) }
     val selectedReminderIds = remember { mutableStateSetOf<Int>() }
@@ -49,20 +49,8 @@ fun ReminderListScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Режим группировки по контакту: теперь переключается (true/false)
     var groupByContact by remember { mutableStateOf(false) }
     val deleteMessage = stringResource(R.string.reminders_deleted)
-
-
-    // ✅ ✅ ✅ ВСТАВЬ ЭТОТ БЛОК СЮДА (после переменных, до Scaffold) ✅ ✅ ✅
-    LaunchedEffect(state) {
-        android.util.Log.d("🔄 UI_DEBUG", "🎨 State changed: ${state::class.simpleName}")
-        if (state is LoadState.Success) {
-            val list = (state as LoadState.Success<List<ReminderContact>>).data
-            android.util.Log.d("🔄 UI_DEBUG", "📊 Reminders count: ${list.size}")
-        }
-    }
-    // ✅ ✅ ✅ КОНЕЦ ВСТАВКИ ✅ ✅ ✅
 
     Scaffold(
         topBar = {
@@ -82,32 +70,39 @@ fun ReminderListScreen(
                     }
                 },
                 onSortClick = { groupByContact = !groupByContact }, // переключение группировки
-                onDeleteModeClick = { selectionMode = true }
+                onDeleteModeClick = { selectionMode = true },
+                groupByContact
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
-        Box(modifier = modifier.fillMaxSize().padding(paddingValues)) {
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+    ) { paddinValues ->
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+        ) {
             when (state) {
                 is LoadState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
+
                 is LoadState.Error -> {
                     Text(
                         text = stringResource(R.string.error_reminders_load),
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
+
                 is LoadState.Empty -> {
                     Text(
                         text = stringResource(R.string.reminders_empty),
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
+
                 is LoadState.Success -> {
                     val reminders = (state as LoadState.Success<List<ReminderContact>>).data
                     if (groupByContact) {
-                        // Группированное отображение
                         GroupedRemindersList(
                             reminders = reminders,
                             selectionMode = selectionMode,
@@ -126,35 +121,35 @@ fun ReminderListScreen(
                             }
                         )
                     } else {
-                        // Обычный плоский список
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            verticalArrangement = Arrangement.spacedBy(1.dp)
                         ) {
+                            item {
+                                Spacer(modifier
+                                    .height(72.dp)
+                                    .padding(paddinValues))
+                            }
                             items(reminders, key = { it.reminder.id }) { reminderWithContact ->
                                 Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp)
-                                        .border(
-                                            width = 1.dp,
-                                            color = MaterialTheme.colorScheme.outlineVariant,
-                                            shape = RoundedCornerShape(5.dp)
-                                        ),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                                    modifier = Modifier.fillMaxSize(),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                                    shape = RoundedCornerShape(0.dp),
                                     colors = CardDefaults.cardColors(
                                         containerColor = MaterialTheme.colorScheme.surface
                                     )
                                 ) {
-                                    Column {
+                                    Column(Modifier.padding(horizontal = 5.dp)) {
                                         ContactHeader(contact = reminderWithContact.contact)
                                         ReminderCard(
                                             reminderWithContact = reminderWithContact,
                                             onClick = {
                                                 if (selectionMode) {
                                                     val id = reminderWithContact.reminder.id
-                                                    if (selectedReminderIds.contains(id)) selectedReminderIds.remove(id)
+                                                    if (selectedReminderIds.contains(id)) selectedReminderIds.remove(
+                                                        id
+                                                    )
                                                     else selectedReminderIds.add(id)
                                                 } else {
                                                     onReminderClick(reminderWithContact)
@@ -171,16 +166,11 @@ fun ReminderListScreen(
                         }
                     }
                 }
-                }
             }
         }
     }
+}
 
-/**
- * Список напоминаний, сгруппированный по контакту.
- * Каждая группа начинается с заголовка (аватарка + имя контакта),
- * затем идут карточки напоминаний этого контакта.
- */
 @Composable
 private fun GroupedRemindersList(
     reminders: List<ReminderContact>,
@@ -196,26 +186,23 @@ private fun GroupedRemindersList(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 8.dp),
+        contentPadding = PaddingValues(vertical = 8.dp), // одинаковый с негруппированным
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        item {
+            Spacer(Modifier.height(72.dp))
+        }
         grouped.forEach { group ->
             item(key = "group_${group.contact?.id ?: "no_contact"}") {
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                            shape = RoundedCornerShape(5.dp)
-                        ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                    shape = RoundedCornerShape(0.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surface
                     )
                 ) {
-                    Column {
+                    Column(Modifier.padding(horizontal = 5.dp)) {
                         ContactHeader(contact = group.contact)
                         Column(
                             modifier = Modifier.fillMaxWidth(),
@@ -239,55 +226,48 @@ private fun GroupedRemindersList(
     }
 }
 
-/**
- * Заголовок контакта: аватарка (иконка или заглушка) и имя.
- */
 @Composable
 private fun ContactHeader(contact: com.example.netarchive.domain.model.Contact?) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
 
-        ) {
-            if (contact?.avatar != null) {
-                AsyncImage(
-                    model = contact.avatar,
-                    contentDescription = "Avatar of ${contact.username}",
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(color = Color(0xFFDBE0F7)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = contact?.username?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = contact?.username ?: "?",
-                style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
-//                        modifier = Modifier.weight(1f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+    ) {
+        if (contact?.avatar != null) {
+            AsyncImage(
+                model = contact.avatar,
+                contentDescription = "Avatar of ${contact.username}",
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
             )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(color = Color(0xFFDBE0F7)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = contact?.username?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
         }
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = contact?.username ?: "?",
+            style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
 }
 
-/**
- * Вспомогательный класс для хранения сгруппированных данных.
- */
 private data class GroupedData(
     val contact: com.example.netarchive.domain.model.Contact?,
     val items: List<ReminderContact>
@@ -310,19 +290,20 @@ fun ReminderCard(
         isSelected -> CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         )
+
         isOverdue -> CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.errorContainer
         )
+
         else -> CardDefaults.cardColors()
     }
 
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .fillMaxWidth(),
         onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        colors = cardColors
+        colors = cardColors,
+        shape = RoundedCornerShape(5.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -337,11 +318,23 @@ fun ReminderCard(
                 Spacer(modifier = Modifier.width(8.dp))
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = formattedDate,
-                    style = MaterialTheme.typography.bodySmall
-                )
-                reminder.text?.let {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = formattedDate,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    if (isOverdue) {
+                        Text(
+                            text = "Просрочено",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+                reminder.text.let {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = it,
@@ -363,7 +356,8 @@ fun ReminderListTopBar(
     onCloseSelection: () -> Unit,
     onDeleteSelected: () -> Unit,
     onSortClick: () -> Unit,
-    onDeleteModeClick: () -> Unit
+    onDeleteModeClick: () -> Unit,
+    groupByContact: Boolean
 ) {
     if (isSelectionMode) {
         TopAppBar(
@@ -373,6 +367,9 @@ fun ReminderListTopBar(
                     Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cancel))
                 }
             },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f)
+            ),
             actions = {
                 IconButton(onClick = onDeleteSelected) {
                     Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete))
@@ -381,10 +378,21 @@ fun ReminderListTopBar(
         )
     } else {
         TopAppBar(
-            title = { Text(stringResource(R.string.reminders_title), style = MaterialTheme.typography.headlineLarge) },
+            title = {
+                Text(
+                    stringResource(R.string.reminders_title),
+                    style = MaterialTheme.typography.headlineLarge
+                )
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f)
+            ),
             actions = {
                 IconButton(onClick = onSortClick) {
-                    Icon(Icons.Default.AccountBox, contentDescription = stringResource(R.string.sort_by_contact_then_date))
+                    Icon(
+                        if (groupByContact) Icons.Outlined.GroupOff else Icons.Outlined.Group,
+                        contentDescription = stringResource(R.string.sort_by_contact_then_date)
+                    )
                 }
                 IconButton(onClick = onDeleteModeClick) {
                     Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete))

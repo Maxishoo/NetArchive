@@ -39,12 +39,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-
-
-
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.withContext
 
 
 @AndroidEntryPoint
@@ -109,7 +105,6 @@ class MainActivity : ComponentActivity() {
 
     private fun rescheduleAllReminders() {
         lifecycleScope.launch {
-            // ✅ 1. Читаем данные из БД в фоне
             val reminders = withContext(Dispatchers.IO) {
                 val todayMillis = LocalDate.now()
                     .atStartOfDay(ZoneId.systemDefault())
@@ -120,9 +115,6 @@ class MainActivity : ComponentActivity() {
                     .getAllFutureReminders(todayMillis)
                     .first()
             }
-
-            // ✅ 2. Планируем уведомления ПАРАЛЛЕЛЬНО в фоне
-            // Ограничиваем до 20 напоминаний за раз
             reminders.take(20).map { reminder ->
                 async(Dispatchers.IO) {
                     ReminderScheduler.scheduleReminder(
@@ -157,6 +149,10 @@ fun Main() {
         currentDestination?.hierarchy?.any {
             it.route == Routes.Analytics::class.qualifiedName
         } == true -> BottomNavItem.Analytics
+
+        currentDestination?.hierarchy?.any {
+            it.route == Routes.RemindersList::class.qualifiedName
+        } == true -> BottomNavItem.Reminds
 
         currentDestination?.hierarchy?.any {
             it.route == Routes.Profile::class.qualifiedName || it.route == Routes.Settings::class.qualifiedName

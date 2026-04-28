@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -26,7 +27,6 @@ import com.example.netarchive.ui.components.cards.ActionButtonsSaveCancel
 import com.example.netarchive.ui.components.cards.DateTimeSelector_with_valid
 import com.example.netarchive.ui.components.cards.SimpleContactCard
 import com.example.netarchive.ui.components.cards.TimeSelectorCard
-import java.text.SimpleDateFormat
 import java.util.*
 
 const val MAX_TEXT_LENGTH = 500
@@ -211,6 +211,9 @@ fun CreateReminderScreen(
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f)
+                ),
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
