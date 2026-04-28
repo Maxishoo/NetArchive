@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.io.File
 import javax.inject.Inject
 import com.example.netarchive.data.local.FileManager
 import java.net.URLDecoder
@@ -75,16 +74,13 @@ class AddContactViewModel @Inject constructor(
 
     fun onQrUrlChange(data: String) {
         try {
-            // Декодируем данные
             val decodedData = URLDecoder.decode(data, "UTF-8")
 
-            // Парсим параметры
             val params: Map<String, String> = decodedData.split(';').associate { param ->
                 val parts = param.split('=', limit = 2)
                 parts[0] to (parts.getOrNull(1) ?: "")
             }
 
-            // Обновляем форму с данными из QR кода
             _formState.value = _formState.value.copy(
                 username = params["u"] ?: "",
                 phone = params["p"] ?: "",
@@ -93,10 +89,8 @@ class AddContactViewModel @Inject constructor(
                 max = params["m"] ?: "",
                 job = params["j"] ?: "",
                 birthday = params["b"]?.toLongOrNull(),
-                error = null // Очищаем ошибку
+                error = null
             )
-
-            // Закрываем диалог сканера
             closeQrImport()
 
         } catch (e: Exception) {
@@ -104,7 +98,6 @@ class AddContactViewModel @Inject constructor(
             _formState.value = _formState.value.copy(
                 error = "Ошибка при разборе QR кода: ${e.message}"
             )
-            // В случае ошибки тоже закрываем диалог
             closeQrImport()
         }
     }

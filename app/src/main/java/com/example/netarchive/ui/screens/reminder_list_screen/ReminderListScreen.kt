@@ -69,7 +69,7 @@ fun ReminderListScreen(
                         snackbarHostState.showSnackbar(deleteMessage)
                     }
                 },
-                onSortClick = { groupByContact = !groupByContact }, // переключение группировки
+                onSortClick = { groupByContact = !groupByContact },
                 onDeleteModeClick = { selectionMode = true },
                 groupByContact
             )
@@ -186,7 +186,7 @@ private fun GroupedRemindersList(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 8.dp), // одинаковый с негруппированным
+        contentPadding = PaddingValues(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item {

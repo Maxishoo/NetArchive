@@ -113,7 +113,6 @@ fun VoiceRecordingScreen(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Заголовок
                 Text(
                     text = if (state.isVoiceRecording) "Запись голоса..."
                     else if (state.isVoiceProcessing) "Обработка..."
@@ -123,7 +122,6 @@ fun VoiceRecordingScreen(
                 )
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Waveform
                 if(state.isVoiceRecording){
                     Waveform(
                         isRecording = state.isVoiceRecording,
@@ -137,7 +135,6 @@ fun VoiceRecordingScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Кнопка записи/паузы под волной
                 if (!state.isVoiceRecordDone && !state.isVoiceProcessing) {
                     IconButton(
                         onClick = {
@@ -182,7 +179,6 @@ fun VoiceRecordingScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Распознанный текст
                 if (state.recognizedText.isNotEmpty() && !state.isVoiceRecording) {
                     Card(
                         modifier = Modifier
@@ -209,10 +205,8 @@ fun VoiceRecordingScreen(
                         }
                     }
                 }
-
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Кнопки внизу
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -255,7 +249,6 @@ fun VoiceRecordingScreen(
                         }
                     }
 
-                    // Кнопка Закрыть
                     if (!state.isVoiceRecordDone) {
                         Button(
                             onClick = { viewModel.closeRecordingPage() },

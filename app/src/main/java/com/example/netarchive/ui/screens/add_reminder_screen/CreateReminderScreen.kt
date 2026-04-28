@@ -205,8 +205,8 @@ fun CreateReminderScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = if (state.isEditMode) stringResource(R.string.modify_note) else stringResource(
-                        R.string.add_note,
+                    Text(text = if (state.isEditMode) stringResource(R.string.modify_reminder) else stringResource(
+                        R.string.add_reminder,
                     ),
                         style = MaterialTheme.typography.headlineLarge,
                     )
@@ -332,7 +332,6 @@ private fun DatePickerDialogWrapper(
             calendar.get(Calendar.DAY_OF_MONTH)
         )
 
-        // Разрешаем выбор сегодня (фикс бага Android DatePicker)
         val startOfToday = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)

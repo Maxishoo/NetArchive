@@ -23,9 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.netarchive.ui.components.CategorySelector
 import com.example.netarchive.ui.components.QrScannerDialog
 import com.example.netarchive.ui.theme.NetArchiveTheme
-import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.rememberDatePickerState
 import android.app.DatePickerDialog
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -82,7 +80,6 @@ fun AddContactScreen(
     val allCategories by viewModel.allCategories.collectAsStateWithLifecycle()
     val imagePickerResult by viewModel.imagePickerResult.collectAsStateWithLifecycle()
 
-    // Деструктуризация стейта для удобной передачи в подфункции
     val username = formState.username
     val avatar = formState.avatar
     val isLoading = formState.isLoading
@@ -418,7 +415,6 @@ private fun BirthdayField(
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
 
-    // Форматируем дату для отображения
     val displayText = timestamp?.let {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(it))
     } ?: ""
@@ -434,7 +430,7 @@ private fun BirthdayField(
 
     OutlinedTextField(
         value = displayText,
-        onValueChange = { }, // ReadOnly
+        onValueChange = { },
         label = { Text("Дата рождения") },
         placeholder = { Text("") },
         modifier = modifier.fillMaxWidth(),
@@ -448,7 +444,7 @@ private fun BirthdayField(
                 contentDescription = "Выбрать дату",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = modifier.clickable(enabled = isEditMode) {
-                    showDatePicker = true  // ✅ Клик по иконке тоже работает
+                    showDatePicker = true
                 }
             )
         },
@@ -460,7 +456,6 @@ private fun BirthdayField(
         )
     )
 
-    // ✅ Используем нативный диалог как в заметках
     if (showDatePicker) {
         ShowDatePickerDialog(
             initialDate = timestamp ?: System.currentTimeMillis(),

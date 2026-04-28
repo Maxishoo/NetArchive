@@ -32,16 +32,13 @@ class ReminderListViewModel @Inject constructor(
     private val _sortingMode = MutableStateFlow(SortingMode.BY_DATE)
     val sortingMode: StateFlow<SortingMode> = _sortingMode.asStateFlow()
 
-    // ✅ 1. Сначала объявляем триггер
     private val _refreshTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
-    // ✅ 2. Потом объединяем сигналы (теперь _refreshTrigger уже известен)
     private val refreshSignal = merge(
         RefreshBus.refreshFlow,
         _refreshTrigger
-    ).onStart { emit(Unit) } // Первая загрузка при открытии экрана
+    ).onStart { emit(Unit) }
 
-    // ✅ 3. State строится на основе сигналов
     val state: StateFlow<LoadState<List<ReminderContact>>> = refreshSignal
         .flatMapLatest { _ ->
             reminderRepository.getRemindersWithContact()
@@ -72,13 +69,13 @@ class ReminderListViewModel @Inject constructor(
 
     fun setSortingMode(mode: SortingMode) {
         _sortingMode.value = mode
-        _refreshTrigger.tryEmit(Unit) // Пересортируем данные
+        _refreshTrigger.tryEmit(Unit)
     }
 
     fun deleteReminders(reminderIds: List<Int>) {
         viewModelScope.launch {
             reminderRepository.deleteRemindersByIds(reminderIds)
-            _refreshTrigger.tryEmit(Unit) // ✅ UI обновится мгновенно
+            _refreshTrigger.tryEmit(Unit)
         }
     }
 }

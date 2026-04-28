@@ -17,22 +17,13 @@ object SecurityHelper {
         KeyStore.getInstance(ANDROID_KEY_STORE).apply { load(null) }
     }
 
-    /**
-     * Получает пароль для шифрования БД.
-     * Если ключ можно экспортировать — используем его.
-     * Если нет (на некоторых устройствах) — деривируем пароль из алиаса ключа.
-     */
     fun getDatabasePassword(): ByteArray {
         val key = getOrCreateKey()
 
-        // 🔹 Попытка 1: получить сырой ключ (работает на некоторых устройствах)
         val encoded = key.encoded
         if (encoded != null) {
             return encoded
         }
-
-        // 🔹 Попытка 2: сгенерировать детерминированный пароль из алиаса ключа
-        // Это менее безопасно, но работает везде и привязано к приложению/устройству
         return derivePasswordFromAlias()
     }
 
@@ -59,14 +50,8 @@ object SecurityHelper {
             )
         }.generateKey()
     }
-
-    /**
-     * Деривирует пароль из алиаса ключа через SHA-256.
-     * Результат детерминированный: один и тот же для этого приложения на этом устройстве.
-     */
     private fun derivePasswordFromAlias(): ByteArray {
         val digest = MessageDigest.getInstance("SHA-256")
-        // Комбинируем алиас ключа + пакет приложения для уникальности
         val input = "$KEY_ALIAS:${BuildConfig.APPLICATION_ID}"
         return digest.digest(input.toByteArray())
     }

@@ -1,6 +1,5 @@
 package com.example.netarchive.data.remote.ai.model
 
-import com.example.netarchive.BuildConfig
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -14,7 +13,7 @@ object RetrofitClient {
     private const val BASE_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY // для отладки, в релизе - NONE
+        level = HttpLoggingInterceptor.Level.BODY
     }
 
     private val okHttpClient = OkHttpClient.Builder()

@@ -1,7 +1,5 @@
 package com.example.netarchive.data.remote.ai.model
 
-import com.example.netarchive.data.remote.ai.model.YandexGptRequest
-import com.example.netarchive.data.remote.ai.model.YandexGptResponse
 import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.Headers

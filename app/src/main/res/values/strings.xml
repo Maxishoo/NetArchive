@@ -19,6 +19,7 @@
     <string name="create">Создать</string>
     <string name="reminder_text">Текст напоминания</string>
     <string name="add_reminder">Добавьте напоминание</string>
+    <string name="modify_reminder">Редактировать напоминание</string>
 
 
     <string name="reminders_title">Напоминания</string>

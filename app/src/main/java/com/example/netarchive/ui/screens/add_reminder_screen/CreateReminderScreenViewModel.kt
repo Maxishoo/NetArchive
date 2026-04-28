@@ -218,24 +218,17 @@ class CreateReminderViewModel @Inject constructor(
                     date = currentState.timestamp
                 )
 
-                // ✅ Получаем реальный ID после сохранения
                 val savedReminderId = if (currentState.isEditMode && currentState.reminderId > 0) {
-                    // При редактировании: обновляем и используем существующий ID
                     repository.updateReminder(reminder)
                     currentState.reminderId
                 } else {
-                    // При создании: addReminder ДОЛЖЕН возвращать Long (новый ID из Room)
                     repository.addReminder(reminder).toInt()
                 }
-
-                Log.d("CreateReminderVM", "💾 Saved reminder with ID: $savedReminderId")
-// 🔍 Читаем обратно из БД сразу после сохранения
                 val justSaved = repository.getReminderById(savedReminderId)
                 Log.d("CreateReminderVM", "🔍 Read back after save: ${justSaved?.text ?: "NULL"}")
-                // ✅ Используем полученный ID для планирования уведомления
                 ReminderScheduler.scheduleReminder(
                     context = application,
-                    reminderId = savedReminderId,  // ← теперь тут реальный ID!
+                    reminderId = savedReminderId,
                     title = "Напоминание",
                     text = reminder.text,
                     timestamp = reminder.date

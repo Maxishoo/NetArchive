@@ -25,8 +25,9 @@ class AnalyticsViewModel @Inject constructor(
     val forgottenContacts: StateFlow<List<Contact>> = repository.getForgottenContacts(6)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val categoriesWithCount: StateFlow<List<CategoryWithCount>> = repository.getCategoriesWithCount()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val categoriesWithCount: StateFlow<List<CategoryWithCount>> =
+        repository.getCategoriesWithCount()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val monthlyActivity: StateFlow<List<MonthActivity>> = repository.getMonthlyActivity()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -34,6 +35,7 @@ class AnalyticsViewModel @Inject constructor(
     val topContacts: StateFlow<List<Contact>> = repository.getMostActiveContacts(5)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val contactsToWrite: StateFlow<List<Contact>> = repository.getContactsToWrite() // <-- Без аргумента
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val contactsToWrite: StateFlow<List<Contact>> =
+        repository.getContactsToWrite() // <-- Без аргумента
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 }

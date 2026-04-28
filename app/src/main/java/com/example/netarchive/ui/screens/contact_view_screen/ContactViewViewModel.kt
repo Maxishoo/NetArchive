@@ -3,7 +3,6 @@ package com.example.netarchive.ui.screens.contact_view_screen
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -94,7 +93,6 @@ class ContactViewViewModel @Inject constructor(
     private val _isGenerating = MutableStateFlow(false)
     val isGenerating: StateFlow<Boolean> = _isGenerating
 
-    // === AI METHOD ===
     fun generateConversationStarter() {
         viewModelScope.launch {
             if (!AiFeatureConfig.IS_AI_ENABLED) {
@@ -106,7 +104,6 @@ class ContactViewViewModel @Inject constructor(
 
             val state = _viewState.value
 
-            // Собираем контекст из контакта и заметок
             val contextText = buildString {
                 append("Контакт: ${state.username}\n")
                 if (state.job.isNotBlank()) append("Работа: ${state.job}\n")
@@ -139,8 +136,6 @@ class ContactViewViewModel @Inject constructor(
                         folderId = BuildConfig.YANDEX_FOLDER_ID,
 
                         request = YandexGptRequest(
-                            //modelUri = "gpt://${BuildConfig.YANDEX_FOLDER_ID}/yandexgpt-lite/latest",
-                            // или для полной версии:
                              modelUri = "gpt://${BuildConfig.YANDEX_FOLDER_ID}/yandexgpt/latest",
 
                             completionOptions = CompletionOptions(
@@ -195,7 +190,6 @@ class ContactViewViewModel @Inject constructor(
                     )
                 }
 
-                // Парсим ответ: нейронка вернёт текст вида "- Вариант 1\n- Вариант 2..."
                 val rawText = response.result?.alternatives?.firstOrNull()?.message?.text ?: ""
                 val suggestions = rawText
                     .split("\n")
@@ -231,15 +225,12 @@ class ContactViewViewModel @Inject constructor(
         }
 
         if (index in suggestions.indices) {
-            // Обновляем состояние, чтобы подсветить скопированный вариант
             _aiState.value = AiState.Success(suggestions, copiedIndex = index)
 
-            // Копируем в буфер
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("ai_suggestion_${index}", suggestions[index])
             clipboard.setPrimaryClip(clip)
 
-            // Возвращаем состояние в норму через 2 секунды (чтобы подсветка пропала)
             viewModelScope.launch {
                 delay(2000)
                 _aiState.value = AiState.Success(suggestions, copiedIndex = null)
@@ -468,8 +459,6 @@ class ContactViewViewModel @Inject constructor(
                     contactId = contactId,
                     categoryIds = _selectedCategories.value.map { it.id }
                 )
-
-                //categoryRepository.deleteUnusedCustomCategories()
 
                 val newState = state.copy(
                     isLoading = false,

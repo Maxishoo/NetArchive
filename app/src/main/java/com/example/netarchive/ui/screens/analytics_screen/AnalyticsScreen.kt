@@ -202,7 +202,6 @@ fun ContactListItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Аватар-заглушка
             if (contact.avatar != null) {
                 AsyncImage(
                     model = contact.avatar,

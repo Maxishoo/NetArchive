@@ -34,8 +34,6 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.filled.Cake
-import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -81,9 +79,7 @@ fun ContactViewScreen(
     var selectedTab by rememberSaveable { mutableIntStateOf(initialTab) }
     val tabs = listOf("Информация", "Заметки")
     var isNotesEditMode by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
     val aiState by viewModel.aiState.collectAsState()
-    val isGenerating by viewModel.isGenerating.collectAsState()
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -142,7 +138,6 @@ fun ContactViewScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                // Табы
                 PrimaryTabRow(
                     selectedTabIndex = selectedTab,
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -248,7 +243,7 @@ fun ContactViewScreen(
             },
             confirmButton = {
                 Button(
-                    onClick = { viewModel.deleteContact() },  // ← вызов ViewModel
+                    onClick = { viewModel.deleteContact() },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error
                     )
@@ -257,7 +252,7 @@ fun ContactViewScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.hideDeleteDialog() }) {  // ← вызов ViewModel
+                TextButton(onClick = { viewModel.hideDeleteDialog() }) {
                     Text("Отмена")
                 }
             }
@@ -399,7 +394,7 @@ fun ContactViewScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(AiFeatureConfig.AI_DISABLED_MESSAGE)
 
-                        // 🔮 Задел на будущее (кнопка в настройки)
+                        // пока todoo (кнопка в настройки)
                         // TextButton(onClick = { navigateToSettings() }) {
                         //     Text("Перейти в настройки")
                         // }
@@ -413,7 +408,7 @@ fun ContactViewScreen(
             )
         }
 
-        is AiState.Idle -> { /* Ничего не показываем */ }
+        is AiState.Idle -> { }
     }
 }
 
@@ -436,7 +431,6 @@ private fun ContactInfoTab(
             .padding(bottom = 80.dp, top = 10.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Аватар
         Box(
             modifier = Modifier
                 .size(100.dp)
@@ -542,8 +536,8 @@ private fun ContactInfoTab(
             enabled = viewState.isEditMode,
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF64B5F6),  // Голубой при фокусе
-                unfocusedBorderColor = Color(0xFF90CAF9), // Голубой без фокуса
+                focusedBorderColor = Color(0xFF64B5F6),
+                unfocusedBorderColor = Color(0xFF90CAF9),
                 disabledBorderColor = Color(0xFF90CAF9),
                 disabledTextColor = MaterialTheme.colorScheme.onSurface,
                 disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -725,7 +719,6 @@ private fun ContactInfoTab(
             isEditMode = viewState.isEditMode
         )
 
-        // Ошибка
         viewState.error?.let { error ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -905,7 +898,7 @@ private fun BirthdayField(
 
     OutlinedTextField(
         value = displayText,
-        onValueChange = { }, // ReadOnly
+        onValueChange = { },
         label = { Text("Дата рождения") },
         placeholder = { Text("") },
         modifier = modifier.fillMaxWidth(),
@@ -919,7 +912,7 @@ private fun BirthdayField(
                 contentDescription = "Выбрать дату",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = modifier.clickable(enabled = isEditMode) {
-                    showDatePicker = true  // ✅ Клик по иконке тоже работает
+                    showDatePicker = true
                 }
             )
         },
@@ -934,7 +927,6 @@ private fun BirthdayField(
         )
     )
 
-    // ✅ Используем нативный диалог как в заметках
     if (showDatePicker) {
         ShowDatePickerDialog(
             initialDate = timestamp ?: System.currentTimeMillis(),
@@ -967,7 +959,6 @@ private fun ShowDatePickerDialog(
         { _, selectedYear, selectedMonth, selectedDay ->
             val selectedCalendar = Calendar.getInstance().apply {
                 set(selectedYear, selectedMonth, selectedDay)
-                // ✅ Обнуляем время, чтобы была только дата
                 set(Calendar.HOUR_OF_DAY, 0)
                 set(Calendar.MINUTE, 0)
                 set(Calendar.SECOND, 0)
@@ -996,9 +987,9 @@ private fun DescriptionField(
         onValueChange = onValueChange,
         label = { Text("Описание") },
         modifier = modifier.fillMaxWidth(),
-        enabled = isEditMode, // Если false — режим просмотра (серый фон/текст)
+        enabled = isEditMode,
         singleLine = false,
-        minLines = 3, // Минимальная высота поля
+        minLines = 3,
         maxLines = 6,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color(0xFF64B5F6),

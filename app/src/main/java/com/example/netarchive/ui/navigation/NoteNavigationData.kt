@@ -2,9 +2,6 @@ package com.example.netarchive.ui.navigation
 
 import com.example.netarchive.domain.model.Note
 
-/**
- * Данные для навигации к экрану создания/редактирования заметки
- */
 data class NoteNavigationData(
     val contactId: Int,
     val contactName: String,
