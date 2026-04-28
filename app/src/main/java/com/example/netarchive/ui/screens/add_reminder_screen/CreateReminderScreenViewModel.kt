@@ -1,9 +1,11 @@
 package com.example.netarchive.ui.screens.add_reminder_screen
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.netarchive.data.local.db.AppDatabase
 import com.example.netarchive.data.repository.ReminderRepository
 import com.example.netarchive.domain.model.Reminder
 import com.example.netarchive.utils.ReminderScheduler
@@ -213,29 +215,38 @@ class CreateReminderViewModel @Inject constructor(
                     id = currentState.reminderId,
                     contactId = currentState.contactId,
                     text = currentState.reminderText.trim(),
-                    timestamp = currentState.timestamp
+                    date = currentState.timestamp
                 )
 
-                if (currentState.isEditMode && currentState.reminderId > 0) {
+                // ✅ Получаем реальный ID после сохранения
+                val savedReminderId = if (currentState.isEditMode && currentState.reminderId > 0) {
+                    // При редактировании: обновляем и используем существующий ID
                     repository.updateReminder(reminder)
+                    currentState.reminderId
                 } else {
-                    repository.addReminder(reminder)
+                    // При создании: addReminder ДОЛЖЕН возвращать Long (новый ID из Room)
+                    repository.addReminder(reminder).toInt()
                 }
 
+                Log.d("CreateReminderVM", "💾 Saved reminder with ID: $savedReminderId")
+// 🔍 Читаем обратно из БД сразу после сохранения
+                val justSaved = repository.getReminderById(savedReminderId)
+                Log.d("CreateReminderVM", "🔍 Read back after save: ${justSaved?.text ?: "NULL"}")
+                // ✅ Используем полученный ID для планирования уведомления
                 ReminderScheduler.scheduleReminder(
                     context = application,
-                    reminderId = reminder.id,
+                    reminderId = savedReminderId,  // ← теперь тут реальный ID!
                     title = "Напоминание",
                     text = reminder.text,
-                    timestamp = reminder.timestamp
+                    timestamp = reminder.date
                 )
-
                 _state.value = currentState.copy(
                     isLoading = false,
                     isSuccess = true,
                     error = null
                 )
             } catch (e: Exception) {
+                Log.e("CreateReminderVM", "💥 Error saving reminder", e)
                 _state.value = currentState.copy(
                     isLoading = false,
                     isSuccess = false,
@@ -276,7 +287,7 @@ class CreateReminderViewModel @Inject constructor(
                     id = currentState.reminderId,
                     contactId = currentState.contactId,
                     text = currentState.reminderText,
-                    timestamp = currentState.timestamp
+                    date = currentState.timestamp
                 )
 
                 repository.deleteReminder(reminder)

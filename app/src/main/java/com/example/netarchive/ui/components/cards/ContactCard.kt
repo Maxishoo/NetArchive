@@ -73,6 +73,8 @@ fun ContactCard(
     var hasHorizontalDragThresholdGot by remember { mutableStateOf(false) }
 
     val offsetY = remember { Animatable(0f) }
+    val verticalDragThreshold = 80.dp
+    val verticalDragThresholdPx = with(density) { verticalDragThreshold.toPx() }
     var hasVerticalDragThresholdGot by remember { mutableStateOf(false) }
     var isVerticalMove by remember { mutableStateOf(false) }
 
@@ -93,7 +95,7 @@ fun ContactCard(
 
                         val newOffsetY = offsetY.value + dragAmount.y
 
-                        if (abs(newOffsetY) > 300f) {
+                        if (abs(newOffsetY) > verticalDragThresholdPx) {
                             hasVerticalDragThresholdGot = true
                             isVerticalMove = false
                             onVerticalDragEnd(newOffsetY > 0f)

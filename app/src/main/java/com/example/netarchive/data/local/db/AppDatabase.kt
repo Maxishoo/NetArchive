@@ -1,6 +1,8 @@
 package com.example.netarchive.data.local.db
 
+import android.content.Context
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.netarchive.data.local.db.dao.CategoryDao
 import com.example.netarchive.data.local.db.dao.ContactDao
@@ -18,7 +20,7 @@ import com.example.netarchive.data.local.db.entity.ReminderEntity
 
 @Database(
     entities = [(ContactEntity::class), (NoteEntity::class), (ReminderEntity::class), (CategoryEntity::class), (ContactCategoryCrossRef::class), (ProfileEntity::class)],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -32,4 +34,19 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun profileDao(): ProfileDao
 
+
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getInstance(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "archive.db"
+                ).build().also { INSTANCE = it }
+            }
+        }
+    }
 }

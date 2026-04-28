@@ -32,7 +32,8 @@ fun ContactListScreen(
     viewModel: ContactListViewModel = hiltViewModel(),
     contentPadding: PaddingValues = PaddingValues(0.dp),
     onContactClick: (Contact) -> Unit = {},
-    isSelectionMode: Boolean = false
+    isSelectionMode: Boolean = false,
+    onReminderClick: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -226,7 +227,7 @@ fun ContactListScreen(
 
         ContactsTopBar(
             query = searchQuery,
-            onQueryChange = {
+                    onQueryChange = {
                 searchQuery = it
                 viewModel.onSearchQueryChange(it)
             },
@@ -237,7 +238,8 @@ fun ContactListScreen(
                 selectedCategoryId = it
                 viewModel.onCategoryFilterSelected(it)
             },
-            showSearchFieldState
+            showSearchFieldState,
+            onReminderClick = onReminderClick
         )
     }
 }

@@ -9,11 +9,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.netarchive.ui.screens.add_contact_screen.AddContactScreen
 import com.example.netarchive.ui.screens.contacts_list_screen.ContactListScreen
+import com.example.netarchive.ui.screens.analytics_screen.AnalyticsScreen
 import com.example.netarchive.ui.screens.contact_view_screen.ContactViewScreen
 import com.example.netarchive.ui.screens.add_note_screen.CreateNoteScreen
-import com.example.netarchive.ui.screens.analytics_screen.AnalyticsScreen
 import com.example.netarchive.ui.screens.add_reminder_screen.CreateReminderScreen
 import com.example.netarchive.ui.screens.profile_screen.ProfileViewScreen
+import com.example.netarchive.ui.screens.reminder_list_screen.ReminderListScreen
 import com.example.netarchive.ui.screens.settings_screen.SettingsScreen
 
 @Serializable
@@ -69,10 +70,13 @@ sealed class Routes{
         val returnTab: Int = 0
     )
     @Serializable
-    object Analytics
-
+    object RemindersList
     @Serializable
     object Settings
+
+    @Serializable
+    object Analytics
+
 }
 
 @Composable
@@ -90,6 +94,31 @@ fun AppNavHost(
             ContactListScreen(
                 onContactClick = { contact ->
                     navController.navigate(Routes.ContactDetail(contact.id))
+                }
+            )
+        }
+
+
+        composable<Routes.RemindersList> {
+            ReminderListScreen(
+
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onReminderClick = { reminderContact ->
+                    val contact = reminderContact.contact
+                    navController.navigate(
+                        Routes.CreateReminderRoute(
+                            contactId = reminderContact.reminder.contactId,
+                            contactName = contact?.username ?: "",
+                            contactAvatar = contact?.avatar,
+                            reminderId = reminderContact.reminder.id,
+                            reminderText = reminderContact.reminder.text,
+                            reminderDate = reminderContact.reminder.date,
+                            fromScreen = "reminders_list",
+                            returnTab = 0
+                        )
+                    )
                 }
             )
         }
@@ -187,12 +216,6 @@ fun AppNavHost(
         composable<Routes.CreateReminderRoute> { backStackEntry ->
             val route = backStackEntry.toRoute<Routes.CreateReminderRoute>()
             CreateReminderScreen(
-                contactId = route.contactId,
-                contactName = route.contactName,
-                contactAvatar = route.contactAvatar,
-                reminderId = route.reminderId,
-                reminderText = route.reminderText,
-                reminderDate = route.reminderDate,
                 onBackClick = { navController.popBackStack() },
                 onReminderCreated = {
                     navController.popBackStack()

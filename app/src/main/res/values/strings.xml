@@ -19,4 +19,19 @@
     <string name="create">Создать</string>
     <string name="reminder_text">Текст напоминания</string>
     <string name="add_reminder">Добавьте напоминание</string>
+
+
+    <string name="reminders_title">Напоминания</string>
+    <string name="error_reminders_load">Не удалось загрузить напоминания</string>
+    <string name="reminders_empty">Список напоминаний пуст</string>
+    <string name="sort_reminders">Сортировка</string>
+    <string name="sort_by_date">По дате</string>
+    <string name="no_contact">Без контакта</string>
+    <string name="contact_label">Контакт: %s</string>
+
+    <string name="selected">выбрано</string>
+    <string name="sort_by">Сортировка</string>
+    <string name="reminders_deleted">Напоминания удалены</string>
+    <string name="sort_by_contact_then_date">По контакту</string>
+    <string name="delete">удалить</string>
 </resources>

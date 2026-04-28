@@ -2,117 +2,83 @@ package com.example.netarchive.ui.screens.reminder_list_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.netarchive.domain.model.Note
-import com.example.netarchive.data.repository.NoteRepository
+import com.example.netarchive.data.repository.ReminderRepository
+import com.example.netarchive.domain.model.ReminderContact
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class NotesUiState(
-    val notes: List<Note> = emptyList(),
-    val isLoading: Boolean = false,
-    val isEditMode: Boolean = false,
-    val error: String? = null,
-    val selectedContactId: Int? = null
-)
+import com.example.netarchive.utils.RefreshBus
+
+sealed class LoadState<out T> {
+    object Loading : LoadState<Nothing>()
+    object Empty : LoadState<Nothing>()
+    data class Error(val message: String) : LoadState<Nothing>()
+    data class Success<T>(val data: T) : LoadState<T>()
+}
+
+enum class SortingMode {
+    BY_DATE,
+    BY_CONTACT_THEN_DATE
+}
+
 
 @HiltViewModel
-class NotesViewModel @Inject constructor(
-    private val noteRepository: NoteRepository
+class ReminderListViewModel @Inject constructor(
+    private val reminderRepository: ReminderRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(NotesUiState())
-    val uiState: StateFlow<NotesUiState> = _uiState.asStateFlow()
+    private val _sortingMode = MutableStateFlow(SortingMode.BY_DATE)
+    val sortingMode: StateFlow<SortingMode> = _sortingMode.asStateFlow()
 
+    // ✅ 1. Сначала объявляем триггер
+    private val _refreshTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
+    // ✅ 2. Потом объединяем сигналы (теперь _refreshTrigger уже известен)
+    private val refreshSignal = merge(
+        RefreshBus.refreshFlow,
+        _refreshTrigger
+    ).onStart { emit(Unit) } // Первая загрузка при открытии экрана
 
-    /**
-     * Универсальный метод загрузки.
-     * @param contactId Если null - грузим все заметки, иначе - фильтруем по контакту.
-     */
-    fun loadNotes(contactId: Int?) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null, selectedContactId = contactId) }
-
-            val notesFlow = if (contactId == null) {
-                noteRepository.getAllNotes()
-            } else {
-                noteRepository.getNotesByContactId(contactId)
-            }
-
-            notesFlow
-                .catch { e ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = "Ошибка загрузки: ${e.message}",
-                            notes = emptyList()
-                        )
+    // ✅ 3. State строится на основе сигналов
+    val state: StateFlow<LoadState<List<ReminderContact>>> = refreshSignal
+        .flatMapLatest { _ ->
+            reminderRepository.getRemindersWithContact()
+                .map { reminders ->
+                    val mode = _sortingMode.value
+                    if (reminders.isEmpty()) LoadState.Empty
+                    else {
+                        val sorted = when (mode) {
+                            SortingMode.BY_DATE -> reminders.sortedBy { it.reminder.date }
+                            SortingMode.BY_CONTACT_THEN_DATE -> reminders.sortedWith(
+                                compareBy(
+                                    { it.contact?.username?.lowercase() ?: "" },
+                                    { it.reminder.date }
+                                )
+                            )
+                        }
+                        LoadState.Success(sorted)
                     }
                 }
-                .onCompletion {
-                    // Если поток завершился без ошибки через catch, снимаем лоадер
-                    // Но так как у нас есть catch выше, сюда попадем в любом случае после emit
-                }
-                .collect { notesList ->
-                    _uiState.update {
-                        it.copy(
-                            notes = notesList,
-                            isLoading = false
-                        )
-                    }
-                }
+                .onStart { emit(LoadState.Loading) }
+                .catch { e -> emit(LoadState.Error(e.message ?: "Unknown error")) }
         }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = LoadState.Loading
+        )
+
+    fun setSortingMode(mode: SortingMode) {
+        _sortingMode.value = mode
+        _refreshTrigger.tryEmit(Unit) // Пересортируем данные
     }
 
-    fun toggleEditMode() {
-        _uiState.update { it.copy(isEditMode = !it.isEditMode) }
-    }
-
-    fun deleteNote(note: Note) {
+    fun deleteReminders(reminderIds: List<Int>) {
         viewModelScope.launch {
-            try {
-                noteRepository.deleteNote(note)
-                loadNotes(null)
-
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Ошибка удаления: ${e.message}") }
-            }
+            reminderRepository.deleteRemindersByIds(reminderIds)
+            _refreshTrigger.tryEmit(Unit) // ✅ UI обновится мгновенно
         }
-    }
-
-    fun addNote(text: String, contactId: Int) {
-        viewModelScope.launch {
-            try {
-                val newNote = Note(
-                    id = 0,
-                    contactId = contactId,
-                    text = text,
-                    date = System.currentTimeMillis()
-                )
-                noteRepository.addNote(newNote)
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Ошибка добавления: ${e.message}") }
-            }
-        }
-    }
-
-    fun updateNote(note: Note) {
-        viewModelScope.launch {
-            try {
-                noteRepository.updateNote(note)
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Ошибка обновления: ${e.message}") }
-            }
-        }
-    }
-
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
-    }
-
-    fun clearContactFilter() {
-        loadNotes(null)
     }
 }

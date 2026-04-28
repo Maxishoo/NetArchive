@@ -36,6 +36,11 @@ import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
 import androidx.activity.result.contract.ActivityResultContracts
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 
 
 @AndroidEntryPoint
@@ -97,22 +102,32 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
     private fun rescheduleAllReminders() {
         lifecycleScope.launch {
-            val todayMillis = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-            val futureReminders = reminderRepository.getAllFutureReminders(todayMillis).first()
-            futureReminders.forEach { reminder ->
-                ReminderScheduler.scheduleReminder(
-                    context = this@MainActivity,
-                    reminderId = reminder.id,
-                    title = "Напоминание",
-                    text = reminder.text,
-                    timestamp = reminder.timestamp
-                )
+            val reminders = withContext(Dispatchers.IO) {
+                val todayMillis = LocalDate.now()
+                    .atStartOfDay(ZoneId.systemDefault())
+                    .toInstant()
+                    .toEpochMilli()
+
+                reminderRepository
+                    .getAllFutureReminders(todayMillis)
+                    .first()
             }
+            reminders.take(20).map { reminder ->
+                async(Dispatchers.IO) {
+                    ReminderScheduler.scheduleReminder(
+                        context = this@MainActivity,
+                        reminderId = reminder.id,
+                        title = "Напоминание",
+                        text = reminder.text,
+                        timestamp = reminder.date
+                    )
+                }
+            }.awaitAll()
         }
     }
-
 }
 
 
@@ -134,6 +149,10 @@ fun Main() {
         currentDestination?.hierarchy?.any {
             it.route == Routes.Analytics::class.qualifiedName
         } == true -> BottomNavItem.Analytics
+
+        currentDestination?.hierarchy?.any {
+            it.route == Routes.RemindersList::class.qualifiedName
+        } == true -> BottomNavItem.Reminds
 
         currentDestination?.hierarchy?.any {
             it.route == Routes.Profile::class.qualifiedName || it.route == Routes.Settings::class.qualifiedName
@@ -189,7 +208,10 @@ fun Main() {
                         }
                         BottomNavItem.Reminds -> {
                             showAddMenu = false
-                            // TODO //
+                            navController.navigate(Routes.RemindersList) {
+                                popUpTo(0) { inclusive = true }
+                                launchSingleTop = true
+                            }
                         }
                     }
                 }

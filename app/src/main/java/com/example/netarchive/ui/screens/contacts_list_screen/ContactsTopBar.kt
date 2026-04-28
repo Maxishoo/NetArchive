@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import com.example.netarchive.data.local.db.entity.CategoryEntity
 import com.example.netarchive.ui.theme.LightBlue
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.platform.LocalContext
 
@@ -53,7 +54,8 @@ fun ContactsTopBar(
     allCategories: List<CategoryEntity> = emptyList(),
     selectedCategoryId: Int? = null,
     onCategoryFilterSelected: (Int?) -> Unit = {},
-    showSearchFieldState: MutableState<Boolean>
+    showSearchFieldState: MutableState<Boolean>,
+    onReminderClick: () -> Unit
 ) {
     var showSearchField by showSearchFieldState
 
@@ -71,6 +73,7 @@ fun ContactsTopBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             AnimatedContent(
                 targetState = showSearchField,
                 transitionSpec = {
@@ -168,6 +171,8 @@ fun ContactsTopBar(
                             }
                         }
                     }
+
+
                 } else {
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -179,22 +184,29 @@ fun ContactsTopBar(
                             style = MaterialTheme.typography.headlineLarge,
                             color = Color.Black
                         )
-                        IconButton(
-                            onClick = {
-                                if (vibrator.hasVibrator()) {
-                                    vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
-                                }
-                                showSearchField = true
-                            }
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Search,
-                                contentDescription = "Поиск",
-                                tint = Color.Black
-                            )
+                            IconButton(
+                                onClick = {
+                                    if (vibrator.hasVibrator()) {
+                                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
+                                    }
+                                    showSearchField = true
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Search,
+                                    contentDescription = "Поиск",
+                                    tint = Color.Black
+                                )
+                            }
                         }
                     }
+
                 }
+
             }
         }
     }

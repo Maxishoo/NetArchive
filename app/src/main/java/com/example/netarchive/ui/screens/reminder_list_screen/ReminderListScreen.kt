@@ -1,342 +1,403 @@
 package com.example.netarchive.ui.screens.reminder_list_screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.GroupOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.netarchive.domain.model.Note
-import com.example.netarchive.ui.components.cards.NoteCard
+import com.example.netarchive.R
+import com.example.netarchive.domain.model.ReminderContact
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
+import androidx.compose.runtime.ExperimentalComposeApi
+import androidx.compose.runtime.mutableStateSetOf
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeApi::class)
+@Suppress("UNUSED_PARAMETER")
 @Composable
-fun NotesListScreen(
-    viewModel: NotesViewModel = hiltViewModel(),
-    contactId: Int? = null,
-    onNoteClick: (Int) -> Unit = {},
-    onAddNoteClick: (() -> Unit)? = null,
-    onBackClick: (() -> Unit)? = null
+fun ReminderListScreen(
+    modifier: Modifier = Modifier,
+    viewModel: ReminderListViewModel = hiltViewModel(),
+    onReminderClick: (ReminderContact) -> Unit = {},
+    onBackClick: () -> Boolean
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    var selectionMode by remember { mutableStateOf(false) }
+    val selectedReminderIds = remember { mutableStateSetOf<Int>() }
+
+    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-    LaunchedEffect(contactId) {
-        viewModel.loadNotes(contactId)
-    }
-
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let { errorMessage ->
-            snackbarHostState.showSnackbar(
-                message = errorMessage,
-                actionLabel = "OK",
-                duration = SnackbarDuration.Short
-            )
-            viewModel.clearError()
-        }
-    }
+    var groupByContact by remember { mutableStateOf(false) }
+    val deleteMessage = stringResource(R.string.reminders_deleted)
 
     Scaffold(
         topBar = {
-            NotesListTopBar(
-                isEditMode = uiState.isEditMode,
-                hasActiveFilter = uiState.selectedContactId != null,
-                onEditModeToggle = viewModel::toggleEditMode,
-                onBackClick = if (uiState.selectedContactId != null) {
-                    {
-                        viewModel.clearContactFilter()
-                        onBackClick?.invoke()
+            ReminderListTopBar(
+                isSelectionMode = selectionMode,
+                selectedCount = selectedReminderIds.size,
+                onCloseSelection = {
+                    selectionMode = false
+                    selectedReminderIds.clear()
+                },
+                onDeleteSelected = {
+                    scope.launch {
+                        viewModel.deleteReminders(selectedReminderIds.toList())
+                        selectionMode = false
+                        selectedReminderIds.clear()
+                        snackbarHostState.showSnackbar(deleteMessage)
                     }
-                } else null,
-                scrollBehavior = scrollBehavior
+                },
+                onSortClick = { groupByContact = !groupByContact }, // переключение группировки
+                onDeleteModeClick = { selectionMode = true },
+                groupByContact
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+    ) { paddinValues ->
         Box(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize()
-                .padding(paddingValues)
         ) {
-            when {
-                uiState.isLoading -> LoadingIndicator()
+            when (state) {
+                is LoadState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
 
-                uiState.notes.isEmpty() -> EmptyNotesContent(
-                    contactId = uiState.selectedContactId,
-                    onAddClick = onAddNoteClick
-                )
+                is LoadState.Error -> {
+                    Text(
+                        text = stringResource(R.string.error_reminders_load),
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
 
-                else -> NotesList(
-                    notes = uiState.notes,
-                    isEditMode = uiState.isEditMode,
-                    onNoteClick = onNoteClick,
-                    onDeleteClick = viewModel::deleteNote,
-                    scrollBehavior = scrollBehavior
-                )
+                is LoadState.Empty -> {
+                    Text(
+                        text = stringResource(R.string.reminders_empty),
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+
+                is LoadState.Success -> {
+                    val reminders = (state as LoadState.Success<List<ReminderContact>>).data
+                    if (groupByContact) {
+                        GroupedRemindersList(
+                            reminders = reminders,
+                            selectionMode = selectionMode,
+                            selectedIds = selectedReminderIds,
+                            onReminderClick = { reminderWithContact ->
+                                if (selectionMode) {
+                                    val id = reminderWithContact.reminder.id
+                                    if (selectedReminderIds.contains(id)) {
+                                        selectedReminderIds.remove(id)
+                                    } else {
+                                        selectedReminderIds.add(id)
+                                    }
+                                } else {
+                                    onReminderClick(reminderWithContact)
+                                }
+                            }
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(1.dp)
+                        ) {
+                            item {
+                                Spacer(modifier
+                                    .height(72.dp)
+                                    .padding(paddinValues))
+                            }
+                            items(reminders, key = { it.reminder.id }) { reminderWithContact ->
+                                Card(
+                                    modifier = Modifier.fillMaxSize(),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                                    shape = RoundedCornerShape(0.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surface
+                                    )
+                                ) {
+                                    Column(Modifier.padding(horizontal = 5.dp)) {
+                                        ContactHeader(contact = reminderWithContact.contact)
+                                        ReminderCard(
+                                            reminderWithContact = reminderWithContact,
+                                            onClick = {
+                                                if (selectionMode) {
+                                                    val id = reminderWithContact.reminder.id
+                                                    if (selectedReminderIds.contains(id)) selectedReminderIds.remove(
+                                                        id
+                                                    )
+                                                    else selectedReminderIds.add(id)
+                                                } else {
+                                                    onReminderClick(reminderWithContact)
+                                                }
+                                            },
+                                            isSelectionMode = selectionMode,
+                                            isSelected = reminderWithContact.reminder.id in selectedReminderIds
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                    }
+                                }
+                            }
+                            item { Spacer(modifier = Modifier.height(16.dp)) }
+                        }
+                    }
+                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun NotesListTopBar(
-    isEditMode: Boolean,
-    hasActiveFilter: Boolean,
-    onEditModeToggle: () -> Unit,
-    onBackClick: (() -> Unit)?,
-    scrollBehavior: TopAppBarScrollBehavior
+private fun GroupedRemindersList(
+    reminders: List<ReminderContact>,
+    selectionMode: Boolean,
+    selectedIds: Set<Int>,
+    onReminderClick: (ReminderContact) -> Unit
 ) {
-    TopAppBar(
-        title = {
-            Text(
-                text = if (hasActiveFilter) "Заметки контакта" else "Все заметки"
-            )
-        },
-        navigationIcon = {
-            if (onBackClick != null) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Назад"
-                    )
-                }
-            }
-        },
-        actions = {
-            IconButton(onClick = onEditModeToggle) {
-                Icon(
-                    imageVector = if (isEditMode) Icons.Default.Check else Icons.Default.Edit,
-                    contentDescription = if (isEditMode) "Готово" else "Редактировать"
-                )
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f),
-            scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f)
-        ),
-        scrollBehavior = scrollBehavior
-    )
-}
+    val grouped = remember(reminders) {
+        reminders.groupBy { it.contact?.id ?: Int.MIN_VALUE }
+            .map { (_, items) -> GroupedData(items.firstOrNull()?.contact, items) }
+            .sortedBy { it.contact?.username?.lowercase() ?: "" }
+    }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun NotesList(
-    notes: List<Note>,
-    isEditMode: Boolean,
-    onNoteClick: (Int) -> Unit,
-    onDeleteClick: (Note) -> Unit,
-    scrollBehavior: TopAppBarScrollBehavior
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(vertical = 8.dp), // одинаковый с негруппированным
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        notes.forEach { note ->
-            NoteCard(
-                note = note,
-                isEditMode = isEditMode,
-                onNoteClick = {
-                    if (!isEditMode) onNoteClick(note.id)
-                },onDeleteClick = { onDeleteClick(note) }
-            )
+        item {
+            Spacer(Modifier.height(72.dp))
         }
-    }
-}
-
-@Composable
-private fun LoadingIndicator() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator()
-    }
-}
-
-@Composable
-private fun EmptyNotesContent(
-    contactId: Int?,
-    onAddClick: (() -> Unit)?
-) {
-    val titleRes = if (contactId != null) "У контакта пока нет заметок" else "У вас пока нет заметок"
-    val descRes = if (contactId != null) "Добавьте первую заметку для этого контакта" else "Нажмите кнопку + чтобы создать первую заметку"
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.Note,
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = titleRes,
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = descRes,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-        )
-        if (onAddClick != null) {
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(onClick = onAddClick) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Создать заметку")
+        grouped.forEach { group ->
+            item(key = "group_${group.contact?.id ?: "no_contact"}") {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                    shape = RoundedCornerShape(0.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Column(Modifier.padding(horizontal = 5.dp)) {
+                        ContactHeader(contact = group.contact)
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            group.items.forEach { reminderWithContact ->
+                                ReminderCard(
+                                    reminderWithContact = reminderWithContact,
+                                    onClick = { onReminderClick(reminderWithContact) },
+                                    isSelectionMode = selectionMode,
+                                    isSelected = reminderWithContact.reminder.id in selectedIds
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
             }
         }
+        item { Spacer(modifier = Modifier.height(80.dp)) }
     }
 }
 
-/*
-private fun getFakeNotes(): List<Note> {
-    return listOf(
-        Note(id = 1, contactId = 101, text = "Купить продукты: молоко, хлеб, яйца", date = System.currentTimeMillis() - 86400000),
-        Note(id = 2, contactId = 101, text = "Встреча с командой в 15:00", date = System.currentTimeMillis()),
-        Note(id = 3, contactId = 102, text = "Позвонить родителям", date = System.currentTimeMillis() - 172800000),
-        Note(id = 4, contactId = 101, text = "Заказать доставку воды", date = System.currentTimeMillis() - 259200000),
-        Note(id = 5, contactId = 103, text = "Подготовить отчет за квартал", date = System.currentTimeMillis() - 345600000),
-        Note(id = 6, contactId = 101, text = "Напомнить о встрече завтра", date = System.currentTimeMillis() - 432000000),
-        Note(id = 7, contactId = 102, text = "Купить подарок на день рождения", date = System.currentTimeMillis() - 518400000),
-        Note(id = 8, contactId = 101, text = "Записаться к врачу", date = System.currentTimeMillis() - 604800000),
-        Note(id = 9, contactId = 103, text = "Проверить счета за коммунальные услуги", date = System.currentTimeMillis() - 691200000),
-        Note(id = 10, contactId = 101, text = "Отправить документы по почте", date = System.currentTimeMillis() - 777600000)
-    )
+@Composable
+private fun ContactHeader(contact: com.example.netarchive.domain.model.Contact?) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+
+    ) {
+        if (contact?.avatar != null) {
+            AsyncImage(
+                model = contact.avatar,
+                contentDescription = "Avatar of ${contact.username}",
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(color = Color(0xFFDBE0F7)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = contact?.username?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = contact?.username ?: "?",
+            style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun NotesListScreenPreviewWrapper(
-    notes: List<Note> = emptyList(),
-    isLoading: Boolean = false,
-    isEditMode: Boolean = false,
-    hasFilter: Boolean = false,
-    forceScrollHeight: Int? = null
-) {
-    MaterialTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            val snackbarHostState = remember { SnackbarHostState() }
-            val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+private data class GroupedData(
+    val contact: com.example.netarchive.domain.model.Contact?,
+    val items: List<ReminderContact>
+)
 
-            Scaffold(
-                topBar = {
-                    NotesListTopBar(
-                        isEditMode = isEditMode,
-                        hasActiveFilter = hasFilter,
-                        onEditModeToggle = { },
-                        onBackClick = if (hasFilter) { { } } else null,
-                        scrollBehavior = scrollBehavior
-                    )
-                },
-                snackbarHost = { SnackbarHost(snackbarHostState) }
-            ) { paddingValues ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .then(if (forceScrollHeight != null) Modifier.height(forceScrollHeight.dp) else Modifier)
+
+@Composable
+fun ReminderCard(
+    reminderWithContact: ReminderContact,
+    onClick: () -> Unit,
+    isSelectionMode: Boolean,
+    isSelected: Boolean
+) {
+    val reminder = reminderWithContact.reminder
+    val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+    val formattedDate = dateFormat.format(reminder.date)
+    val isOverdue = reminder.date < System.currentTimeMillis()
+
+    val cardColors = when {
+        isSelected -> CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+
+        isOverdue -> CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer
+        )
+
+        else -> CardDefaults.cardColors()
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth(),
+        onClick = onClick,
+        colors = cardColors,
+        shape = RoundedCornerShape(5.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (isSelectionMode) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onClick() },
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    when {
-                        isLoading -> LoadingIndicator()
-                        notes.isEmpty() -> EmptyNotesContent(
-                            contactId = if (hasFilter) 1 else null,
-                            onAddClick = null
-                        )
-                        else -> NotesList(
-                            notes = notes,
-                            isEditMode = isEditMode,
-                            onNoteClick = { },
-                            onDeleteClick = { },
-                            scrollBehavior = scrollBehavior
+                    Text(
+                        text = formattedDate,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    if (isOverdue) {
+                        Text(
+                            text = "Просрочено",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
+                }
+                reminder.text.let {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 2
+                    )
                 }
             }
         }
     }
 }
 
-@Preview(name = "Screen - Список заметок", showBackground = true, showSystemUi = true)
-@Composable
-fun NotesListScreenFullPreview() {
-    NotesListScreenPreviewWrapper(
-        notes = getFakeNotes(),
-        isLoading = false,
-        isEditMode = false,
-        hasFilter = false
-    )
-}
 
-@Preview(name = "Screen - Скролл тест (300dp)", showBackground = true, showSystemUi = true)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotesListScreenScrollTestPreview() {
-    NotesListScreenPreviewWrapper(
-        notes = getFakeNotes(),
-        isLoading = false,
-        isEditMode = false,
-        hasFilter = false,
-        forceScrollHeight = 300
-    )
+fun ReminderListTopBar(
+    isSelectionMode: Boolean,
+    selectedCount: Int,
+    onCloseSelection: () -> Unit,
+    onDeleteSelected: () -> Unit,
+    onSortClick: () -> Unit,
+    onDeleteModeClick: () -> Unit,
+    groupByContact: Boolean
+) {
+    if (isSelectionMode) {
+        TopAppBar(
+            title = { Text("$selectedCount ${stringResource(R.string.selected)}") },
+            navigationIcon = {
+                IconButton(onClick = onCloseSelection) {
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cancel))
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f)
+            ),
+            actions = {
+                IconButton(onClick = onDeleteSelected) {
+                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete))
+                }
+            }
+        )
+    } else {
+        TopAppBar(
+            title = {
+                Text(
+                    stringResource(R.string.reminders_title),
+                    style = MaterialTheme.typography.headlineLarge
+                )
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f)
+            ),
+            actions = {
+                IconButton(onClick = onSortClick) {
+                    Icon(
+                        if (groupByContact) Icons.Outlined.GroupOff else Icons.Outlined.Group,
+                        contentDescription = stringResource(R.string.sort_by_contact_then_date)
+                    )
+                }
+                IconButton(onClick = onDeleteModeClick) {
+                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete))
+                }
+            }
+        )
+    }
 }
-
-@Preview(name = "Screen - Пустой список", showBackground = true, showSystemUi = true)
-@Composable
-fun NotesListScreenEmptyPreview() {
-    NotesListScreenPreviewWrapper(
-        notes = emptyList(),
-        isLoading = false,
-        isEditMode = false,
-        hasFilter = false
-    )
-}
-
-@Preview(name = "Screen - Загрузка", showBackground = true, showSystemUi = true)
-@Composable
-fun NotesListScreenLoadingPreview() {
-    NotesListScreenPreviewWrapper(
-        notes = emptyList(),
-        isLoading = true,
-        isEditMode = false,
-        hasFilter = false
-    )
-}
-
-@Preview(name = "Screen - Режим редактирования", showBackground = true, showSystemUi = true)
-@Composable
-fun NotesListScreenEditPreview() {
-    NotesListScreenPreviewWrapper(
-        notes = getFakeNotes(),
-        isLoading = false,
-        isEditMode = true,
-        hasFilter = false
-    )
-}*/

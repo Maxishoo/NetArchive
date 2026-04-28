@@ -11,16 +11,18 @@ data class ContactEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val username : String,
-    val phone: String? = null,
-    val telegram : String? = null,
-    val max : String? = null,
-    val email : String? = null,
-    val job : String? = null,
-    val avatar : String? = null,
+    val phone: String?,
+    val telegram : String? ,
+    val max : String?,
+    val email : String?,
+    val job : String?,
+    val avatar : String?,
     val createdAt: Long = System.currentTimeMillis(),
     val pinnedOrder: Int = 0,
-    val birthday: Long? = null,
-    val description: String? = null
+    val birthday: Long?,
+    val description: String?
+
+
 
 )
 data class ContactWithCategories(
