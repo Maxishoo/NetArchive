@@ -17,7 +17,6 @@ class ReminderRepository @Inject constructor(
 
     suspend fun addReminder(reminder: Reminder): Long {
         val insertedId = reminderDao.insertReminder(reminder.toEntity())
-        Log.d("RepoDebug", "✅ DAO insertReminder returned ID: $insertedId | Entity: ${reminder.toEntity()}")
         return insertedId
     }
 

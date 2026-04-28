@@ -181,7 +181,7 @@ interface ContactDao{
         CASE WHEN lastNoteDate IS NULL THEN 0 ELSE 1 END,
         lastNoteDate ASC
 """)
-    fun getForgottenContacts(days: Int = 180): Flow<List<ContactWithStats>>  // ← меняем months на days
+    fun getForgottenContacts(days: Int = 180): Flow<List<ContactWithStats>>
 
     @Query("SELECT COUNT(*) FROM contacts")
     fun getTotalContactsCount(): Flow<Int>
@@ -215,7 +215,7 @@ interface ContactDao{
 }
 data class MonthActivity(
     @ColumnInfo(name = "month")
-    val month: String,  // например "2026-04"
+    val month: String,
     @ColumnInfo(name = "count")
     val count: Int
 )

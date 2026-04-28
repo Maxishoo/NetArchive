@@ -12,10 +12,6 @@ class FileManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 
-    /**
-     * Копирует изображение из Uri во внутреннее хранилище
-     * @return URI сохранённого файла
-     */
     fun copyImageToInternalStorage(uri: Uri): String {
         val inputStream = context.contentResolver.openInputStream(uri)
             ?: throw IllegalStateException("Cannot open URI: $uri")
@@ -34,9 +30,6 @@ class FileManager @Inject constructor(
         return outputFile.toURI().toString()
     }
 
-    /**
-     * Удаляет файл по URI
-     */
     fun deleteFile(uri: String): Boolean {
         return try {
             val file = File(Uri.parse(uri).path!!)

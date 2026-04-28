@@ -36,6 +36,6 @@ class AnalyticsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val contactsToWrite: StateFlow<List<Contact>> =
-        repository.getContactsToWrite() // <-- Без аргумента
+        repository.getContactsToWrite()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 }

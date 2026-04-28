@@ -30,13 +30,11 @@ CategoryRepository @Inject constructor(
     }
 
     suspend fun createCategoryIfNotExists(name: String): Int {
-        // Проверяем существует ли категория
         val existing = categoryDao.searchCategories(name)
             .firstOrNull()
             ?.find { it.name.equals(name, ignoreCase = true) }
 
         return existing?.id ?: run {
-            // Создаём новую
             val category = CategoryEntity(name = name, isDefault = false)
             categoryDao.insertCategory(category).toInt()
         }
