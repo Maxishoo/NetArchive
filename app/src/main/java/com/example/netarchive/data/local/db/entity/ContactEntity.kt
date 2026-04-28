@@ -1,0 +1,40 @@
+package com.example.netarchive.data.local.db.entity
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import androidx.room.Embedded
+import androidx.room.Junction
+import androidx.room.Relation
+
+@Entity(tableName = "contacts")
+data class ContactEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val username : String,
+    val phone: String?,
+    val telegram : String? ,
+    val max : String?,
+    val email : String?,
+    val job : String?,
+    val avatar : String?,
+    val createdAt: Long = System.currentTimeMillis(),
+    val pinnedOrder: Int = 0,
+    val birthday: Long?,
+    val description: String?
+
+
+
+)
+data class ContactWithCategories(
+    @Embedded val contact: ContactEntity,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = ContactCategoryCrossRef::class,
+            parentColumn = "contactId",
+            entityColumn = "categoryId"
+        )
+    )
+    val categories: List<CategoryEntity>
+)

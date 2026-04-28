@@ -1,3 +1,38 @@
 <resources>
     <string name="app_name">NetArchive</string>
+    <string name="empty_field">Не задано</string>
+
+    <string name="error_contacts_load">Ошибка загрузки контактов</string>
+    <string name="contacts_empty">Нет контактов</string>
+
+    <string name="date">Дата</string>
+    <string name="content_description_clock">Время</string>
+
+    <string name="icon_event_description">Выбрать дату</string>
+    <string name="cancel">Отмена</string>
+
+    <string name="modify_note">Редактировать запись</string>
+    <string name="add_note">Добавьте запись</string>
+    <string name="close">Закрыть</string>
+    <string name="note_text">Текст заметки</string>
+    <string name="save">Сохранить</string>
+    <string name="create">Создать</string>
+    <string name="reminder_text">Текст напоминания</string>
+    <string name="add_reminder">Добавьте напоминание</string>
+    <string name="modify_reminder">Редактировать напоминание</string>
+
+
+    <string name="reminders_title">Напоминания</string>
+    <string name="error_reminders_load">Не удалось загрузить напоминания</string>
+    <string name="reminders_empty">Список напоминаний пуст</string>
+    <string name="sort_reminders">Сортировка</string>
+    <string name="sort_by_date">По дате</string>
+    <string name="no_contact">Без контакта</string>
+    <string name="contact_label">Контакт: %s</string>
+
+    <string name="selected">выбрано</string>
+    <string name="sort_by">Сортировка</string>
+    <string name="reminders_deleted">Напоминания удалены</string>
+    <string name="sort_by_contact_then_date">По контакту</string>
+    <string name="delete">удалить</string>
 </resources>
