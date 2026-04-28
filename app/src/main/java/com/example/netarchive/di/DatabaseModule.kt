@@ -19,8 +19,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
-import net.sqlcipher.database.SupportHelper
-import net.sqlcipher.database.SupportFactory
+import net.zetetic.database.sqlcipher.SupportHelper
 
 
 
@@ -33,21 +32,22 @@ object DatabaseModule {
     fun provideAppDatabase(
         @ApplicationContext context: Context
     ): AppDatabase {
-        // Получаем пароль как CharArray
-        val passwordChars = SecurityHelper.getDatabasePassword()
-
-        // 🔐 Конвертируем CharArray -> ByteArray
-        val passwordBytes = String(passwordChars).toByteArray()
-
-        // Создаём фабрику (теперь тип совпадает!)
-        val cipherFactory = SupportFactory(passwordBytes)
+        val password = SecurityHelper.getDatabasePassword()
 
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
             "archive.db"
         )
-            .openHelperFactory(cipherFactory)
+            .openHelperFactory { config ->
+                // 🔐 Просто создаём SupportHelper - библиотеки загрузятся сами
+                net.zetetic.database.sqlcipher.SupportHelper(
+                    config,
+                    password,
+                    null,
+                    false
+                )
+            }
             .fallbackToDestructiveMigration()
             .build()
     }

@@ -26,6 +26,7 @@ android {
         buildConfigField("String", "YANDEX_IAM_TOKEN", "\"$yandexToken\"")
         buildConfigField("String", "YANDEX_FOLDER_ID", "\"$yandexFolder\"")
         buildConfigField("String", "YANDEX_API_KEY", "\"$yandexApiKey\"")
+
     }
 
     buildTypes {
@@ -52,6 +53,11 @@ android {
     }
     kotlinOptions {
         freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
+    }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true  // ✅ Важно для SQLCipher 4.6.x
+        }
     }
 }
 
@@ -111,6 +117,6 @@ dependencies {
 
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
 
-    implementation("net.zetetic:android-database-sqlcipher:4.5.3@aar")
+    implementation("net.zetetic:sqlcipher-android:4.6.1@aar")
     implementation("androidx.sqlite:sqlite-ktx:2.4.0")
 }
