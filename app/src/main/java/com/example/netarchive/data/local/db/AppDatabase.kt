@@ -50,3 +50,5 @@ abstract class AppDatabase : RoomDatabase() {
         }
     }
 }
+//Можно использовать инджект с помощью даггера или хилта либо держать lazy инстанс внутри Application класса
+//И у вас вроде как есть уже инициализация базы данных в DatabaseModule.kt
