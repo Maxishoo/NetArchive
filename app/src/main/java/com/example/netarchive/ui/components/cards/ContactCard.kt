@@ -50,6 +50,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import com.example.netarchive.R
 
+//почитайте про аннотации @Stable и @Immutable. Лямбды не стабильные, могут быть лишние рекомпозиции
 @Composable
 fun ContactCard(
     contact: Contact,
