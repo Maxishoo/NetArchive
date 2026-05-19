@@ -14,10 +14,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.example.netarchive.R
 import com.example.netarchive.domain.model.ReminderContact
 import kotlinx.coroutines.launch
@@ -25,12 +32,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.compose.runtime.mutableStateSetOf
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeApi::class)
 @Suppress("UNUSED_PARAMETER")
@@ -76,7 +78,7 @@ fun ReminderListScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
-    ) { paddinValues ->
+    ) { paddingValues ->
         Box(
             modifier = modifier
                 .fillMaxSize()
@@ -123,33 +125,28 @@ fun ReminderListScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(1.dp)
+                            contentPadding = PaddingValues(
+                                top = paddingValues.calculateTopPadding() + dimensionResource(id = R.dimen.reminder_list_top_bar_offset)
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.reminder_card_spacing))
                         ) {
-                            item {
-                                Spacer(modifier
-                                    .height(72.dp)
-                                    .padding(paddinValues))
-                            }
                             items(reminders, key = { it.reminder.id }) { reminderWithContact ->
                                 Card(
                                     modifier = Modifier.fillMaxSize(),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                                    shape = RoundedCornerShape(0.dp),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = dimensionResource(id = R.dimen.reminder_card_spacing)),
+                                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)),
                                     colors = CardDefaults.cardColors(
                                         containerColor = MaterialTheme.colorScheme.surface
                                     )
                                 ) {
-                                    Column(Modifier.padding(horizontal = 5.dp)) {
+                                    Column(Modifier.padding(horizontal = dimensionResource(id = R.dimen.reminder_card_horizontal_padding))) {
                                         ContactHeader(contact = reminderWithContact.contact)
                                         ReminderCard(
                                             reminderWithContact = reminderWithContact,
                                             onClick = {
                                                 if (selectionMode) {
                                                     val id = reminderWithContact.reminder.id
-                                                    if (selectedReminderIds.contains(id)) selectedReminderIds.remove(
-                                                        id
-                                                    )
+                                                    if (selectedReminderIds.contains(id)) selectedReminderIds.remove(id)
                                                     else selectedReminderIds.add(id)
                                                 } else {
                                                     onReminderClick(reminderWithContact)
@@ -158,11 +155,11 @@ fun ReminderListScreen(
                                             isSelectionMode = selectionMode,
                                             isSelected = reminderWithContact.reminder.id in selectedReminderIds
                                         )
-                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.reminder_card_vertical_padding)))
                                     }
                                 }
                             }
-                            item { Spacer(modifier = Modifier.height(16.dp)) }
+                            item { Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.spacing_large))) }
                         }
                     }
                 }
@@ -186,27 +183,26 @@ private fun GroupedRemindersList(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        contentPadding = PaddingValues(
+            top = dimensionResource(id = R.dimen.padding_small)
+        ),
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_small))
     ) {
-        item {
-            Spacer(Modifier.height(72.dp))
-        }
         grouped.forEach { group ->
             item(key = "group_${group.contact?.id ?: "no_contact"}") {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = dimensionResource(id = R.dimen.reminder_card_spacing)),
                     shape = RoundedCornerShape(0.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surface
                     )
                 ) {
-                    Column(Modifier.padding(horizontal = 5.dp)) {
+                    Column(Modifier.padding(horizontal = dimensionResource(id = R.dimen.reminder_card_horizontal_padding))) {
                         ContactHeader(contact = group.contact)
                         Column(
                             modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_small))
                         ) {
                             group.items.forEach { reminderWithContact ->
                                 ReminderCard(
@@ -217,12 +213,12 @@ private fun GroupedRemindersList(
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.reminder_card_vertical_padding)))
                     }
                 }
             }
         }
-        item { Spacer(modifier = Modifier.height(80.dp)) }
+        item { Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.reminder_list_bottom_spacer))) }
     }
 }
 
@@ -231,37 +227,36 @@ private fun ContactHeader(contact: com.example.netarchive.domain.model.Contact?)
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(12.dp),
+            .padding(dimensionResource(id = R.dimen.reminder_contact_avatar_spacing)),
         verticalAlignment = Alignment.CenterVertically
-
     ) {
         if (contact?.avatar != null) {
             AsyncImage(
                 model = contact.avatar,
-                contentDescription = "Avatar of ${contact.username}",
+                contentDescription = stringResource(R.string.reminder_avatar_description, contact.username),
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(dimensionResource(id = R.dimen.reminder_contact_avatar_size))
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop
             )
         } else {
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(dimensionResource(id = R.dimen.reminder_contact_avatar_size))
                     .clip(CircleShape)
-                    .background(color = Color(0xFFDBE0F7)),
+                    .background(color = colorResource(id = R.color.reminder_contact_avatar_placeholder)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = contact?.username?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                    text = contact?.username?.firstOrNull()?.uppercaseChar()?.toString() ?: stringResource(R.string.reminder_unknown),
                     style = MaterialTheme.typography.titleLarge
                 )
             }
         }
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.reminder_contact_avatar_spacing)))
         Text(
-            text = contact?.username ?: "?",
-            style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+            text = contact?.username ?: stringResource(R.string.reminder_unknown),
+            style = MaterialTheme.typography.titleMedium.copy(fontSize = dimensionResource(id = R.dimen.reminder_contact_name_font_size).value.sp),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -272,7 +267,6 @@ private data class GroupedData(
     val contact: com.example.netarchive.domain.model.Contact?,
     val items: List<ReminderContact>
 )
-
 
 @Composable
 fun ReminderCard(
@@ -290,32 +284,29 @@ fun ReminderCard(
         isSelected -> CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         )
-
         isOverdue -> CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.errorContainer
         )
-
         else -> CardDefaults.cardColors()
     }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
         colors = cardColors,
-        shape = RoundedCornerShape(5.dp)
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.reminder_card_corner_radius))
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(dimensionResource(id = R.dimen.card_padding)),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (isSelectionMode) {
                 Checkbox(
                     checked = isSelected,
                     onCheckedChange = { onClick() },
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.reminder_checkbox_size))
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.spacing_small)))
             }
             Column(modifier = Modifier.weight(1f)) {
                 Row(
@@ -328,14 +319,14 @@ fun ReminderCard(
                     )
                     if (isOverdue) {
                         Text(
-                            text = "Просрочено",
+                            text = stringResource(R.string.reminder_overdue),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error
                         )
                     }
                 }
                 reminder.text.let {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.spacing_small)))
                     Text(
                         text = it,
                         style = MaterialTheme.typography.bodyMedium,
@@ -346,7 +337,6 @@ fun ReminderCard(
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -368,7 +358,7 @@ fun ReminderListTopBar(
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f)
+                containerColor = colorResource(id = R.color.top_bar_background).copy(alpha = 0.95f)
             ),
             actions = {
                 IconButton(onClick = onDeleteSelected) {
@@ -385,7 +375,7 @@ fun ReminderListTopBar(
                 )
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f)
+                containerColor = colorResource(id = R.color.top_bar_background).copy(alpha = 0.95f)
             ),
             actions = {
                 IconButton(onClick = onSortClick) {

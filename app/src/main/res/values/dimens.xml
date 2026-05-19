@@ -10,8 +10,11 @@
 
     <!-- ==================== Скругления ==================== -->
     <dimen name="corner_radius_small">8dp</dimen>
+    <dimen name="corner_radius_big_small">10dp</dimen>
+
     <dimen name="corner_radius_medium">12dp</dimen>
     <dimen name="corner_radius_large">16dp</dimen>
+    <dimen name="corner_radius_zero">0dp</dimen>
 
     <!-- ==================== Размеры компонентов ==================== -->
     <dimen name="icon_size_small">18dp</dimen>
@@ -115,6 +118,7 @@
 
     <dimen name="voice_button_corner_radius">12dp</dimen>
     <dimen name="voice_button_spacing">12dp</dimen>
+    <dimen name="voice_waveform_height_big">140dp</dimen>
 
     <!-- ==================== Analytics Screen ==================== -->
     <dimen name="analytics_content_padding_bottom">140dp</dimen>
@@ -166,15 +170,11 @@
     <dimen name="top_bar_icon_size">16dp</dimen>
 
 
-    <!-- ProfileScreen размеры -->
     <dimen name="profile_no_avatar_size">80dp</dimen>
     <dimen name="profile_avatar_size">100dp</dimen>
 
-
-
     <dimen name="profile_screen_padding_bottom">80dp</dimen>
-    <dimen name="profile_screen_padding_top">100dp</dimen>
-    <dimen name="profile_vertical_spacing">8dp</dimen>
+    <dimen name="screen_padding_top">100dp</dimen>
     <dimen name="profile_no_profile_padding">24dp</dimen>
     <dimen name="profile_no_profile_spacing">24dp</dimen>
     <dimen name="profile_no_profile_spacing_small">8dp</dimen>
@@ -201,4 +201,41 @@
 
 
     <dimen name="voice_card_padding">12dp</dimen>
+
+    <dimen name="about_page_version_padding_bottom">120dp</dimen>
+
+    <dimen name="data_page_icon_size">50dp</dimen>
+    <dimen name="card_elevation_default">1dp</dimen>
+    <dimen name="data_settings_progress_stroke">2dp</dimen>
+
+
+    <dimen name="theme_icon_size">28dp</dimen>
+    <dimen name="toggle_width">56dp</dimen>
+    <dimen name="toggle_height">32dp</dimen>
+    <dimen name="toggle_corner_radius">16dp</dimen>
+    <dimen name="toggle_padding">4dp</dimen>
+    <dimen name="toggle_circle_size">24dp</dimen>
+    <dimen name="toggle_circle_offset_on">24dp</dimen>
+    <dimen name="toggle_circle_offset_off">0dp</dimen>
+    <dimen name="toggle_circle_shadow">2dp</dimen>
+
+
+    <dimen name="import_contacts_info_card_height">80dp</dimen>
+    <dimen name="import_contacts_icon_size">50dp</dimen>
+    <dimen name="import_contacts_loading_spacer">5dp</dimen>
+    <dimen name="import_contacts_card_spacing">1dp</dimen>
+    <dimen name="import_contacts_list_top_spacer">245dp</dimen>
+    <dimen name="import_contacts_list_bottom_spacer">85dp</dimen>
+    <dimen name="import_contacts_empty_padding">32dp</dimen>
+    <dimen name="import_contacts_toolbar_top_padding">85dp</dimen>
+    <dimen name="import_contacts_toolbar_padding">10dp</dimen>
+    <dimen name="import_contacts_back_icon_size">30dp</dimen>
+    <dimen name="import_contacts_first_button_height">50dp</dimen>
+
+    <dimen name="import_contacts_secondary_button_height">40dp</dimen>
+    <dimen name="import_contacts_card_elevation">2dp</dimen>
+    <dimen name="import_contacts_card_padding">5dp</dimen>
+    <dimen name="import_contacts_row_spacing">6dp</dimen>
+    <dimen name="import_contacts_avatar_size">56dp</dimen>
+    <dimen name="import_contacts_duplicate_icon_padding">12dp</dimen>
 </resources>

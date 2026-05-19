@@ -43,6 +43,7 @@ class ContactListViewModel @Inject constructor(
     private val searchQueryFlow = MutableStateFlow("")
 
     private val selectedCategoryIdFlow = MutableStateFlow<Int?>(null)
+
     val allCategories: StateFlow<List<CategoryEntity>> =
         categoryRepository.allCategories
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

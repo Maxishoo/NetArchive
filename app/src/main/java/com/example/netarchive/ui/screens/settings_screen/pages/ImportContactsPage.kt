@@ -38,7 +38,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,13 +48,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.example.netarchive.ui.theme.CardBackground
+import com.example.netarchive.R
 
 @Composable
 fun ImportContactsPage(
@@ -90,32 +92,36 @@ fun ImportContactsPage(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 100.dp, start = 16.dp, end = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(
+                    top = dimensionResource(id = R.dimen.screen_padding_top),
+                    start = dimensionResource(id = R.dimen.padding_medium),
+                    end = dimensionResource(id = R.dimen.padding_medium)
+                ),
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_medium)),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(80.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = CardDefaults.cardColors(containerColor = CardBackground),
-                elevation = CardDefaults.cardElevation(1.dp)
+                    .height(dimensionResource(id = R.dimen.import_contacts_info_card_height)),
+                shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_big_small)),
+                colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.card_background)),
+                elevation = CardDefaults.cardElevation(defaultElevation = dimensionResource(id = R.dimen.card_elevation_default))
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        .padding(dimensionResource(id = R.dimen.card_padding)),
+                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_dialog)),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.PersonAddAlt,
-                        contentDescription = "",
-                        modifier = Modifier.size(50.dp)
+                        contentDescription = null,
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.import_contacts_icon_size))
                     )
                     Text(
-                        "Вы можете импортировать контакты из сторонних приложений",
+                        text = stringResource(R.string.import_contacts_info_text),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -124,12 +130,12 @@ fun ImportContactsPage(
                 onClick = { permissionLauncher.launch(Manifest.permission.READ_CONTACTS) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(dimensionResource(id =R.dimen.import_contacts_secondary_button_height))
             ) {
-                Text("Из приложения Контакты", fontWeight = FontWeight.Medium)
+                Text(stringResource(R.string.import_from_contacts_app), fontWeight = FontWeight.Medium)
             }
             Text(
-                "Список приложений будет расширяться",
+                text = stringResource(R.string.import_contacts_coming_soon),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -140,14 +146,14 @@ fun ImportContactsPage(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .padding(dimensionResource(id = R.dimen.padding_medium)),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 CircularProgressIndicator()
-                Spacer(modifier = Modifier.height(5.dp))
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.import_contacts_loading_spacer)))
                 Text(
-                    "Читаем контакты",
+                    text = stringResource(R.string.import_contacts_reading),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -155,26 +161,26 @@ fun ImportContactsPage(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .padding(dimensionResource(id = R.dimen.padding_medium)),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 CircularProgressIndicator()
-                Spacer(modifier = Modifier.height(5.dp))
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.import_contacts_loading_spacer)))
                 Text(
-                    "Сохранение в бд",
+                    text = stringResource(R.string.import_contacts_saving),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
         } else {
-            Box() {
+            Box {
                 LazyColumn(
                     state = listState,
-                    contentPadding = PaddingValues(vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(1.dp)
+                    contentPadding = PaddingValues(vertical = dimensionResource(id = R.dimen.spacing_small)),
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.import_contacts_card_spacing))
                 ) {
                     item {
-                        Spacer(modifier = Modifier.height(245.dp))
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.import_contacts_list_top_spacer)))
                     }
                     items(
                         items = state.previewContacts,
@@ -190,11 +196,11 @@ fun ImportContactsPage(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(32.dp),
+                                    .padding(dimensionResource(id = R.dimen.import_contacts_empty_padding)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    "Контакты не найдены",
+                                    text = stringResource(R.string.import_contacts_not_found),
                                     style = MaterialTheme.typography.bodyMedium,
                                     textAlign = TextAlign.Center
                                 )
@@ -202,42 +208,40 @@ fun ImportContactsPage(
                         }
                     }
                     item {
-                        Spacer(modifier = Modifier.height(85.dp))
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.import_contacts_list_bottom_spacer)))
                     }
                 }
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 85.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                        .padding(top = dimensionResource(id = R.dimen.import_contacts_toolbar_top_padding)),
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_small))
                 ) {
                     Card(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        shape = RoundedCornerShape(0.dp),
-                        colors = CardDefaults.cardColors(containerColor = CardBackground.copy(alpha = 0.95f)),
-                        elevation = CardDefaults.cardElevation(1.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_zero)),
+                        colors = CardDefaults.cardColors(
+                            containerColor = colorResource(id = R.color.card_background).copy(alpha = 0.95f)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = dimensionResource(id = R.dimen.card_elevation_default)),
                     ) {
                         Column(
-                            modifier = Modifier.padding(all = 10.dp),
-                            verticalArrangement = Arrangement.spacedBy(5.dp)
+                            modifier = Modifier.padding(all = dimensionResource(id = R.dimen.import_contacts_toolbar_padding)),
+                            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.import_contacts_loading_spacer))
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                IconButton(
-                                    onClick = { viewModel.goBackToSettings() }
-                                ) {
+                                IconButton(onClick = { viewModel.goBackToSettings() }) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(30.dp)
+                                        contentDescription = stringResource(R.string.back),
+                                        modifier = Modifier.size(dimensionResource(id = R.dimen.import_contacts_back_icon_size))
                                     )
                                 }
                                 Text(
-                                    "Выберите контакты, которые нужно импортировать",
+                                    text = stringResource(R.string.import_contacts_select_prompt),
                                     style = MaterialTheme.typography.bodyLarge,
                                     textAlign = TextAlign.Center
                                 )
@@ -246,45 +250,42 @@ fun ImportContactsPage(
                                 onClick = { viewModel.saveSelectedContacts() },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(50.dp),
+                                    .height(dimensionResource(id = R.dimen.import_contacts_first_button_height)),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
+                                    containerColor = colorResource(id = R.color.import_action_primary).copy(alpha = 0.85f)
                                 ),
                             ) {
-                                Text("Импортировать выбранные", fontWeight = FontWeight.Medium)
+                                Text(stringResource(R.string.import_selected), fontWeight = FontWeight.Medium)
                             }
-                            Row(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
+                            Row(modifier = Modifier.fillMaxWidth()) {
                                 Button(
                                     onClick = { viewModel.toggleChangeSelectedAll(true) },
                                     modifier = Modifier
                                         .weight(1f)
-                                        .height(40.dp),
+                                        .height(dimensionResource(id = R.dimen.import_contacts_secondary_button_height)),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = colorScheme.onPrimaryContainer.copy(alpha = 0.65f)
+                                        containerColor = colorResource(id = R.color.import_action_secondary).copy(alpha = 0.65f)
                                     ),
                                 ) {
-                                    Text("Выбрать все", fontWeight = FontWeight.Medium)
+                                    Text(stringResource(R.string.import_select_all), fontWeight = FontWeight.Medium)
                                 }
 
-                                Spacer(modifier = Modifier.width(4.dp))
+                                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.spacing_extra_small)))
 
                                 Button(
                                     onClick = { viewModel.toggleChangeSelectedAll(false) },
                                     modifier = Modifier
                                         .weight(1f)
-                                        .height(40.dp),
+                                        .height(dimensionResource(id = R.dimen.import_contacts_secondary_button_height)),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = colorScheme.onPrimaryContainer.copy(alpha = 0.65f)
+                                        containerColor = colorResource(id = R.color.import_action_secondary).copy(alpha = 0.65f)
                                     ),
                                 ) {
-                                    Text("Снять все", fontWeight = FontWeight.Medium)
+                                    Text(stringResource(R.string.import_deselect_all), fontWeight = FontWeight.Medium)
                                 }
                             }
                         }
                     }
-
                 }
             }
         }
@@ -300,40 +301,40 @@ fun PreviewContactCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onToggleClick() },
-        shape = RoundedCornerShape(0.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBackground),
-        elevation = CardDefaults.cardElevation(2.dp)
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_zero)),
+        colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.card_background)),
+        elevation = CardDefaults.cardElevation(defaultElevation = dimensionResource(id = R.dimen.import_contacts_card_elevation))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(5.dp)
+                .padding(dimensionResource(id = R.dimen.import_contacts_card_padding))
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.import_contacts_row_spacing))
             ) {
                 if (contactPreviewItem.contact.avatar != null) {
                     AsyncImage(
                         model = contactPreviewItem.contact.avatar,
-                        contentDescription = "Avatar of ${contactPreviewItem.contact.username}",
+                        contentDescription = stringResource(R.string.contact_avatar_description, contactPreviewItem.contact.username),
                         modifier = Modifier
-                            .size(56.dp)
+                            .size(dimensionResource(id = R.dimen.import_contacts_avatar_size))
                             .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
                 } else {
                     Box(
                         modifier = Modifier
-                            .size(56.dp)
+                            .size(dimensionResource(id = R.dimen.import_contacts_avatar_size))
                             .clip(CircleShape)
-                            .background(color = Color(0xFFDBE0F7)),
+                            .background(color = colorResource(id = R.color.reminder_contact_avatar_placeholder)),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = contactPreviewItem.contact.username.firstOrNull()
-                                ?.uppercaseChar()?.toString() ?: "?",
+                                ?.uppercaseChar()?.toString() ?: stringResource(R.string.default_avatar),
                             style = MaterialTheme.typography.titleLarge
                         )
                     }
@@ -348,36 +349,45 @@ fun PreviewContactCard(
                     Text(
                         text = contactPreviewItem.contact.phone
                             ?: contactPreviewItem.contact.email
-                            ?: "Нет телефона",
+                            ?: stringResource(R.string.import_contacts_no_phone),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                if(contactPreviewItem.isDuplicate){
+                if (contactPreviewItem.isDuplicate) {
                     Column(
                         horizontalAlignment = Alignment.End,
-                        modifier = Modifier.padding(end = 12.dp)
+                        modifier = Modifier.padding(end = dimensionResource(id = R.dimen.import_contacts_duplicate_icon_padding))
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Error,
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.import_contacts_duplicate),
+                            tint = colorResource(id = R.color.text_error)
                         )
-                        Text("уже есть")
+                        Text(
+                            text = stringResource(R.string.import_contacts_duplicate),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colorResource(id = R.color.text_error)
+                        )
                     }
-                }else{
-                    IconButton(
-                        onClick = onToggleClick
-                    ) {
+                } else {
+                    IconButton(onClick = onToggleClick) {
                         Icon(
                             imageVector = if (contactPreviewItem.isSelected) Icons.Outlined.CheckCircle else Icons.Outlined.Circle,
-                            contentDescription = null
+                            contentDescription = if (contactPreviewItem.isSelected)
+                                stringResource(R.string.import_contacts_deselect)
+                            else
+                                stringResource(R.string.import_contacts_select),
+                            tint = if (contactPreviewItem.isSelected)
+                                colorResource(id = R.color.import_action_primary)
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             }
-
         }
     }
 }

@@ -242,7 +242,7 @@ fun ContactListItem(
 fun CategoryPieChart(categories: List<CategoryWithCount>) {
     if (categories.isEmpty()) {
         Card(modifier = Modifier.fillMaxWidth()) {
-            Box(modifier = Modifier.padding(dimensionResource(id = R.dimen.card_padding))) {
+            Box(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
                 EmptyStateText(stringResource(R.string.empty_no_chart_data))
             }
         }
@@ -251,7 +251,7 @@ fun CategoryPieChart(categories: List<CategoryWithCount>) {
     val total = categories.sumOf { it.contactCount.toDouble() }
     if (total == 0.0) {
         Card(modifier = Modifier.fillMaxWidth()) {
-            Box(modifier = Modifier.padding(dimensionResource(id = R.dimen.card_padding))) {
+            Box(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
                 EmptyStateText(stringResource(R.string.empty_no_categories))
             }
         }

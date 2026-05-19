@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
@@ -33,18 +34,19 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import com.example.netarchive.data.local.db.entity.CategoryEntity
-import com.example.netarchive.ui.theme.LightBlue
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.integerResource
+import androidx.compose.ui.res.stringResource
+import com.example.netarchive.R
+import com.example.netarchive.data.local.db.entity.CategoryEntity
 
 @Composable
 fun ContactsTopBar(
@@ -65,15 +67,21 @@ fun ContactsTopBar(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(color = Color(0xFFECEBF4).copy(alpha = 0.95f))
-            .padding(top = 35.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
+            .background(
+                color = colorResource(id = R.color.top_bar_background).copy(alpha = 0.95f)
+            )
+            .padding(
+                top = dimensionResource(id = R.dimen.top_bar_padding_top),
+                bottom = dimensionResource(id = R.dimen.top_bar_padding_bottom),
+                start = dimensionResource(id = R.dimen.padding_horizontal_screen),
+                end = dimensionResource(id = R.dimen.padding_horizontal_screen)
+            )
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             AnimatedContent(
                 targetState = showSearchField,
                 transitionSpec = {
@@ -95,48 +103,51 @@ fun ContactsTopBar(
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Outlined.Search,
-                                    contentDescription = "Поиск"
+                                    contentDescription = stringResource(R.string.search_hint)
                                 )
                             },
                             trailingIcon = {
                                 IconButton(onClick = {
                                     if (vibrator.hasVibrator()) {
-                                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
+                                        vibrator.vibrate(
+                                            VibrationEffect.createOneShot(
+                                                R.integer.vibration_duration.toLong(),
+                                                VibrationEffect.DEFAULT_AMPLITUDE
+                                            )
+                                        )
                                     }
                                     showSearchField = false
                                     onQueryChange("")
                                 }) {
                                     Icon(
                                         imageVector = Icons.Outlined.Close,
-                                        contentDescription = "Закрыть"
+                                        contentDescription = stringResource(R.string.close)
                                     )
                                 }
                             },
-                            placeholder = { Text("Поиск контактов") },
+                            placeholder = { Text(stringResource(R.string.search_hint)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(20.dp),
+                            shape = RoundedCornerShape(dimensionResource(id = R.dimen.search_field_corner_radius)),
                             colors = TextFieldDefaults.colors(
-                                focusedContainerColor = LightBlue,
-                                unfocusedContainerColor = LightBlue,
+                                focusedContainerColor = colorResource(id = R.color.search_background),
+                                unfocusedContainerColor = colorResource(id = R.color.search_background),
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent
                             )
                         )
                         if (allCategories.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.spacing_small)))
 
                             LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_small)),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 item {
                                     FilterChip(
                                         selected = selectedCategoryId == null,
-                                        onClick = {
-                                            onCategoryFilterSelected(null)
-                                                  },
-                                        label = { Text("Все") },
+                                        onClick = { onCategoryFilterSelected(null) },
+                                        label = { Text(stringResource(R.string.all_categories)) },
                                         colors = FilterChipDefaults.filterChipColors(
                                             selectedContainerColor = MaterialTheme.colorScheme.primary,
                                             selectedLabelColor = MaterialTheme.colorScheme.onPrimary
@@ -147,16 +158,14 @@ fun ContactsTopBar(
                                 items(allCategories) { category ->
                                     FilterChip(
                                         selected = selectedCategoryId == category.id,
-                                        onClick = {
-                                            onCategoryFilterSelected(category.id)
-                                                  },
+                                        onClick = { onCategoryFilterSelected(category.id) },
                                         label = { Text(category.name) },
                                         leadingIcon = if (category.isDefault) {
                                             {
                                                 Icon(
                                                     imageVector = Icons.Outlined.Star,
                                                     contentDescription = null,
-                                                    modifier = Modifier.size(16.dp)
+                                                    modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
                                                 )
                                             }
                                         } else {
@@ -171,8 +180,6 @@ fun ContactsTopBar(
                             }
                         }
                     }
-
-
                 } else {
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -180,33 +187,36 @@ fun ContactsTopBar(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = if (isSelectionMode) "Выберите контакт" else "Контакты",
+                            text = if (isSelectionMode) stringResource(R.string.select_contact_title) else stringResource(R.string.contacts_title),
                             style = MaterialTheme.typography.headlineLarge,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_small)),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconButton(
                                 onClick = {
                                     if (vibrator.hasVibrator()) {
-                                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
+                                        vibrator.vibrate(
+                                            VibrationEffect.createOneShot(
+                                                R.integer.vibration_duration.toLong(),
+                                                VibrationEffect.DEFAULT_AMPLITUDE
+                                            )
+                                        )
                                     }
                                     showSearchField = true
                                 }
                             ) {
                                 Icon(
                                     imageVector = Icons.Outlined.Search,
-                                    contentDescription = "Поиск",
-                                    tint = Color.Black
+                                    contentDescription = stringResource(R.string.search_icon),
+                                    tint = MaterialTheme.colorScheme.onBackground
                                 )
                             }
                         }
                     }
-
                 }
-
             }
         }
     }

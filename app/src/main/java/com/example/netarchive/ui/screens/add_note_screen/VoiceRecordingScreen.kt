@@ -72,11 +72,10 @@ fun VoiceRecordingScreen(
     val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
     fun hasMicrophonePermission(): Boolean {
-        val hasPermission = ContextCompat.checkSelfPermission(
+        return ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.RECORD_AUDIO
         ) == PackageManager.PERMISSION_GRANTED
-        return hasPermission
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -127,7 +126,7 @@ fun VoiceRecordingScreen(
                 )
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.spacing_xlarge)))
 
-                if(state.isVoiceRecording){
+                if (state.isVoiceRecording) {
                     Waveform(
                         isRecording = state.isVoiceRecording,
                         modifier = Modifier
@@ -144,7 +143,12 @@ fun VoiceRecordingScreen(
                     IconButton(
                         onClick = {
                             if (vibrator.hasVibrator()) {
-                                vibrator.vibrate(VibrationEffect.createOneShot(R.integer.vibration_duration.toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
+                                vibrator.vibrate(
+                                    VibrationEffect.createOneShot(
+                                       R.integer.vibration_duration.toLong(),
+                                        VibrationEffect.DEFAULT_AMPLITUDE
+                                    )
+                                )
                             }
                             if (state.isVoiceRecording) {
                                 viewModel.stopListening()
@@ -161,7 +165,7 @@ fun VoiceRecordingScreen(
                                 Icons.Outlined.Mic,
                             contentDescription = if (state.isVoiceRecording) stringResource(R.string.stop) else stringResource(R.string.record),
                             modifier = Modifier.size(dimensionResource(id = R.dimen.voice_icon_size)),
-                            tint = colorResource(id = R.color.voice_waveform_color)
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
 
@@ -194,7 +198,7 @@ fun VoiceRecordingScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(dimensionResource(id = R.dimen.voice_dialog_padding))
+                                .padding(dimensionResource(id = R.dimen.card_padding))
                         ) {
                             Column {
                                 Text(
@@ -229,7 +233,7 @@ fun VoiceRecordingScreen(
                                 Text(stringResource(R.string.cancel))
                             }
 
-                            if(state.recognizedText.isNotBlank() && !state.recognizedText.startsWith(stringResource(R.string.speech_not_recognized))){
+                            if (state.recognizedText.isNotBlank() && !state.recognizedText.startsWith(stringResource(R.string.speech_not_recognized))) {
                                 Button(
                                     onClick = {
                                         viewModel.applyRecognizedText()
@@ -240,11 +244,9 @@ fun VoiceRecordingScreen(
                                 ) {
                                     Text(stringResource(R.string.apply))
                                 }
-                            }else{
+                            } else {
                                 Button(
-                                    onClick = {
-                                        viewModel.startListening()
-                                    },
+                                    onClick = { viewModel.startListening() },
                                     modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(dimensionResource(id = R.dimen.voice_button_corner_radius))
                                 ) {
@@ -312,7 +314,7 @@ fun Waveform(
                 Box(
                     modifier = Modifier
                         .width(dimensionResource(id = R.dimen.voice_waveform_bar_width))
-                        .height((integerResource(id = R.integer.voice_waveform_min_height) + (value * integerResource(id = R.integer.voice_animation_duration_long))).dp)
+                        .height((integerResource(id = R.integer.voice_waveform_min_height) + (value * integerResource(id = R.integer.voice_waveform_max_multiplier)).toInt()).dp)
                         .clip(RoundedCornerShape(dimensionResource(id = R.dimen.voice_waveform_bar_corner)))
                         .background(colorResource(id = R.color.voice_waveform_color))
                 )

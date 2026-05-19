@@ -242,7 +242,7 @@ fun CreateReminderScreen(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = dimensionResource(id = R.dimen.padding_horizontal_screen))
-                .padding(bottom = dimensionResource(id = R.dimen.reminder_list_bottom_spacer)),
+                .padding(bottom = dimensionResource(id = R.dimen.screen_padding_bottom)),
             verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_large))
         ) {
             SimpleContactCard(

@@ -16,6 +16,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,58 +38,44 @@ fun ContactListScreen(
     onReminderClick: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
-
     val allCategories by viewModel.allCategories.collectAsStateWithLifecycle()
-
-    var animatedList by remember {
-        mutableStateOf<List<ContactWithCategories>>(emptyList())
-    }
+    var animatedList by remember { mutableStateOf<List<ContactWithCategories>>(emptyList()) }
     var isSwapping by remember { mutableStateOf(false) }
-
 
     val listState = rememberLazyListState()
     val context = LocalContext.current
     val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-
     val showSearchFieldState = remember { mutableStateOf(false) }
 
     val searchFieldOffset by animateDpAsState(
-        targetValue = if (showSearchFieldState.value) 60.dp else 0.dp,
-        animationSpec = tween(300, easing = FastOutSlowInEasing),
-        label = "circleOffset"
+        targetValue = if (showSearchFieldState.value) dimensionResource(id = R.dimen.contact_list_search_field_offset) else 0.dp,
+        animationSpec = tween(durationMillis = integerResource(id = R.integer.contact_list_search_animation_duration_ms), easing = FastOutSlowInEasing),
+        label = "searchFieldOffset"
     )
 
-    val topBarHeight = 90.dp + searchFieldOffset
+    val topBarHeight = dimensionResource(id = R.dimen.contact_list_top_bar_height_offset) + searchFieldOffset
 
     Box(modifier = modifier.fillMaxSize()) {
-
         when (state) {
-
             is LoadState.Loading -> {
                 CircularProgressIndicator(Modifier.align(Alignment.Center))
             }
-
             is LoadState.Error -> {
                 Text(
                     text = stringResource(R.string.error_contacts_load),
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
-
             is LoadState.Empty -> {
                 Text(
                     text = stringResource(R.string.contacts_empty),
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
-
             is LoadState.Success -> {
-
-                val contactsWithCategories =
-                    (state as LoadState.Success<List<ContactWithCategories>>).data
+                val contactsWithCategories = (state as LoadState.Success<List<ContactWithCategories>>).data
 
                 LaunchedEffect(contactsWithCategories) {
                     if (!isSwapping) {
@@ -99,7 +87,7 @@ fun ContactListScreen(
                     modifier = Modifier.fillMaxSize(),
                     state = listState,
                     contentPadding = PaddingValues(top = topBarHeight),
-                    verticalArrangement = Arrangement.spacedBy(1.dp)
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.contact_list_card_spacing))
                 ) {
                     itemsIndexed(
                         animatedList,
@@ -117,75 +105,47 @@ fun ContactListScreen(
                                 avatar = contactWithCategories.contact.avatar,
                                 pinnedOrder = contactWithCategories.contact.pinnedOrder
                             ),
-
                             categories = contactWithCategories.categories,
-
                             onClick = {
-                                onContactClick(
-                                    contactWithCategories.contact.toDomain()
-                                )
+                                onContactClick(contactWithCategories.contact.toDomain())
                             },
-
                             onVerticalDragStart = {
                                 vibrator.vibrate(
                                     VibrationEffect.createOneShot(
-                                        10,
+                                        R.integer.vibration_duration.toLong(),
                                         VibrationEffect.DEFAULT_AMPLITUDE
                                     )
                                 )
                             },
-
                             onVerticalDragEnd = { isDragDown ->
-
                                 if (contactWithCategories.contact.pinnedOrder <= 0) return@ContactCard
-
                                 val list = animatedList.toMutableList()
-
-                                val currentIndex = list.indexOfFirst {
-                                    it.contact.id == contactWithCategories.contact.id
-                                }
-
+                                val currentIndex = list.indexOfFirst { it.contact.id == contactWithCategories.contact.id }
                                 if (currentIndex == -1) return@ContactCard
-
                                 isSwapping = true
 
                                 if (isDragDown) {
-
                                     val nextIndex = currentIndex + 1
-
                                     if (nextIndex < list.size) {
-
                                         val downItem = list[nextIndex]
-
                                         if (downItem.contact.pinnedOrder > 0) {
-
                                             list[currentIndex] = downItem
                                             list[nextIndex] = contactWithCategories
-
                                             animatedList = list
-
                                             viewModel.swapPinnedContact(
                                                 contactWithCategories.contact.id,
                                                 downItem.contact.id
                                             )
                                         }
                                     }
-
                                 } else {
-
                                     val prevIndex = currentIndex - 1
-
                                     if (prevIndex >= 0) {
-
                                         val upItem = list[prevIndex]
-
                                         if (upItem.contact.pinnedOrder > 0) {
-
                                             list[currentIndex] = upItem
                                             list[prevIndex] = contactWithCategories
-
                                             animatedList = list
-
                                             viewModel.swapPinnedContact(
                                                 contactWithCategories.contact.id,
                                                 upItem.contact.id
@@ -193,21 +153,18 @@ fun ContactListScreen(
                                         }
                                     }
                                 }
-
                                 isSwapping = false
                             },
-
                             onDragSwipeThreshold = {
                                 if (vibrator.hasVibrator()) {
                                     vibrator.vibrate(
                                         VibrationEffect.createOneShot(
-                                            10,
+                                            R.integer.vibration_duration.toLong(),
                                             VibrationEffect.DEFAULT_AMPLITUDE
                                         )
                                     )
                                 }
                             },
-
                             onDragEnd = {
                                 if (contactWithCategories.contact.pinnedOrder > 0) {
                                     viewModel.unpinContact(contactWithCategories.contact.id)
@@ -217,9 +174,8 @@ fun ContactListScreen(
                             }
                         )
                     }
-
                     item {
-                        Spacer(modifier = Modifier.height(100.dp))
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.contact_list_bottom_spacer)))
                     }
                 }
             }
@@ -227,7 +183,7 @@ fun ContactListScreen(
 
         ContactsTopBar(
             query = searchQuery,
-                    onQueryChange = {
+            onQueryChange = {
                 searchQuery = it
                 viewModel.onSearchQueryChange(it)
             },

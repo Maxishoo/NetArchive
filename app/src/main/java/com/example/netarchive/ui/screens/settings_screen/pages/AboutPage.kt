@@ -8,21 +8,35 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import com.example.netarchive.BuildConfig
+import com.example.netarchive.R
 
 @Composable
 fun AboutPage() {
-    Box(modifier = Modifier.fillMaxSize().padding(top = 100.dp, start = 20.dp, end = 20.dp)) {
-        Text("NetArchive - мобильное приложение для поддержания слабых связей. Многие специалисты теряют ценные связи из-за отсутствия удобного инструмента для регулярного поддержания контактов: они забывают важные детали общения, пропускают поводы для взаимодействия и упускают карьерные возможности. Приложение решает эту проблему с помощью метода «картотеки» — фиксации взаимодействий, системы проактивных напоминаний и ИИ ассистента.",
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(
+                top = dimensionResource(id = R.dimen.screen_padding_top),
+                start = dimensionResource(id = R.dimen.padding_large),
+                end = dimensionResource(id = R.dimen.padding_large)
+            )
+    ) {
+        Text(
+            text = stringResource(R.string.about_page_description),
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center
         )
         Text(
-            "Версия приложения: v1.0",
+            text = stringResource(R.string.about_page_version, BuildConfig.VERSION_NAME),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 120.dp)
+                .padding(bottom = dimensionResource(id = R.dimen.about_page_version_padding_bottom)),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

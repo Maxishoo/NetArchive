@@ -276,5 +276,54 @@
     <string name="description_field_with_value">Описание: %s</string>
     <string name="categories_label_with_value">Категории: %s</string>
     <string name="notes_about_">Заметки о контакте:</string>
+
+
+    <string name="about_page_description">NetArchive - мобильное приложение для поддержания слабых связей. Многие специалисты теряют ценные связи из-за отсутствия удобного инструмента для регулярного поддержания контактов: они забывают важные детали общения, пропускают поводы для взаимодействия и упускают карьерные возможности. Приложение решает эту проблему с помощью метода «картотеки» — фиксации взаимодействий, системы проактивных напоминаний и ИИ ассистента.</string>
+    <string name="about_page_version">Версия приложения: %s</string>
+
+
+    <string name="data_settings_db_size">Размер базы данных</string>
+    <string name="data_settings_clear_contacts">Очистить контакты</string>
+    <string name="data_settings_clear_profile">Очистить профиль</string>
+    <string name="data_settings_delete_contacts_title">Удалить все контакты?</string>
+    <string name="data_settings_delete_contacts_message">Все сохранённые контакты и связанные заметки будут удалены безвозвратно.</string>
+    <string name="data_settings_reset_profile_title">Сбросить профиль?</string>
+    <string name="data_settings_reset_profile_message">Данные профиля будут удалены.</string>
+    <string name="data_settings_reset">Сбросить</string>
+    <string name="data_settings_error">Ошибка: %s</string>
+
+
+    <!-- Успешные сообщения -->
+    <string name="data_settings_contacts_cleared">Контакты очищены</string>
+    <string name="data_settings_profile_cleared">Профиль сброшен</string>
+    <string name="data_settings_table_cleared">Таблица очищена</string>
+
+    <!-- Ошибки -->
+    <string name="data_settings_error_unknown_table">Неизвестная таблица</string>
+    <string name="data_settings_error_clear">Ошибка очистки таблицы "%s": %s</string>
+    <string name="data_settings_error_load_size">Ошибка загрузки размера БД: %s</string>
+
+    <!-- Темы -->
+    <string name="theme_light">Светлая тема</string>
+    <string name="theme_dark">Темная тема</string>
+    <string name="theme_light_content_description">Светлая тема оформления</string>
+    <string name="theme_dark_content_description">Тёмная тема оформления</string>
+
+    <!-- Импорт контактов -->
+    <string name="import_contacts_info_text">Вы можете импортировать контакты из сторонних приложений</string>
+    <string name="import_from_contacts_app">Из приложения Контакты</string>
+    <string name="import_contacts_coming_soon">Список приложений будет расширяться</string>
+    <string name="import_contacts_reading">Читаем контакты</string>
+    <string name="import_contacts_saving">Сохранение в БД</string>
+    <string name="import_contacts_not_found">Контакты не найдены</string>
+    <string name="import_contacts_select_prompt">Выберите контакты, которые нужно импортировать</string>
+    <string name="import_selected">Импортировать выбранные</string>
+    <string name="import_select_all">Выбрать все</string>
+    <string name="import_deselect_all">Снять все</string>
+    <string name="import_contacts_no_phone">Нет телефона</string>
+    <string name="import_contacts_duplicate">уже есть</string>
+    <string name="import_contacts_select">Выбрать</string>
+    <string name="import_contacts_deselect">Снять выбор</string>
+    <string name="back">Назад</string>
 </resources>
 

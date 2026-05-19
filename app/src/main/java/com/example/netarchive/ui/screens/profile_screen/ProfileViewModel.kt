@@ -16,6 +16,13 @@ import qrgenerator.generateQrCode
 import java.net.URLEncoder
 import javax.inject.Inject
 
+sealed class ProfileError {
+    object EmptyUsername : ProfileError()
+    data class AvatarLoadError(val cause: String?) : ProfileError()
+    data class SaveError(val cause: String?) : ProfileError()
+    data class QrGenerationError(val cause: String?) : ProfileError()
+}
+
 data class ProfileViewState(
     val username: String = "",
     val phone: String = "",
@@ -29,12 +36,11 @@ data class ProfileViewState(
     val isEditMode: Boolean = false,
     val hasChanges: Boolean = false,
     val isSuccess: Boolean = false,
-    val error: String? = null,
+    val error: ProfileError? = null,
     val isProfileCreated: Boolean = false,
-
     val showQrDialog: Boolean = false,
     val qrGenerating: Boolean = false,
-    val qrBitmap:  ImageBitmap? = null
+    val qrBitmap: ImageBitmap? = null
 )
 
 @HiltViewModel
@@ -69,7 +75,8 @@ class ProfileViewModel @Inject constructor(
                                 job = profile.job.orEmpty(),
                                 avatar = profile.avatar.orEmpty(),
                                 birthday = profile.birthday,
-                                isLoading = false
+                                isLoading = false,
+                                error = null
                             )
                         }
                     }
@@ -87,7 +94,8 @@ class ProfileViewModel @Inject constructor(
                                 job = "",
                                 avatar = "",
                                 birthday = null,
-                                isLoading = false
+                                isLoading = false,
+                                error = null
                             )
                         }
                     }
@@ -95,11 +103,9 @@ class ProfileViewModel @Inject constructor(
             }
         }
     }
+
     fun openQr() {
-        _viewState.value = _viewState.value.copy(showQrDialog = true)
-
-
-        _viewState.value = _viewState.value.copy(qrGenerating = true)
+        _viewState.update { it.copy(showQrDialog = true, qrGenerating = true, error = null) }
         try {
             val rawData = buildString {
                 append("u=${_viewState.value.username.trim()}")
@@ -113,24 +119,30 @@ class ProfileViewModel @Inject constructor(
             val encodedData = URLEncoder.encode(rawData, "UTF-8")
             generateQrCode(
                 url = encodedData,
-                onSuccess = { info, qrCode ->
-                    _viewState.value = _viewState.value.copy(
-                        qrGenerating = false,
-                        qrBitmap = qrCode
-                    )
+                onSuccess = { _, qrCode ->
+                    _viewState.update { it.copy(qrGenerating = false, qrBitmap = qrCode) }
                 },
-                onFailure = {
-                    _viewState.value = _viewState.value.copy(qrGenerating = false)
-                },
+                onFailure = { error ->
+                    _viewState.update {
+                        it.copy(
+                            qrGenerating = false,
+                            error = ProfileError.QrGenerationError(error)
+                        )
+                    }
+                }
             )
         } catch (e: Exception) {
-            e.printStackTrace()
-            _viewState.value = _viewState.value.copy(qrGenerating = false)
+            _viewState.update {
+                it.copy(
+                    qrGenerating = false,
+                    error = ProfileError.QrGenerationError(e.message)
+                )
+            }
         }
     }
 
-    fun closeQr(){
-        _viewState.value = _viewState.value.copy(showQrDialog = false)
+    fun closeQr() {
+        _viewState.update { it.copy(showQrDialog = false) }
     }
 
     fun createProfile() {
@@ -146,12 +158,12 @@ class ProfileViewModel @Inject constructor(
                 job = "",
                 avatar = "",
                 birthday = null,
-                hasChanges = true
+                hasChanges = true,
+                error = null
             )
         }
     }
 
-    // ✅ FIX: Сравнение с .orEmpty() для консистентности
     private fun hasChanges(state: ProfileViewState): Boolean {
         return originalProfile?.let { original ->
             state.username != original.username ||
@@ -167,22 +179,16 @@ class ProfileViewModel @Inject constructor(
 
     fun onAvatarChange(uri: android.net.Uri) {
         val oldAvatarUri = _viewState.value.avatar
-
         viewModelScope.launch {
             try {
-                // ✅ FIX: Убедитесь, что fileManager возвращает абсолютный путь к файлу
-                val localPath = fileManager.copyImageToInternalStorage(uri)
-                    .trim() // убираем возможные пробелы
-
-                // Удаляем старое изображение, если есть
+                val localPath = fileManager.copyImageToInternalStorage(uri).trim()
                 if (oldAvatarUri.isNotBlank() && oldAvatarUri != localPath) {
                     fileManager.deleteFile(oldAvatarUri)
                 }
-
                 _viewState.update { it.copy(avatar = localPath) }
             } catch (e: Exception) {
                 _viewState.update {
-                    it.copy(error = "Ошибка загрузки фото: ${e.message}")
+                    it.copy(error = ProfileError.AvatarLoadError(e.message))
                 }
             }
         }
@@ -201,22 +207,18 @@ class ProfileViewModel @Inject constructor(
     fun onMaxChange(value: String) = updateField { copy(max = value) }
     fun onEmailChange(value: String) = updateField { copy(email = value) }
     fun onJobChange(value: String) = updateField { copy(job = value) }
-
-    fun onBirthdayChange(timestamp: Long?) {
-        updateField { copy(birthday = timestamp) }
-    }
+    fun onBirthdayChange(timestamp: Long?) = updateField { copy(birthday = timestamp) }
 
     fun saveProfile() {
         if (_viewState.value.username.isBlank()) {
-            _viewState.update { it.copy(error = "Имя обязательно") }
+            _viewState.update { it.copy(error = ProfileError.EmptyUsername) }
             return
         }
-
         viewModelScope.launch {
             try {
                 val state = _viewState.value
                 val profile = Profile(
-                    username = state.username.trim(), // ✅ FIX: убран пробел в ключе
+                    username = state.username.trim(),
                     phone = state.phone.ifEmpty { null },
                     telegram = state.telegram.ifEmpty { null },
                     max = state.max.ifEmpty { null },
@@ -225,21 +227,21 @@ class ProfileViewModel @Inject constructor(
                     avatar = state.avatar.ifEmpty { null },
                     birthday = state.birthday
                 )
-
                 repository.saveProfile(profile)
-                // ✅ originalProfile обновится в loadProfile(), но можно и здесь
                 originalProfile = profile
-
                 _viewState.update {
                     it.copy(
                         isProfileCreated = true,
                         isEditMode = false,
                         hasChanges = false,
-                        isSuccess = true
+                        isSuccess = true,
+                        error = null
                     )
                 }
             } catch (e: Exception) {
-                _viewState.update { it.copy(error = e.message) }
+                _viewState.update {
+                    it.copy(error = ProfileError.SaveError(e.message))
+                }
             }
         }
     }

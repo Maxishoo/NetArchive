@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Save
@@ -39,46 +41,39 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.netarchive.R
 import com.example.netarchive.ui.components.QrDialog
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import androidx.compose.material.icons.filled.Cake
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.runtime.setValue
-import androidx.compose.material3.rememberDatePickerState
-import java.util.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileViewScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
-    onSettingsClick: ()->Unit
+    onSettingsClick: () -> Unit
 ) {
     val viewState by viewModel.viewState.collectAsState()
     val context = LocalContext.current
@@ -95,30 +90,46 @@ fun ProfileViewScreen(
         }
     }
 
+    LaunchedEffect(viewState.error) {
+        viewState.error?.let { error ->
+            val message = when (error) {
+                ProfileError.EmptyUsername -> context.getString(R.string.error_username_required)
+                is ProfileError.AvatarLoadError -> context.getString(R.string.error_loading_photo, error.cause.orEmpty())
+                is ProfileError.SaveError -> context.getString(R.string.error_general, error.cause.orEmpty())
+                is ProfileError.QrGenerationError -> context.getString(R.string.error_parsing_qr, error.cause.orEmpty())
+            }
+            // Snackbar показывается ниже в коде
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Профиль", style = MaterialTheme.typography.headlineLarge) },
+                title = {
+                    Text(
+                        stringResource(R.string.profile_title),
+                        style = MaterialTheme.typography.headlineLarge
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFECEBF4),
+                    containerColor = colorResource(id = R.color.top_bar_background)
                 ),
                 actions = {
                     if (!viewState.showQrDialog) {
                         IconButton(onClick = viewModel::openQr) {
                             Icon(
                                 imageVector = Icons.Filled.Share,
-                                contentDescription = "Показать qr код"
+                                contentDescription = stringResource(R.string.profile_show_qr)
                             )
                         }
                         IconButton(onClick = onSettingsClick) {
                             Icon(
-                                modifier = Modifier.size(28.dp),
+                                modifier = Modifier.size(dimensionResource(id = R.dimen.profile_settings_icon_size)),
                                 imageVector = Icons.Outlined.Settings,
-                                contentDescription = "Настройки"
+                                contentDescription = stringResource(R.string.profile_settings)
                             )
                         }
                     }
-
                 }
             )
         }
@@ -147,16 +158,23 @@ fun ProfileViewScreen(
             )
         }
 
-        viewState.error?.let { error ->
-            Box(modifier = Modifier.padding(16.dp)) {
+        viewState.error?.let {
+            Box(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_medium))) {
                 Snackbar(
                     action = {
                         TextButton(onClick = viewModel::clearError) {
-                            Text("OK")
+                            Text(stringResource(R.string.ok))
                         }
                     }
                 ) {
-                    Text(error)
+                    Text(
+                        when (it) {
+                            ProfileError.EmptyUsername -> stringResource(R.string.error_username_required)
+                            is ProfileError.AvatarLoadError -> stringResource(R.string.error_loading_photo, it.cause.orEmpty())
+                            is ProfileError.SaveError -> stringResource(R.string.error_general, it.cause.orEmpty())
+                            is ProfileError.QrGenerationError -> stringResource(R.string.error_parsing_qr, it.cause.orEmpty())
+                        }
+                    )
                 }
             }
         }
@@ -171,38 +189,38 @@ fun NoProfile(onCreateClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(dimensionResource(id = R.dimen.profile_no_profile_padding)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
             imageVector = Icons.Default.PersonAdd,
             contentDescription = null,
-            modifier = Modifier.size(80.dp),
-            tint = Color.Gray
+            modifier = Modifier.size(dimensionResource(id = R.dimen.profile_no_avatar_size)),
+            tint = colorResource(id = R.color.profile_no_avatar_icon_tint)
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.profile_no_profile_spacing)))
 
         Text(
-            text = "Создайте профиль, чтобы делиться им с другими",
+            text = stringResource(R.string.profile_create_title),
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.profile_no_profile_spacing_small)))
 
         Text(
-            text = "Чтобы продолжить, нажмите кнопку создать",
+            text = stringResource(R.string.profile_create_description),
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray,
+            color = colorResource(id = R.color.profile_text_hint),
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.profile_no_profile_spacing_large)))
 
         Button(onClick = onCreateClick) {
-            Text("Создать")
+            Text(stringResource(R.string.create))
         }
     }
 }
@@ -219,13 +237,16 @@ private fun ProfileInfo(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 80.dp, top = 100.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(horizontal = dimensionResource(id = R.dimen.padding_horizontal_screen))
+            .padding(
+                bottom = dimensionResource(id = R.dimen.profile_screen_padding_bottom),
+                top = dimensionResource(id = R.dimen.screen_padding_top)
+            ),
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_small))
     ) {
         Box(
             modifier = Modifier
-                .size(100.dp)
+                .size(dimensionResource(id = R.dimen.profile_avatar_size))
                 .align(Alignment.CenterHorizontally)
                 .then(
                     if (viewState.isEditMode) {
@@ -248,7 +269,7 @@ private fun ProfileInfo(
                             .data(viewState.avatar)
                             .crossfade(true)
                             .build(),
-                        contentDescription = "Avatar",
+                        contentDescription = stringResource(R.string.avatar_content_description),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
                         alignment = Alignment.Center,
@@ -256,21 +277,26 @@ private fun ProfileInfo(
                     )
                 } else {
                     Text(
-                        text = viewState.username.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-                        style = MaterialTheme.typography.titleLarge.copy(fontSize = 30.sp)
+                        text = viewState.username.firstOrNull()?.uppercaseChar()?.toString() ?: stringResource(R.string.default_avatar),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontSize = dimensionResource(id = R.dimen.avatar_text_size).value.sp
+                        )
                     )
                 }
             }
             if (viewState.isEditMode) {
                 Icon(
                     imageVector = Icons.Default.AddPhotoAlternate,
-                    contentDescription = "Change Avatar",
+                    contentDescription = stringResource(R.string.change_avatar),
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .size(32.dp)
-                        .offset(x = 4.dp, y = 4.dp)
+                        .size(dimensionResource(id = R.dimen.avatar_edit_icon_size))
+                        .offset(
+                            x = dimensionResource(id = R.dimen.avatar_edit_icon_offset),
+                            y = dimensionResource(id = R.dimen.avatar_edit_icon_offset)
+                        )
                         .background(MaterialTheme.colorScheme.primary, CircleShape)
-                        .padding(4.dp),
+                        .padding(dimensionResource(id = R.dimen.avatar_edit_icon_padding)),
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
@@ -278,7 +304,7 @@ private fun ProfileInfo(
         OutlinedTextField(
             value = viewState.username,
             onValueChange = viewModel::onUsernameChange,
-            label = { Text("Имя *") },
+            label = { Text(stringResource(R.string.name_field)) },
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
@@ -294,7 +320,7 @@ private fun ProfileInfo(
         OutlinedTextField(
             value = viewState.phone,
             onValueChange = viewModel::onPhoneChange,
-            label = { Text("Телефон") },
+            label = { Text(stringResource(R.string.phone_field)) },
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
@@ -303,7 +329,7 @@ private fun ProfileInfo(
         OutlinedTextField(
             value = viewState.email,
             onValueChange = viewModel::onEmailChange,
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.email_field)) },
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
@@ -312,7 +338,7 @@ private fun ProfileInfo(
         OutlinedTextField(
             value = viewState.telegram,
             onValueChange = viewModel::onTelegramChange,
-            label = { Text("Telegram") },
+            label = { Text(stringResource(R.string.telegram_field)) },
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
@@ -321,7 +347,7 @@ private fun ProfileInfo(
         OutlinedTextField(
             value = viewState.max,
             onValueChange = viewModel::onMaxChange,
-            label = { Text("MAX") },
+            label = { Text(stringResource(R.string.max_field)) },
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
@@ -330,7 +356,7 @@ private fun ProfileInfo(
         OutlinedTextField(
             value = viewState.job,
             onValueChange = viewModel::onJobChange,
-            label = { Text("Работа") },
+            label = { Text(stringResource(R.string.job_field)) },
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
@@ -344,20 +370,20 @@ private fun ProfileInfo(
                 modifier = Modifier.fillMaxWidth(),
                 colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                     containerColor = if (viewState.hasChanges && viewState.username.isNotBlank())
-                        Color(0xFF4D5D8A)  // Синий при активности
+                        colorResource(id = R.color.profile_button_active)
                     else
-                        Color.Gray.copy(alpha = 0.3f), // Серый при неактивности
-                    disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
+                        colorResource(id = R.color.profile_button_disabled),
+                    disabledContainerColor = colorResource(id = R.color.profile_button_disabled)
                 )
             ) {
                 Icon(
                     imageVector = Icons.Filled.Save,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.button_icon_size))
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.button_icon_spacing)))
                 Text(
-                    text = "Сохранить",
+                    text = stringResource(R.string.save),
                     style = MaterialTheme.typography.labelLarge
                 )
             }
@@ -370,16 +396,16 @@ private fun ProfileInfo(
                 Icon(
                     imageVector = Icons.Filled.Edit,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.button_icon_size))
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.button_icon_spacing)))
                 Text(
-                    text = "Редактировать",
+                    text = stringResource(R.string.edit),
                     style = MaterialTheme.typography.labelLarge
                 )
             }
         }
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.profile_bottom_spacer)))
     }
 }
 
@@ -396,7 +422,6 @@ private fun ProfileBirthdayField(
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
 
-    // Форматируем дату для отображения
     val displayText = timestamp?.let {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(it))
     } ?: ""
@@ -409,8 +434,8 @@ private fun ProfileBirthdayField(
 
     OutlinedTextField(
         value = displayText,
-        onValueChange = { }, // ReadOnly
-        label = { Text("Дата рождения") },
+        onValueChange = { },
+        label = { Text(stringResource(R.string.birthday_field)) },
         placeholder = { Text("") },
         modifier = modifier.fillMaxWidth(),
         enabled = isEditMode,
@@ -420,26 +445,16 @@ private fun ProfileBirthdayField(
         trailingIcon = {
             Icon(
                 imageVector = Icons.Default.CalendarToday,
-                contentDescription = "Выбрать дату",
+                contentDescription = stringResource(R.string.select_date),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = modifier.clickable(enabled = isEditMode) {
-                    showDatePicker = true  // ✅ Клик по иконке тоже работает
+                    showDatePicker = true
                 }
             )
         },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color(0xFF64B5F6),
-            unfocusedBorderColor = Color(0xFF90CAF9),
-            disabledBorderColor = Color(0xFF90CAF9),
-            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            focusedLabelColor = Color(0xFF64B5F6),
-            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        colors = profileTextFieldColors()
     )
 
-
-    // ✅ Используем нативный диалог как в заметках
     if (showDatePicker) {
         ShowDatePickerDialog(
             initialDate = timestamp ?: System.currentTimeMillis(),
@@ -453,6 +468,7 @@ private fun ProfileBirthdayField(
         )
     }
 }
+
 @Composable
 private fun ShowDatePickerDialog(
     initialDate: Long,
@@ -472,7 +488,6 @@ private fun ShowDatePickerDialog(
         { _, selectedYear, selectedMonth, selectedDay ->
             val selectedCalendar = Calendar.getInstance().apply {
                 set(selectedYear, selectedMonth, selectedDay)
-                // ✅ Обнуляем время, чтобы была только дата
                 set(Calendar.HOUR_OF_DAY, 0)
                 set(Calendar.MINUTE, 0)
                 set(Calendar.SECOND, 0)
@@ -491,11 +506,11 @@ private fun ShowDatePickerDialog(
 
 @Composable
 private fun profileTextFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = Color(0xFF64B5F6),
-    unfocusedBorderColor = Color(0xFF90CAF9),
-    disabledBorderColor = Color(0xFF90CAF9),
+    focusedBorderColor = colorResource(id = R.color.profile_text_field_focused_border),
+    unfocusedBorderColor = colorResource(id = R.color.profile_text_field_unfocused_border),
+    disabledBorderColor = colorResource(id = R.color.profile_text_field_unfocused_border),
     disabledTextColor = MaterialTheme.colorScheme.onSurface,
     disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    focusedLabelColor = Color(0xFF64B5F6),
+    focusedLabelColor = colorResource(id = R.color.profile_text_field_focused_border),
     unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
 )

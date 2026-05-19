@@ -30,15 +30,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.netarchive.ui.theme.CardBackground
+import com.example.netarchive.R
 
 @Composable
 fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 
     var showContactsDialog by remember { mutableStateOf(false) }
@@ -50,7 +53,7 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
             viewModel.resetMessages()
         }
         state.error?.let { err ->
-            snackbarHostState.showSnackbar("Ошибка: $err")
+            snackbarHostState.showSnackbar(context.getString(R.string.data_settings_error, err))
             viewModel.resetMessages()
         }
     }
@@ -58,31 +61,38 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 100.dp, start = 16.dp, end = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(
+                top = dimensionResource(id = R.dimen.screen_padding_top),
+                start = dimensionResource(id = R.dimen.padding_medium),
+                end = dimensionResource(id = R.dimen.padding_medium)
+            ),
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_medium))
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(10.dp),
-            colors = CardDefaults.cardColors(containerColor = CardBackground),
-            elevation = CardDefaults.cardElevation(1.dp)
+            shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_medium)),
+            colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.card_background)),
+            elevation = CardDefaults.cardElevation(defaultElevation = dimensionResource(id = R.dimen.card_elevation_default))
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(dimensionResource(id = R.dimen.card_padding)),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Folder,
-                    contentDescription = "",
-                    modifier = Modifier.size(50.dp)
+                    contentDescription = null,
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.data_page_icon_size))
                 )
                 Column {
-                    Text("Размер базы данных", style = MaterialTheme.typography.bodyMedium)
                     Text(
-                        state.dbSize,
+                        text = stringResource(R.string.data_settings_db_size),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = state.dbSize,
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -95,14 +105,17 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
             enabled = !state.isLoading,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
+                .height(dimensionResource(id = R.dimen.button_height))
         ) {
-            if (state.isLoading) CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
-                color = Color.White,
-                strokeWidth = 2.dp
-            )
-            else Text("Очистить контакты", fontWeight = FontWeight.Medium)
+            if (state.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_large)),
+                    color = colorResource(id = R.color.white),
+                    strokeWidth = dimensionResource(id = R.dimen.data_settings_progress_stroke)
+                )
+            } else {
+                Text(stringResource(R.string.data_settings_clear_contacts), fontWeight = FontWeight.Medium)
+            }
         }
 
         Button(
@@ -110,32 +123,37 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
             enabled = !state.isLoading,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
+                .height(dimensionResource(id = R.dimen.button_height))
         ) {
-            if (state.isLoading) CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
-                color = Color.White,
-                strokeWidth = 2.dp
-            )
-            else Text("Очистить профиль", fontWeight = FontWeight.Medium)
+            if (state.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_large)),
+                    color = colorResource(id = R.color.white),
+                    strokeWidth = dimensionResource(id = R.dimen.data_settings_progress_stroke)
+                )
+            } else {
+                Text(stringResource(R.string.data_settings_clear_profile), fontWeight = FontWeight.Medium)
+            }
         }
     }
+
     if (showContactsDialog) {
         AlertDialog(
             onDismissRequest = { showContactsDialog = false },
-            title = { Text("Удалить все контакты?") },
-            text = { Text("Все сохранённые контакты и связанные заметки будут удалены безвозвратно.") },
+            title = { Text(stringResource(R.string.data_settings_delete_contacts_title)) },
+            text = { Text(stringResource(R.string.data_settings_delete_contacts_message)) },
             confirmButton = {
                 TextButton(onClick = {
-                    showContactsDialog = false; viewModel.clearTable("contacts")
+                    showContactsDialog = false
+                    viewModel.clearTable("contacts")
                 }) {
-                    Text("Удалить", color = Color(0xFF1976D2))
+                    Text(stringResource(R.string.delete), color = colorResource(id = R.color.data_action_blue))
                 }
             },
             dismissButton = {
-                TextButton(onClick = {
-                    showContactsDialog = false
-                }) { Text("Отмена") }
+                TextButton(onClick = { showContactsDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
             }
         )
     }
@@ -143,19 +161,20 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
     if (showProfileDialog) {
         AlertDialog(
             onDismissRequest = { showProfileDialog = false },
-            title = { Text("Сбросить профиль?") },
-            text = { Text("Данные профиля будут удалены.") },
+            title = { Text(stringResource(R.string.data_settings_reset_profile_title)) },
+            text = { Text(stringResource(R.string.data_settings_reset_profile_message)) },
             confirmButton = {
                 TextButton(onClick = {
-                    showProfileDialog = false; viewModel.clearTable("profile")
+                    showProfileDialog = false
+                    viewModel.clearTable("profile")
                 }) {
-                    Text("Сбросить", color = Color(0xFFE85653))
+                    Text(stringResource(R.string.data_settings_reset), color = colorResource(id = R.color.data_action_red))
                 }
             },
             dismissButton = {
-                TextButton(onClick = {
-                    showProfileDialog = false
-                }) { Text("Отмена") }
+                TextButton(onClick = { showProfileDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
             }
         )
     }

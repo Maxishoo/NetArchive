@@ -49,8 +49,22 @@
     <color name="profile_text_field_focused_border">#FF64B5F6</color>
     <color name="profile_text_field_unfocused_border">#FF90CAF9</color>
 
-
+<color name="search_background">#FFD6EBFE</color>
     <color name="reminder_contact_avatar_placeholder">#DBE0F7</color>
 
+    <color name="data_action_blue">#FF1976D2</color>
+    <color name="data_action_red">#FFE85653</color>
 
+    <!-- Иконки тем -->
+    <color name="theme_icon_light">#FFFF9800</color>
+    <color name="theme_icon_dark">#FFFCD139</color>
+
+    <!-- Переключатель тем -->
+    <color name="toggle_background_light">#FFE0E0E0</color>
+    <color name="toggle_background_dark">#FF6E6E6E</color>
+    <color name="toggle_circle">#FFFFFFFF</color>
+
+    <!-- Импорт контактов -->
+    <color name="import_action_primary">#FF4D5D8A</color>
+    <color name="import_action_secondary">#FF90A4D1</color>
 </resources>
