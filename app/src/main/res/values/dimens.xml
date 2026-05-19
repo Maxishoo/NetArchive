@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ==================== Базовые отступы ==================== -->
+    <dimen name="padding_zero">0dp</dimen>
+    <dimen name="padding_extra_small">2dp</dimen>
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="padding_medium">16dp</dimen>
+    <dimen name="padding_large">24dp</dimen>
+    <dimen name="top_padding">90dp</dimen>
+
+    <!-- ==================== Скругления ==================== -->
+    <dimen name="corner_radius_small">8dp</dimen>
+    <dimen name="corner_radius_medium">12dp</dimen>
+    <dimen name="corner_radius_large">16dp</dimen>
+
+    <!-- ==================== Размеры компонентов ==================== -->
+    <dimen name="icon_size_small">18dp</dimen>
+    <dimen name="icon_size_medium">20dp</dimen>
+    <dimen name="icon_size_large">24dp</dimen>
+    <dimen name="button_height">48dp</dimen>
+    <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="progress_indicator_size">20dp</dimen>
+
+    <!-- ==================== Аватар ==================== -->
+    <dimen name="avatar_size">80dp</dimen>
+    <dimen name="avatar_icon_size">64dp</dimen>
+    <dimen name="avatar_edit_icon_size">32dp</dimen>
+    <dimen name="avatar_edit_icon_offset">4dp</dimen>
+    <dimen name="avatar_edit_icon_padding">4dp</dimen>
+
+    <!-- Большой аватар для ContactViewScreen -->
+    <dimen name="avatar_large_size">100dp</dimen>
+    <dimen name="avatar_text_size">30sp</dimen>
+
+    <!-- ==================== Размеры текста ==================== -->
+    <dimen name="text_small">12sp</dimen>
+    <dimen name="text_medium">14sp</dimen>
+    <dimen name="text_large">16sp</dimen>
+    <dimen name="text_title">20sp</dimen>
+    <dimen name="text_headline">24sp</dimen>
+    <dimen name="text_extra_large">30sp</dimen>
+
+    <!-- ==================== Отступы экранов ==================== -->
+    <dimen name="padding_horizontal_screen">16dp</dimen>
+    <dimen name="padding_vertical_screen_top">16dp</dimen>
+    <dimen name="padding_bottom_actions">120dp</dimen>
+    <dimen name="padding_bottom_notes">80dp</dimen>
+    <dimen name="padding_top_header">30dp</dimen>
+    <dimen name="padding_bottom_header">8dp</dimen>
+    <dimen name="padding_screen_top_small">10dp</dimen>
+
+    <!-- ==================== Расстояния (Spacing) ==================== -->
+    <dimen name="spacing_extra_small">4dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_medium">12dp</dimen>
+    <dimen name="spacing_large">16dp</dimen>
+    <dimen name="spacing_xlarge">20dp</dimen>
+    <dimen name="spacing_xxlarge">24dp</dimen>
+
+    <!-- Алиасы для семантической ясности -->
+    <dimen name="spacing_between_items">8dp</dimen>
+    <dimen name="spacing_between_buttons">12dp</dimen>
+    <dimen name="spacing_button_icon">8dp</dimen>
+    <dimen name="spacing_error_text">4dp</dimen>
+    <dimen name="spacing_category_horizontal">6dp</dimen>
+    <dimen name="spacing_category_vertical">8dp</dimen>
+    <dimen name="spacing_dialog">10dp</dimen>
+    <dimen name="spacing_loading">16dp</dimen>
+
+    <!-- ==================== Поля ввода ==================== -->
+    <dimen name="note_text_field_height">300dp</dimen>
+    <dimen name="reminder_text_field_height">200dp</dimen>
+
+
+    <!-- ==================== Карточки ==================== -->
+    <dimen name="card_padding">16dp</dimen>
+    <dimen name="card_spacing">12dp</dimen>
+    <dimen name="card_error_padding">16dp</dimen>
+
+    <!-- ==================== Number Picker ==================== -->
+    <dimen name="number_picker_width">80dp</dimen>
+    <dimen name="number_picker_height">120dp</dimen>
+
+    <!-- ==================== Time Picker ==================== -->
+    <dimen name="time_picker_dialog_width">280dp</dimen>
+    <dimen name="time_picker_vertical_padding">8dp</dimen>
+    <dimen name="time_separator_vertical_padding">24dp</dimen>
+
+    <!-- ==================== Voice Recording ==================== -->
+    <dimen name="voice_dialog_width">350dp</dimen>
+    <dimen name="voice_dialog_height">530dp</dimen>
+    <dimen name="voice_dialog_padding">24dp</dimen>
+
+    <dimen name="voice_title_font_size">24sp</dimen>
+    <dimen name="voice_text_font_size">16sp</dimen>
+    <dimen name="voice_small_text_font_size">12sp</dimen>
+    <dimen name="voice_processing_text_font_size">14sp</dimen>
+
+    <dimen name="voice_spacing_small">5dp</dimen>
+    <dimen name="voice_spacing_medium">8dp</dimen>
+
+    <dimen name="voice_spacing_xlarge">20dp</dimen>
+    <dimen name="voice_spacing_xxlarge">24dp</dimen>
+
+    <dimen name="voice_icon_size">110dp</dimen>
+    <dimen name="voice_progress_indicator_size">48dp</dimen>
+    <dimen name="voice_progress_stroke_width">4dp</dimen>
+
+    <dimen name="voice_card_height">150dp</dimen>
+    <dimen name="voice_waveform_height">100dp</dimen>
+    <dimen name="voice_waveform_bar_width">4dp</dimen>
+    <dimen name="voice_waveform_bar_corner">2dp</dimen>
+    <dimen name="voice_waveform_bar_spacing">3dp</dimen>
+    <dimen name="voice_waveform_padding">16dp</dimen>
+
+    <dimen name="voice_button_corner_radius">12dp</dimen>
+    <dimen name="voice_button_spacing">12dp</dimen>
+
+    <!-- ==================== Analytics Screen ==================== -->
+    <dimen name="analytics_content_padding_bottom">140dp</dimen>
+    <dimen name="analytics_content_padding_top_offset">10dp</dimen>
+    <dimen name="analytics_chart_size">180dp</dimen>
+    <dimen name="analytics_chart_padding_bottom">16dp</dimen>
+    <dimen name="analytics_legend_box_size">10dp</dimen>
+    <dimen name="analytics_legend_padding_horizontal">10dp</dimen>
+
+    <dimen name="analytics_contact_avatar_size">40dp</dimen>
+    <dimen name="analytics_contact_padding_horizontal">12dp</dimen>
+    <dimen name="analytics_contact_padding_vertical">8dp</dimen>
+    <dimen name="analytics_contact_item_spacing_vertical">4dp</dimen>
+    <dimen name="analytics_section_padding_vertical">8dp</dimen>
+    <dimen name="analytics_empty_padding_vertical">12dp</dimen>
+
+    <!-- ==================== AI Dialog ==================== -->
+    <dimen name="ai_icon_size">20dp</dimen>
+    <dimen name="ai_copy_icon_size">18dp</dimen>
+    <dimen name="ai_dialog_padding">14dp</dimen>
+    <dimen name="ai_top_padding">8dp</dimen>
+
+    <!-- ==================== Кнопки ==================== -->
+    <dimen name="button_icon_size">18dp</dimen>
+    <dimen name="button_icon_padding">8dp</dimen>
+    <dimen name="button_icon_spacing">8dp</dimen>
+
+    <!-- ==================== Заметки ==================== -->
+    <dimen name="notes_title_spacing">12dp</dimen>
+    <dimen name="notes_button_spacing">16dp</dimen>
+    <dimen name="notes_bottom_padding">80dp</dimen>
+    <dimen name="notes_spacing_vertical">12dp</dimen>
+
+    <dimen name="screen_padding_bottom">100dp</dimen>
+
+
+    <dimen name="contact_list_search_field_offset">60dp</dimen>
+    <dimen name="contact_list_top_bar_height_offset">90dp</dimen>
+    <dimen name="contact_list_bottom_spacer">100dp</dimen>
+    <dimen name="contact_list_card_spacing">1dp</dimen>
+
+
+    <dimen name="top_bar_padding_top">35dp</dimen>
+    <dimen name="top_bar_padding_bottom">8dp</dimen>
+    <dimen name="top_bar_padding_horizontal">16dp</dimen>
+    <dimen name="search_field_corner_radius">20dp</dimen>
+    <dimen name="search_field_spacer_height">8dp</dimen>
+    <dimen name="category_chip_spacing">8dp</dimen>
+    <dimen name="top_bar_icon_size">16dp</dimen>
+
+
+    <!-- ProfileScreen размеры -->
+    <dimen name="profile_no_avatar_size">80dp</dimen>
+    <dimen name="profile_avatar_size">100dp</dimen>
+
+
+
+    <dimen name="profile_screen_padding_bottom">80dp</dimen>
+    <dimen name="profile_screen_padding_top">100dp</dimen>
+    <dimen name="profile_vertical_spacing">8dp</dimen>
+    <dimen name="profile_no_profile_padding">24dp</dimen>
+    <dimen name="profile_no_profile_spacing">24dp</dimen>
+    <dimen name="profile_no_profile_spacing_small">8dp</dimen>
+    <dimen name="profile_no_profile_spacing_large">32dp</dimen>
+    <dimen name="profile_settings_icon_size">28dp</dimen>
+    <dimen name="profile_bottom_spacer">24dp</dimen>
+
+
+
+
+    <dimen name="reminder_list_top_bar_offset">72dp</dimen>
+    <dimen name="reminder_list_bottom_spacer">80dp</dimen>
+    <dimen name="reminder_card_vertical_padding">8dp</dimen>
+    <dimen name="reminder_card_horizontal_padding">5dp</dimen>
+    <dimen name="reminder_card_spacing">1dp</dimen>
+    <dimen name="reminder_contact_avatar_size">56dp</dimen>
+    <dimen name="reminder_contact_avatar_placeholder_size">56dp</dimen>
+    <dimen name="reminder_contact_avatar_placeholder_corner">56dp</dimen>
+    <dimen name="reminder_contact_avatar_spacing">12dp</dimen>
+    <dimen name="reminder_contact_name_font_size">18sp</dimen>
+    <dimen name="reminder_checkbox_size">48dp</dimen>
+    <dimen name="reminder_card_corner_radius">5dp</dimen>
+    <dimen name="reminder_header_padding">12dp</dimen>
+
+
+    <dimen name="voice_card_padding">12dp</dimen>
+</resources>

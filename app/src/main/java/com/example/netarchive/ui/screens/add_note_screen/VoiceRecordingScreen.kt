@@ -50,6 +50,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.integerResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -57,6 +61,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.netarchive.R
 
 @Composable
 fun VoiceRecordingScreen(
@@ -80,7 +85,7 @@ fun VoiceRecordingScreen(
         if (isGranted) {
             viewModel.initialize(context)
         } else {
-            Toast.makeText(context, "Для записи голоса нужно разрешение", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, R.string.microphone_permission_required, Toast.LENGTH_LONG).show()
             viewModel.closeRecordingPage()
         }
     }
@@ -102,44 +107,44 @@ fun VoiceRecordingScreen(
     ) {
         Box(
             modifier = Modifier
-                .width(350.dp)
-                .height(530.dp)
-                .background(Color.White, shape = RoundedCornerShape(16.dp))
+                .width(dimensionResource(id = R.dimen.voice_dialog_width))
+                .height(dimensionResource(id = R.dimen.voice_dialog_height))
+                .background(colorResource(id = R.color.voice_dialog_background), shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_large)))
                 .clickable(onClick = {})
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(24.dp),
+                    .padding(dimensionResource(id = R.dimen.voice_dialog_padding)),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = if (state.isVoiceRecording) "Запись голоса..."
-                    else if (state.isVoiceProcessing) "Обработка..."
-                    else "Голосовая заметка",
-                    fontSize = 24.sp,
+                    text = if (state.isVoiceRecording) stringResource(R.string.voice_recording_in_progress)
+                    else if (state.isVoiceProcessing) stringResource(R.string.voice_processing)
+                    else stringResource(R.string.voice_recording_title),
+                    fontSize = dimensionResource(id = R.dimen.voice_title_font_size).value.sp,
                     fontWeight = FontWeight.Bold,
                 )
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.spacing_xlarge)))
 
                 if(state.isVoiceRecording){
                     Waveform(
                         isRecording = state.isVoiceRecording,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(140.dp)
+                            .height(dimensionResource(id = R.dimen.voice_waveform_height))
                     )
-                    Spacer(modifier = Modifier.height(5.dp))
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.voice_spacing_small)))
                     AnimatedText()
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.spacing_large)))
 
                 if (!state.isVoiceRecordDone && !state.isVoiceProcessing) {
                     IconButton(
                         onClick = {
                             if (vibrator.hasVibrator()) {
-                                vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
+                                vibrator.vibrate(VibrationEffect.createOneShot(R.integer.vibration_duration.toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
                             }
                             if (state.isVoiceRecording) {
                                 viewModel.stopListening()
@@ -147,59 +152,59 @@ fun VoiceRecordingScreen(
                                 viewModel.startListening()
                             }
                         },
-                        modifier = Modifier.size(110.dp),
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.voice_icon_size)),
                     ) {
                         Icon(
                             imageVector = if (state.isVoiceRecording)
                                 Icons.Outlined.Pause
                             else
                                 Icons.Outlined.Mic,
-                            contentDescription = if (state.isVoiceRecording) "Остановить" else "Запись",
-                            modifier = Modifier.size(110.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                            contentDescription = if (state.isVoiceRecording) stringResource(R.string.stop) else stringResource(R.string.record),
+                            modifier = Modifier.size(dimensionResource(id = R.dimen.voice_icon_size)),
+                            tint = colorResource(id = R.color.voice_waveform_color)
                         )
                     }
 
                     Text(
-                        text = if (state.isVoiceRecording) "Нажмите, чтобы остановить"
-                        else "Нажмите, чтобы начать запись",
-                        fontSize = 12.sp
+                        text = if (state.isVoiceRecording) stringResource(R.string.press_to_stop)
+                        else stringResource(R.string.press_to_start),
+                        fontSize = dimensionResource(id = R.dimen.voice_small_text_font_size).value.sp
                     )
                 } else if (state.isVoiceProcessing) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(48.dp),
-                        strokeWidth = 4.dp
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.voice_progress_indicator_size)),
+                        strokeWidth = dimensionResource(id = R.dimen.voice_progress_stroke_width)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.voice_spacing_medium)))
                     Text(
-                        text = "Обработка голоса...",
-                        fontSize = 14.sp
+                        text = stringResource(R.string.voice_processing),
+                        fontSize = dimensionResource(id = R.dimen.voice_processing_text_font_size).value.sp
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.spacing_large)))
 
                 if (state.recognizedText.isNotEmpty() && !state.isVoiceRecording) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(150.dp),
-                        shape = RoundedCornerShape(16.dp)
+                            .height(dimensionResource(id = R.dimen.voice_card_height)),
+                        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_large))
                     ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(16.dp)
+                                .padding(dimensionResource(id = R.dimen.voice_dialog_padding))
                         ) {
                             Column {
                                 Text(
-                                    text = "Распознанный текст:",
-                                    fontSize = 12.sp,
+                                    text = stringResource(R.string.recognized_text_label),
+                                    fontSize = dimensionResource(id = R.dimen.voice_small_text_font_size).value.sp,
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.voice_spacing_medium)))
                                 Text(
                                     text = state.recognizedText,
-                                    fontSize = 16.sp,
+                                    fontSize = dimensionResource(id = R.dimen.voice_text_font_size).value.sp,
                                 )
                             }
                         }
@@ -209,31 +214,31 @@ fun VoiceRecordingScreen(
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.voice_button_spacing))
                 ) {
                     if (state.isVoiceRecordDone) {
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.voice_button_spacing)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             OutlinedButton(
                                 onClick = { viewModel.closeRecordingPage() },
                                 modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(dimensionResource(id = R.dimen.voice_button_corner_radius))
                             ) {
-                                Text("Отмена")
+                                Text(stringResource(R.string.cancel))
                             }
 
-                            if(state.recognizedText.isNotBlank() && !state.recognizedText.startsWith("Речь не распознана")){
+                            if(state.recognizedText.isNotBlank() && !state.recognizedText.startsWith(stringResource(R.string.speech_not_recognized))){
                                 Button(
                                     onClick = {
                                         viewModel.applyRecognizedText()
                                         viewModel.closeRecordingPage()
                                     },
                                     modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(12.dp)
+                                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.voice_button_corner_radius))
                                 ) {
-                                    Text("Применить")
+                                    Text(stringResource(R.string.apply))
                                 }
                             }else{
                                 Button(
@@ -241,9 +246,9 @@ fun VoiceRecordingScreen(
                                         viewModel.startListening()
                                     },
                                     modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(12.dp)
+                                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.voice_button_corner_radius))
                                 ) {
-                                    Text("Ещё раз")
+                                    Text(stringResource(R.string.try_again))
                                 }
                             }
                         }
@@ -253,14 +258,14 @@ fun VoiceRecordingScreen(
                         Button(
                             onClick = { viewModel.closeRecordingPage() },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(dimensionResource(id = R.dimen.voice_button_corner_radius))
                         ) {
-                            Text("Закрыть")
+                            Text(stringResource(R.string.close))
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.voice_spacing_medium)))
             }
         }
     }
@@ -271,7 +276,7 @@ fun Waveform(
     isRecording: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val barCount = 50
+    val barCount = integerResource(id = R.integer.voice_waveform_bar_count)
 
     val infiniteTransition = rememberInfiniteTransition()
 
@@ -281,7 +286,7 @@ fun Waveform(
             targetValue = 1f,
             animationSpec = infiniteRepeatable(
                 animation = tween(
-                    durationMillis = 300 + index * 20,
+                    durationMillis = integerResource(id = R.integer.voice_animation_duration) + index * integerResource(id = R.integer.voice_animation_bar_delay),
                     easing = FastOutSlowInEasing
                 ),
                 repeatMode = RepeatMode.Reverse
@@ -291,14 +296,14 @@ fun Waveform(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp),
-        shape = RoundedCornerShape(16.dp)
+            .height(dimensionResource(id = R.dimen.voice_waveform_height)),
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_large))
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
                 .wrapContentSize(Alignment.Center)
-                .padding(16.dp),
+                .padding(dimensionResource(id = R.dimen.voice_waveform_padding)),
             verticalAlignment = Alignment.CenterVertically
         ) {
             animatedValues.forEach { anim ->
@@ -306,13 +311,13 @@ fun Waveform(
 
                 Box(
                     modifier = Modifier
-                        .width(4.dp)
-                        .height((20 + value * 60).dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(Color(0xFF4D5D8A))
+                        .width(dimensionResource(id = R.dimen.voice_waveform_bar_width))
+                        .height((integerResource(id = R.integer.voice_waveform_min_height) + (value * integerResource(id = R.integer.voice_animation_duration_long))).dp)
+                        .clip(RoundedCornerShape(dimensionResource(id = R.dimen.voice_waveform_bar_corner)))
+                        .background(colorResource(id = R.color.voice_waveform_color))
                 )
 
-                Spacer(modifier = Modifier.width(3.dp))
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.voice_waveform_bar_spacing)))
             }
         }
     }
@@ -322,9 +327,9 @@ fun Waveform(
 fun AnimatedText() {
     val dots by rememberInfiniteTransition().animateFloat(
         initialValue = 0f,
-        targetValue = 3f,
+        targetValue = integerResource(id = R.integer.voice_animation_dots_max).toFloat(),
         animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = LinearEasing),
+            animation = tween(integerResource(id = R.integer.voice_animation_dots_frame_duration), easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         )
     )
@@ -337,8 +342,8 @@ fun AnimatedText() {
     }
 
     Text(
-        text = "Говорите$dotsText",
-        fontSize = 16.sp,
+        text = stringResource(R.string.speak_now) + dotsText,
+        fontSize = dimensionResource(id = R.dimen.voice_text_font_size).value.sp,
         fontWeight = FontWeight.Medium
     )
 }

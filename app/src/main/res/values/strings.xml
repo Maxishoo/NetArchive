@@ -1,38 +1,280 @@
+
 <resources>
     <string name="app_name">NetArchive</string>
     <string name="empty_field">Не задано</string>
 
-    <string name="error_contacts_load">Ошибка загрузки контактов</string>
-    <string name="contacts_empty">Нет контактов</string>
-
     <string name="date">Дата</string>
     <string name="content_description_clock">Время</string>
-
     <string name="icon_event_description">Выбрать дату</string>
+
+
     <string name="cancel">Отмена</string>
+    <string name="close">Закрыть</string>
+    <string name="save">Сохранить</string>
+    <string name="create">Создать</string>
+    <string name="delete">удалить</string>
+
+    <string name="add_contact">Добавить контакт</string>
+    <string name="edit_contact">Редактировать контакт</string>
+
+
+    <string name="qr_code_add">По QR коду</string>
+
+
+
+    <string name="error_required_field">Обязательное поле</string>
+    <string name="error_general">Произошла ошибка</string>
+
+    <string name="birthday_placeholder">ДД.ММ.ГГГГ</string>
+    <string name="qr_scanner_title">Сканирование QR кода</string>
+
+
+    <!-- Ошибки валидации -->
+    <string name="error_username_required">Имя обязательно для заполнения</string>
+    <string name="error_saving_contact">Ошибка при сохранении: %s</string>
+    <string name="error_loading_photo">Ошибка загрузки фото: %s</string>
+    <string name="error_parsing_qr">Ошибка при разборе QR кода: %s</string>
+
+    <!-- QR параметры -->
+    <string name="qr_param_username">u</string>
+    <string name="qr_param_phone">p</string>
+    <string name="qr_param_email">e</string>
+    <string name="qr_param_telegram">t</string>
+    <string name="qr_param_max">m</string>
+    <string name="qr_param_job">j</string>
+    <string name="qr_param_birthday">b</string>
+
+    <!-- Сообщения об успехе -->
+    <string name="contact_saved_success">Контакт успешно сохранен</string>
+
+    <!-- Кодировка -->
+    <string name="charset_utf8">UTF-8</string>
+
+
+    <!-- Avatar описания (contentDescription) -->
+    <string name="avatar_content_description">Avatar</string>
+    <string name="avatar_select_content_description">Select Avatar</string>
+    <string name="avatar_change_content_description">Change Avatar</string>
+
+
+
+    <!-- Добавленные строки для Reminder -->
+    <string name="select_time">Выберите время</string>
+    <string name="hour_abbr">Ч</string>
+    <string name="minute_abbr">М</string>
+    <string name="time_separator">:</string>
+    <string name="ok">OK</string>
+    <string name="reminder_text_length">%1$d из %2$d</string>
 
     <string name="modify_note">Редактировать запись</string>
     <string name="add_note">Добавьте запись</string>
-    <string name="close">Закрыть</string>
+
     <string name="note_text">Текст заметки</string>
-    <string name="save">Сохранить</string>
-    <string name="create">Создать</string>
+    <string name="error_note_empty">Заметка не может быть пустой</string>
+    <string name="error_saving_note">Ошибка при сохранении: %s</string>
+    <string name="error_deleting_note">Ошибка при удалении: %s</string>
+
+    <!-- Ошибки голосового распознавания -->
+    <string name="error_speech_not_available">Распознавание речи не поддерживается на этом устройстве</string>
+    <string name="error_speech_recognizer_create">Не удалось создать SpeechRecognizer</string>
+    <string name="error_speech_no_match">Речь не распознана. Попробуйте еще раз.</string>
+    <string name="error_speech_timeout">Речь не обнаружена. Попробуйте еще раз.</string>
+    <string name="error_speech_network">Ошибка сети. Проверьте подключение.</string>
+    <string name="error_speech_network_timeout">Таймаут сети. Проверьте подключение.</string>
+    <string name="error_speech_audio">Ошибка записи аудио</string>
+    <string name="error_speech_client">Ошибка клиента</string>
+    <string name="error_speech_busy">Распознаватель занят</string>
+    <string name="error_speech_server">Ошибка сервера</string>
+    <string name="error_speech_unknown">Ошибка распознавания: %d</string>
+    <string name="error_speech_initialization">Ошибка инициализации: %s</string>
+    <string name="error_speech_start">Ошибка: %s</string>
+    <string name="speech_not_recognized">Речь не распознана</string>
+    <string name="voice_recording_title">Голосовая заметка</string>
+    <string name="voice_recording_in_progress">Запись голоса...</string>
+    <string name="voice_processing">Обработка...</string>
+
+    <string name="stop">Остановить</string>
+    <string name="record">Запись</string>
+    <string name="apply">Применить</string>
+    <string name="try_again">Ещё раз</string>
+
+    <!-- Подсказки -->
+    <string name="press_to_stop">Нажмите, чтобы остановить</string>
+    <string name="press_to_start">Нажмите, чтобы начать запись</string>
+    <string name="recognized_text_label">Распознанный текст:</string>
+    <string name="processing_voice">Обработка голоса...</string>
+    <string name="speak_now">Говорите</string>
+
+    <!-- Разрешения -->
+    <string name="microphone_permission_required">Для записи голоса нужно разрешение</string>
+
+    <!-- Toast сообщения -->
+    <string name="microphone_permission_denied">Для записи голоса нужно разрешение</string>
+
+    <!-- Подсказки для голосового ввода -->
+    <string name="speech_prompt">Говорите...</string>
+
+
+
+
+    <string name="contact_title">Контакт</string>
+    <string name="ai_hint">AI подсказка</string>
+    <string name="show_qr_code">Показать QR код</string>
+    <string name="tab_info">Информация</string>
+    <string name="tab_notes">Заметки</string>
+
+    <!-- Удаление контакта -->
+    <string name="delete_contact_title">Удалить контакт?</string>
+    <string name="delete_contact_confirmation">Вы уверены что хотите удалить контакт "%s"?</string>
+    <string name="delete_notes_warning">Все связанные заметки будут безвозвратно удалены</string>
+
+    <!-- AI диалоги -->
+    <string name="ai_generating_title">Генерирую подсказку...</string>
+    <string name="ai_analyzing">Анализирую информацию о контакте</string>
+    <string name="ai_ideas_title">Идеи для сообщения</string>
+    <string name="ai_copied">Скопировано</string>
+    <string name="ai_copy">Копировать</string>
+    <string name="ai_data_note">🔒 Данные обрабатываются анонимно</string>
+    <string name="ai_more_options">Ещё варианты</string>
+    <string name="ai_error">Ошибка</string>
+    <string name="ai_disabled_title">⚠️ AI отключен</string>
+    <string name="ai_disabled_message">AI функция временно недоступна</string>
+    <string name="ai_got_it">Понятно</string>
+
+    <!-- Кнопки -->
+    <string name="edit">Редактировать</string>
+    <string name="done">Готово</string>
+    <string name="no_notes">Нет заметок</string>
+
+    <!-- Поля -->
+    <string name="name_field">Имя *</string>
+    <string name="phone_field">Телефон</string>
+    <string name="max_field">MAX</string>
+    <string name="email_field">Email</string>
+    <string name="telegram_field">Telegram</string>
+    <string name="birthday_field">Дата рождения</string>
+    <string name="job_field">Работа</string>
+    <string name="description_field">Описание</string>
+    <string name="categories_label">Категории:</string>
+
+
+    <string name="notes_about">Заметки о %s</string>
+
+
+    <!-- Контент описания -->
+    <string name="call">Позвонить</string>
+    <string name="write_email">Написать email</string>
+    <string name="open_telegram">Открыть Telegram</string>
+    <string name="select_date">Выбрать дату</string>
+
+
     <string name="reminder_text">Текст напоминания</string>
     <string name="add_reminder">Добавьте напоминание</string>
     <string name="modify_reminder">Редактировать напоминание</string>
 
 
-    <string name="reminders_title">Напоминания</string>
+
     <string name="error_reminders_load">Не удалось загрузить напоминания</string>
     <string name="reminders_empty">Список напоминаний пуст</string>
     <string name="sort_reminders">Сортировка</string>
     <string name="sort_by_date">По дате</string>
     <string name="no_contact">Без контакта</string>
     <string name="contact_label">Контакт: %s</string>
+    <string name="error_reminder_text_empty">Текст не может быть пустым</string>
+    <string name="error_reminder_text_too_long">Превышен лимит в %d символов</string>
+    <string name="error_reminder_text_blank">Введите текст напоминания</string>
+    <string name="error_reminder_text_too_long_detail">Текст слишком длинный (макс. %d символов)</string>
+    <string name="error_reminder_date_past">Дата не может быть в прошлом</string>
+    <string name="error_reminder_datetime_past">Указана прошедшая дата и время</string>
+    <string name="error_reminder_datetime_too_far">Дата слишком далеко (макс. %d дней)</string>
+    <string name="error_reminder_save">Ошибка при сохранении: %s</string>
+    <string name="error_reminder_delete">Ошибка при удалении: %s</string>
+    <string name="error_reminder_not_exist">Нельзя удалить несуществующее напоминание</string>
+    <string name="error_unknown">Неизвестная ошибка</string>
+    <!-- Заголовки уведомлений -->
+    <string name="reminder_notification_title">Напоминание</string>
+
+
+    <string name="analytics_title">Аналитика</string>
+    <string name="section_overall_stats">📈 Общая статистика</string>
+    <string name="section_top_contacts">🔥 Топ контактов</string>
+    <string name="section_write_soon">💬 Пора написать</string>
+    <string name="section_categories">📁 Распределение по категориям</string>
+
+    <!-- Статистика -->
+    <string name="stat_total">Всего</string>
+    <string name="stat_new_this_month">Новых за мес.</string>
+    <string name="stat_active">Активных</string>
+
+    <!-- Пустые состояния -->
+    <string name="empty_no_data">Пока нет данных</string>
+    <string name="empty_all_ok">Все контакты в порядке! 🎉</string>
+    <string name="empty_no_chart_data">Нет данных для графика</string>
+    <string name="empty_no_categories">Нет контактов в категориях</string>
+
+    <!-- Кнопки -->
+    <string name="show_all">Показать всех (%d ещё) ▼</string>
+    <string name="collapse">Свернуть ▲</string>
+
+    <!-- Контакт -->
+    <string name="contact_avatar_description">Avatar of %s</string>
+    <string name="default_avatar">?</string>
+    <string name="contact_avatar_placeholder">?</string>
+    <string name="change_avatar">Сменить аватар</string>
+    <string name="contact_long_not_written">Давно не общались</string>
 
     <string name="selected">выбрано</string>
     <string name="sort_by">Сортировка</string>
     <string name="reminders_deleted">Напоминания удалены</string>
     <string name="sort_by_contact_then_date">По контакту</string>
-    <string name="delete">удалить</string>
+
+
+    <!-- ContactViewViewModel -->
+    <string name="error_loading_contact">Ошибка при загрузке: %s</string>
+    <string name="contact_not_found">Контакт не найден</string>
+    <string name="error_cannot_open_uri">Cannot open URI</string>
+    <string name="error_deleting_contact">Ошибка при удалении: %s</string>
+
+    <string name="ai_system_prompt">Ты — помощник по нетворкингу. Помогаешь пользователю поддержать связь с контактами.\n\nЗАДАЧА:\nПредложи 3 варианта сообщения для мессенджера (Telegram/WhatsApp).\nДлина: 1-3 предложения, естественно для переписки.\n\nТОН ПО КАТЕГОРИЯМ:\n- \"Друг\", \"Знакомый\" → Тёплый, дружеский, можно смайлики \n- \"Коллега\" → Дружелюбный, рабочий, без излишней формальности\n- \"Инвестор\", \"Партнёр\", \"Клиент\" → Вежливый, уважительный, но не сухой\n- Нет категорий → Нейтрально-дружелюбный\n\nРАБОТА С ЗАМЕТКАМИ:\n- Если в заметке описано СОБЫТИЕ (встретились, сходили, обсудили) → Ссылайся на него уверенно: \"Было здорово на рыбалке!\"\n- НЕ используй \"нашу/наше\", если из заметки не ясно, что вы были ВМЕСТЕ\n- Если заметка про ЕГО событие (рассказал про, съездил, был) → Спроси с интересом: \"Как твоя рыбалка? Удачно?\", \"Как съездил?\"\n- Если заметка о БУДУЩЕМ (договорились, планируем) → Спроси о статусе: \"Как продвижение по тому вопросу?\"\n- Если заметок много (3+) → Опирайся на последние 1-2, не перечисляй всё\n- Если заметок нет → Просто тёплое приветствие без выдумок\n- Если есть описание → используй для персонализации (интересы, общие темы)\n\nВАЖНО:\n- НЕ выдумывай темы, которых нет в данных (проекты, встречи, сроки)\n- НЕ пиши канцелярит (\"Уважаемый\", \"Прошу сообщить\") — это мессенджер!\n- НЕ спрашивай \"Как дела?\" в лоб — привяжи к контексту\n\nФОРМАТ:\n- 3 варианта, каждый с новой строки с тире\n- Без пояснений, только готовые сообщения</string>
+    <string name="ai_generate_error">Не удалось сгенерировать подсказки</string>
+    <string name="ai_error_message">Ошибка AI: %s</string>
+
+    <string name="error_contacts_load">Ошибка загрузки контактов</string>
+    <string name="contacts_empty">Нет контактов</string>
+
+
+    <!-- ContactsTopBar -->
+    <string name="search_hint">Поиск контактов</string>
+    <string name="search_close">Закрыть</string>
+    <string name="search_icon">Поиск</string>
+    <string name="all_categories">Все</string>
+    <string name="select_contact_title">Выберите контакт</string>
+    <string name="contacts_title">Контакты</string>
+    <string name="reminders_title">Напоминания</string>
+
+    <!-- ProfileScreen -->
+    <string name="profile_title">Профиль</string>
+    <string name="profile_show_qr">Показать QR код</string>
+    <string name="profile_settings">Настройки</string>
+    <string name="profile_create_title">Создайте профиль, чтобы делиться им с другими</string>
+    <string name="profile_create_description">Чтобы продолжить, нажмите кнопку создать</string>
+
+
+    <string name="profile_avatar">Avatar</string>
+    <string name="profile_unknown">?</string>
+
+
+    <!-- ReminderListScreen -->
+    <string name="reminder_overdue">Просрочено</string>
+    <string name="reminder_sort_by_contact">Сортировка по контакту</string>
+    <string name="reminder_no_contact">Нет контакта</string>
+    <string name="reminder_unknown">?</string>
+    <string name="reminder_avatar_description">Avatar of %s</string>
+
+    <string name="contact_label_with_value">Контакт: %s</string>
+    <string name="job_field_with_value">Работа: %s</string>
+    <string name="description_field_with_value">Описание: %s</string>
+    <string name="categories_label_with_value">Категории: %s</string>
+    <string name="notes_about_">Заметки о контакте:</string>
 </resources>
+

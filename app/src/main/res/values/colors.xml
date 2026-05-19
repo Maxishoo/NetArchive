@@ -7,4 +7,50 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="top_bar_background">#ECEBF4</color>
+    <color name="header_background_alpha">#F2ECEBF4</color>
+
+
+    <color name="text_primary">#000000</color>
+    <color name="text_error">#B00020</color>
+
+    <color name="voice_dialog_background">#FFFFFF</color>
+    <color name="voice_waveform_color">#FF4D5D8A</color>
+    <color name="voice_waveform_color_dark">#4D5D8A</color>
+
+    <color name="card_background">#ECEBF4</color>
+    <color name="avatar_placeholder_background">#DDDDE7</color>
+    <color name="highlight_text">#D75C5C</color>
+    <color name="supporting_text_alpha_color">#99000000</color>
+
+
+    <!-- Цвета для круговой диаграммы -->
+    <color name="chart_green">#4CAF50</color>
+    <color name="chart_blue">#2196F3</color>
+    <color name="chart_orange">#FF9800</color>
+    <color name="chart_pink">#E05080</color>
+    <color name="chart_purple">#9C27B0</color>
+    <color name="chart_cyan">#00BCD4</color>
+    <color name="chart_brown">#795548</color>
+    <color name="chart_gray">#607D8B</color>
+
+
+    <color name="search_field_background">#E3F2FD</color>
+    <color name="top_bar_text">#000000</color>
+    <color name="top_bar_icon_tint">#000000</color>
+
+    <!-- ProfileScreen цвета -->
+
+    <color name="profile_button_active">#4D5D8A</color>
+    <color name="profile_button_disabled">#4D000000</color>
+    <color name="profile_no_avatar_icon_tint">#FF808080</color>
+    <color name="profile_text_hint">#FF808080</color>
+    <color name="profile_text_field_focused_border">#FF64B5F6</color>
+    <color name="profile_text_field_unfocused_border">#FF90CAF9</color>
+
+
+    <color name="reminder_contact_avatar_placeholder">#DBE0F7</color>
+
+
 </resources>

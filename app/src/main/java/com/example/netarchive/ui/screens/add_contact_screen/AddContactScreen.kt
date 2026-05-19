@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.netarchive.R
 import com.example.netarchive.ui.components.CategorySelector
 import com.example.netarchive.ui.components.QrScannerDialog
 import com.example.netarchive.ui.theme.NetArchiveTheme
@@ -29,6 +30,10 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.integerResource
+import androidx.compose.ui.res.stringResource
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -117,10 +122,10 @@ fun AddContactScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = dimensionResource(id = R.dimen.padding_horizontal_screen))
                 .verticalScroll(rememberScrollState())
-                .padding(top = 90.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(top = dimensionResource(id = R.dimen.top_padding)),
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_small)),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AvatarSelector(
@@ -133,7 +138,7 @@ fun AddContactScreen(
                 selectedCategories = selectedCategories,
                 onCategoriesChanged = viewModel::setSelectedCategories,
                 onCreateCategory = viewModel::createCategory,
-                modifier = Modifier.padding(vertical = 8.dp)
+                modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.spacing_small))
             )
 
             UsernameField(
@@ -190,11 +195,16 @@ fun AddContactScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(color = Color(0xFFECEBF4).copy(alpha = 0.95f))
-                .padding(top = 30.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
+                .background(color = colorResource(id = R.color.top_bar_background).copy(alpha = 0.95f))
+                .padding(
+                    top = dimensionResource(id = R.dimen.padding_top_header),
+                    bottom = dimensionResource(id = R.dimen.padding_bottom_header),
+                    start = dimensionResource(id = R.dimen.padding_horizontal_screen),
+                    end = dimensionResource(id = R.dimen.padding_horizontal_screen)
+                )
         ) {
             ContactHeader(
-                title = "Добавить контакт",
+                title = stringResource(id = R.string.add_contact),
                 onBackClick = onBackClick
             )
         }
@@ -209,9 +219,9 @@ private fun ContactHeader(
     modifier: Modifier = Modifier
 ) {
     Text(
-        text = "Добавить контакт",
+        text = title,
         style = MaterialTheme.typography.headlineLarge,
-        color = Color.Black
+        color = MaterialTheme.colorScheme.onBackground
     )
 }
 
@@ -224,7 +234,7 @@ private fun ErrorSection(
         text = errorMessage,
         color = MaterialTheme.colorScheme.error,
         style = MaterialTheme.typography.bodySmall,
-        modifier = modifier.padding(vertical = 4.dp)
+        modifier = modifier.padding(vertical = dimensionResource(id = R.dimen.spacing_error_text))
     )
 }
 
@@ -244,19 +254,19 @@ private fun ContactActions(
         Icon(
             imageVector = Icons.Filled.QrCode,
             contentDescription = null,
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(dimensionResource(id = R.dimen.button_icon_size))
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.button_icon_spacing)))
         Text(
-            text = "По QR коду",
+            text = stringResource(id = R.string.qr_code_add),
             style = MaterialTheme.typography.labelLarge
         )
     }
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = 120.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(bottom = dimensionResource(id = R.dimen.padding_bottom_actions)),
+        horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_between_buttons)),
     ) {
         Button(
             onClick = onBackClick,
@@ -266,7 +276,7 @@ private fun ContactActions(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
         ) {
-            Text("Отмена")
+            Text(stringResource(id = R.string.cancel))
         }
 
         Button(
@@ -276,11 +286,11 @@ private fun ContactActions(
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.progress_indicator_size)),
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text("Сохранить")
+                Text(stringResource(id = R.string.save))
             }
         }
     }
@@ -294,12 +304,12 @@ private fun UsernameField(
     isError: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val supportingText = if (isError) "Обязательное поле" else null
+    val supportingText = if (isError) stringResource(id = R.string.error_required_field) else null
 
     FormTextField(
         value = value,
         onValueChange = onValueChange,
-        label = "Имя *",
+        label = stringResource(id = R.string.name_field),
         isError = isError,
         supportingText = supportingText,
         modifier = modifier
@@ -315,7 +325,7 @@ private fun PhoneField(
     FormTextField(
         value = value,
         onValueChange = onValueChange,
-        label = "Телефон",
+        label = stringResource(id = R.string.phone_field),
         modifier = modifier
     )
 }
@@ -329,7 +339,7 @@ private fun EmailField(
     FormTextField(
         value = value,
         onValueChange = onValueChange,
-        label = "Email",
+        label = stringResource(id = R.string.email_field),
         modifier = modifier
     )
 }
@@ -343,7 +353,7 @@ private fun TelegramField(
     FormTextField(
         value = value,
         onValueChange = onValueChange,
-        label = "Telegram",
+        label = stringResource(id = R.string.telegram_field),
         modifier = modifier
     )
 }
@@ -357,7 +367,7 @@ private fun MaxField(
     FormTextField(
         value = value,
         onValueChange = onValueChange,
-        label = "MAX",
+        label = stringResource(id = R.string.max_field),
         modifier = modifier
     )
 }
@@ -371,7 +381,7 @@ private fun JobField(
     FormTextField(
         value = value,
         onValueChange = onValueChange,
-        label = "Место работы",
+        label = stringResource(id = R.string.job_field),
         modifier = modifier
     )
 }
@@ -385,14 +395,16 @@ private fun FormTextField(
     isError: Boolean = false,
     supportingText: String? = null
 ) {
+    val isDescription = label == stringResource(id = R.string.description_field)
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         modifier = modifier.fillMaxWidth(),
-        singleLine = label != "Описание",
-        minLines = if (label == "Описание") 3 else 1,
-        maxLines = if (label == "Описание") 5 else 1,
+        singleLine = !isDescription,
+        minLines = if (isDescription) integerResource(id = R.integer.min_lines_description) else 1,
+        maxLines = if (isDescription) integerResource(id = R.integer.max_lines_description) else 1,
         isError = isError,
         supportingText = supportingText?.let { { Text(it) } },
         colors = OutlinedTextFieldDefaults.colors(
@@ -403,6 +415,7 @@ private fun FormTextField(
         )
     )
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -431,8 +444,8 @@ private fun BirthdayField(
     OutlinedTextField(
         value = displayText,
         onValueChange = { },
-        label = { Text("Дата рождения") },
-        placeholder = { Text("") },
+        label = { Text(stringResource(id = R.string.birthday_field)) },
+        placeholder = { Text(stringResource(id = R.string.birthday_placeholder)) },
         modifier = modifier.fillMaxWidth(),
         enabled = isEditMode,
         readOnly = true,
@@ -441,7 +454,7 @@ private fun BirthdayField(
         trailingIcon = {
             Icon(
                 imageVector = Icons.Default.CalendarToday,
-                contentDescription = "Выбрать дату",
+                contentDescription = stringResource(id = R.string.icon_event_description),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = modifier.clickable(enabled = isEditMode) {
                     showDatePicker = true
@@ -480,7 +493,7 @@ private fun DescriptionField(
     FormTextField(
         value = value,
         onValueChange = onValueChange,
-        label = "Описание",
+        label = stringResource(id = R.string.description_field),
         modifier = modifier,
         isError = false
     )

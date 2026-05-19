@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="vibration_duration">10</integer>
+    <integer name="max_reminder_text_length">500</integer>
+    <integer name="number_picker_min_hour">0</integer>
+    <integer name="number_picker_max_hour">23</integer>
+    <integer name="number_picker_min_minute">0</integer>
+    <integer name="number_picker_max_minute">59</integer>
+    <integer name="text_field_max_lines">2147483647</integer>
+
+    <integer name="voice_waveform_bar_count">50</integer>
+    <integer name="voice_waveform_min_height">20</integer>
+    <integer name="voice_waveform_max_multiplier">60</integer>
+    <integer name="voice_animation_repeat_count">-1</integer>
+    <integer name="voice_animation_dots_max">3</integer>
+    <integer name="voice_animation_dots_frame_duration">1000</integer>
+
+
+    <integer name="reminder_max_text_length">500</integer>
+    <integer name="reminder_max_future_days">365</integer>
+    <integer name="reminder_sharing_timeout_ms">5000</integer>
+
+    <integer name="top_contacts_limit">5</integer>
+    <integer name="chart_palette_size">8</integer>
+    <integer name="chart_chunk_size">2</integer>
+
+    <!-- Константы аналитики -->
+    <integer name="analytics_forgotten_months">6</integer>
+    <integer name="analytics_most_active_limit">5</integer>
+    <integer name="analytics_sharing_timeout_ms">5000</integer>
+
+    <!-- Константы времени -->
+    <integer name="millis_per_day">86400000</integer> <!-- 24 * 60 * 60 * 1000 -->
+    <integer name="legend_chunk_size">2</integer>
+
+    <integer name="min_lines_description">3</integer>
+    <integer name="max_lines_description">5</integer>
+
+
+
+    <integer name="voice_animation_duration">300</integer>
+    <integer name="voice_animation_duration_long">1000</integer>
+    <integer name="voice_animation_bar_delay">20</integer>
+
+    <integer name="contact_list_search_debounce_ms">100</integer>
+    <integer name="contact_list_sharing_timeout_ms">5000</integer>
+    <integer name="contact_list_search_animation_duration_ms">300</integer>
+
+</resources>

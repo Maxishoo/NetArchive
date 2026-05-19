@@ -17,6 +17,10 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.integerArrayResource
+import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.res.stringResource
 import com.example.netarchive.R
 import com.example.netarchive.ui.components.cards.ActionButtonsSaveCancel
@@ -82,14 +86,27 @@ fun CreateNoteScreen(
         }
     }
 
+    val resources = LocalResources.current
+
     LaunchedEffect(state.error) {
         state.error?.let { error ->
-            snackbarHostState.showSnackbar(error)
+            val message = when (error) {
+                NoteError.EmptyNoteText -> resources.getString(R.string.error_note_empty)
+                is NoteError.SaveError -> resources.getString(R.string.error_saving_note, error.cause.orEmpty())
+                is NoteError.DeleteError -> resources.getString(R.string.error_deleting_note, error.cause.orEmpty())
+                NoteError.SpeechNotSupported -> resources.getString(R.string.error_speech_not_available)
+                NoteError.SpeechRecognizerCreationFailed -> resources.getString(R.string.error_speech_recognizer_create)
+                is NoteError.SpeechRecognitionError -> resources.getString(R.string.error_speech_unknown, error.code)
+                NoteError.SpeechNotRecognized -> resources.getString(R.string.speech_not_recognized)
+                is NoteError.InitializationError -> resources.getString(R.string.error_speech_initialization, error.cause.orEmpty())
+            }
+            snackbarHostState.showSnackbar(message)
             viewModel.clearError()
         }
     }
 
-    Scaffold(
+
+        Scaffold(
         topBar = {
             TopAppBar(
                 title = {
@@ -116,9 +133,9 @@ fun CreateNoteScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 100.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(dimensionResource(R.dimen.padding_horizontal_screen))
+                .padding(dimensionResource(R.dimen.screen_padding_bottom)),
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_large))
         ) {
             SimpleContactCard(
                 contactName = state.contactName,
@@ -147,7 +164,7 @@ fun CreateNoteScreen(
                 label = { Text(stringResource(R.string.note_text)) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(300.dp),
+                    .height(dimensionResource(R.dimen.note_text_field_height)),
                 maxLines = Int.MAX_VALUE
             )
 
@@ -156,13 +173,13 @@ fun CreateNoteScreen(
             ActionButtonsSaveCancel(
                 onCancelClick = {
                     if (vibrator.hasVibrator()) {
-                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
+                        vibrator.vibrate(VibrationEffect.createOneShot(R.integer.vibration_duration.toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
                     }
                     onBackClick()
                 },
                 onSaveClick = {
                     if (vibrator.hasVibrator()) {
-                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
+                        vibrator.vibrate(VibrationEffect.createOneShot(R.integer.vibration_duration.toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
                     }
                     viewModel.saveNote()
                 },

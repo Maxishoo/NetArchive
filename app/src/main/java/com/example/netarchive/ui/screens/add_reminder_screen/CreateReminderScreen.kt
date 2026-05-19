@@ -15,10 +15,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -28,8 +30,6 @@ import com.example.netarchive.ui.components.cards.DateTimeSelector_with_valid
 import com.example.netarchive.ui.components.cards.SimpleContactCard
 import com.example.netarchive.ui.components.cards.TimeSelectorCard
 import java.util.*
-
-const val MAX_TEXT_LENGTH = 500
 
 @Composable
 private fun NumberPickerCard(
@@ -52,7 +52,9 @@ private fun NumberPickerCard(
                     }
                 }
             },
-            modifier = Modifier.width(80.dp).height(120.dp),
+            modifier = Modifier
+                .width(dimensionResource(id = R.dimen.number_picker_width))
+                .height(dimensionResource(id = R.dimen.number_picker_height)),
             update = { picker ->
                 if (picker.value != curvalue) {
                     picker.value = curvalue
@@ -90,12 +92,12 @@ private fun TimePickerDialogContent(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Выберите время") },
+        title = { Text(stringResource(R.string.select_time)) },
         text = {
             Column(
                 modifier = Modifier
-                    .padding(vertical = 8.dp)
-                    .width(280.dp),
+                    .padding(vertical = dimensionResource(id = R.dimen.time_picker_vertical_padding))
+                    .width(dimensionResource(id = R.dimen.time_picker_dialog_width)),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Row(
@@ -105,15 +107,19 @@ private fun TimePickerDialogContent(
                     NumberPickerCard(
                         curvalue = hour,
                         onValueChange = { hour = it },
-                        range = 0..23,
-                        label = "Ч"
+                        range = integerResource(id = R.integer.number_picker_min_hour)..integerResource(id = R.integer.number_picker_max_hour),
+                        label = stringResource(R.string.hour_abbr)
                     )
-                    Text(":", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 24.dp))
+                    Text(
+                        stringResource(R.string.time_separator),
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.time_separator_vertical_padding))
+                    )
                     NumberPickerCard(
                         curvalue = minute,
                         onValueChange = { minute = it },
-                        range = 0..59,
-                        label = "М"
+                        range = integerResource(id = R.integer.number_picker_min_minute)..integerResource(id = R.integer.number_picker_max_minute),
+                        label = stringResource(R.string.minute_abbr)
                     )
                 }
             }
@@ -133,12 +139,12 @@ private fun TimePickerDialogContent(
                     onTimeSelected(selectedCalendar.timeInMillis)
                 }
             ) {
-                Text("OK")
+                Text(stringResource(R.string.ok))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Отмена")
+                Text(stringResource(R.string.cancel))
             }
         }
     )
@@ -153,33 +159,27 @@ fun CreateReminderScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isSaveEnabled by viewModel.isSaveEnabled.collectAsStateWithLifecycle()
-
     val snackbarHostState = remember { SnackbarHostState() }
-
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
     val onDateClick: () -> Unit = remember { { showDatePicker = true } }
     val onTimeClick: () -> Unit = remember { { showTimePicker = true } }
-
     val onDateSelected: (Long) -> Unit = remember { { selectedMillis ->
         viewModel.onDateSelected(selectedMillis)
         showDatePicker = false
     } }
-
     val onTimeSelected: (Long) -> Unit = remember { { selectedMillis ->
         viewModel.onTimeSelected(selectedMillis)
         showTimePicker = false
     } }
-
     val onDismissPickers: () -> Unit = remember { {
         showDatePicker = false
         showTimePicker = false
         viewModel.clearDateTimeErrors()
     } }
-
-    val context = LocalContext.current
-    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
@@ -187,10 +187,21 @@ fun CreateReminderScreen(
             viewModel.resetSuccess()
         }
     }
+    val resources = LocalResources.current
 
     LaunchedEffect(state.error) {
         state.error?.let { error ->
-            snackbarHostState.showSnackbar(error)
+            val message = when (error) {
+                ReminderError.EmptyText, ReminderError.TextBlank -> resources.getString(R.string.error_reminder_text_empty)
+                is ReminderError.TextTooLong -> resources.getString(R.string.error_reminder_text_too_long_detail, error.maxLength)
+                ReminderError.DatePast -> resources.getString(R.string.error_reminder_date_past)
+                ReminderError.DateTimePast -> resources.getString(R.string.error_reminder_datetime_past)
+                is ReminderError.DateTimeTooFar -> resources.getString(R.string.error_reminder_datetime_too_far, error.maxDays)
+                is ReminderError.SaveError -> resources.getString(R.string.error_reminder_save, error.cause.orEmpty())
+                is ReminderError.DeleteError -> resources.getString(R.string.error_reminder_delete, error.cause.orEmpty())
+                ReminderError.ReminderNotExist -> resources.getString(R.string.error_reminder_not_exist)
+            }
+            snackbarHostState.showSnackbar(message)
             viewModel.clearError()
         }
     }
@@ -205,14 +216,13 @@ fun CreateReminderScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = if (state.isEditMode) stringResource(R.string.modify_reminder) else stringResource(
-                        R.string.add_reminder,
-                    ),
+                    Text(
+                        text = if (state.isEditMode) stringResource(R.string.modify_reminder) else stringResource(R.string.add_reminder),
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f)
+                    containerColor = colorResource(id = R.color.top_bar_background).copy(alpha = 0.95f)
                 ),
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
@@ -231,9 +241,9 @@ fun CreateReminderScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 100.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = dimensionResource(id = R.dimen.padding_horizontal_screen))
+                .padding(bottom = dimensionResource(id = R.dimen.reminder_list_bottom_spacer)),
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_large))
         ) {
             SimpleContactCard(
                 contactName = state.contactName,
@@ -243,16 +253,13 @@ fun CreateReminderScreen(
                 selectedDate = state.timestamp,
                 onDateClick = onDateClick,
                 isError = state.hasDateError,
-
-                )
+            )
             TimeSelectorCard(
                 selectedTime = state.timestamp,
                 onTimeClick = onTimeClick,
                 isError = state.hasTimeError,
                 errorMessage = state.dateTimeErrorMessage
             )
-
-
             if (showDatePicker) {
                 DatePickerDialogWrapper(
                     initialDate = state.timestamp,
@@ -260,7 +267,6 @@ fun CreateReminderScreen(
                     onDismiss = onDismissPickers
                 )
             }
-
             if (showTimePicker) {
                 TimePickerDialogContent(
                     initialTime = state.timestamp,
@@ -273,22 +279,20 @@ fun CreateReminderScreen(
                 value = state.reminderText,
                 onValueChange = viewModel::onReminderTextChange,
                 textLength = state.textLength,
-                maxLength = MAX_TEXT_LENGTH,
+                maxLength = integerResource(id = R.integer.reminder_max_text_length),
                 isError = state.hasTextError
             )
-
             Spacer(modifier = Modifier.weight(1f))
-
             ActionButtonsSaveCancel(
                 onCancelClick = {
                     if (vibrator.hasVibrator()) {
-                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
+                        vibrator.vibrate(VibrationEffect.createOneShot(R.integer.vibration_duration.toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
                     }
                     onBackClick()
                 },
                 onSaveClick = {
                     if (vibrator.hasVibrator()) {
-                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
+                        vibrator.vibrate(VibrationEffect.createOneShot(R.integer.vibration_duration.toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
                     }
                     viewModel.saveReminder()
                 },
@@ -310,7 +314,6 @@ private fun DatePickerDialogWrapper(
     val calendar = Calendar.getInstance().apply {
         timeInMillis = if (initialDate > 0) initialDate else System.currentTimeMillis()
     }
-
     DisposableEffect(Unit) {
         val dialog = DatePickerDialog(
             context,
@@ -331,7 +334,6 @@ private fun DatePickerDialogWrapper(
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         )
-
         val startOfToday = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
@@ -339,10 +341,8 @@ private fun DatePickerDialogWrapper(
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
         dialog.datePicker.minDate = startOfToday - 1000L
-
         dialog.setOnDismissListener { onDismiss() }
         dialog.show()
-
         onDispose { dialog.dismiss() }
     }
 }
@@ -353,7 +353,7 @@ private fun ReminderTextField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     textLength: Int = 0,
-    maxLength: Int = MAX_TEXT_LENGTH,
+    maxLength: Int,
     isError: Boolean = false
 ) {
     OutlinedTextField(
@@ -363,12 +363,12 @@ private fun ReminderTextField(
         placeholder = { Text(stringResource(R.string.reminder_text)) },
         modifier = modifier
             .fillMaxWidth()
-            .height(200.dp),
+            .height(dimensionResource(id = R.dimen.reminder_text_field_height)),
         maxLines = Int.MAX_VALUE,
         isError = isError,
         supportingText = {
             Text(
-                text = "$textLength / $maxLength",
+                text = stringResource(R.string.reminder_text_length, textLength, maxLength),
                 color = if (isError || textLength > maxLength) {
                     MaterialTheme.colorScheme.error
                 } else {

@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.netarchive.data.local.db.AppDatabase
 import com.example.netarchive.data.repository.ReminderRepository
 import com.example.netarchive.domain.model.Reminder
 import com.example.netarchive.utils.ReminderScheduler
@@ -19,6 +18,18 @@ import java.util.Calendar
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
+
+sealed class ReminderError {
+    object EmptyText : ReminderError()
+    object TextBlank : ReminderError()
+    data class TextTooLong(val maxLength: Int) : ReminderError()
+    object DatePast : ReminderError()
+    object DateTimePast : ReminderError()
+    data class DateTimeTooFar(val maxDays: Long) : ReminderError()
+    data class SaveError(val cause: String?) : ReminderError()
+    data class DeleteError(val cause: String?) : ReminderError()
+    object ReminderNotExist : ReminderError()
+}
 
 private object ReminderValidation {
     const val MAX_TEXT_LENGTH = 500
@@ -35,7 +46,7 @@ data class CreateReminderState(
     val timestamp: Long = System.currentTimeMillis(),
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
-    val error: String? = null,
+    val error: ReminderError? = null,
     val isEditMode: Boolean = false,
     val textLength: Int = 0,
     val hasTextError: Boolean = false,
@@ -54,7 +65,6 @@ class CreateReminderViewModel @Inject constructor(
     private val contactId: Int = checkNotNull(savedStateHandle["contactId"]) { "contactId required" }
     private val contactName: String = checkNotNull(savedStateHandle["contactName"]) { "contactName required" }
     private val contactAvatar: String? = savedStateHandle["contactAvatar"]
-
     private val reminderId: Int? = savedStateHandle["reminderId"]
     private val reminderText: String? = savedStateHandle["reminderText"]
     private val reminderTimestamp: Long? = savedStateHandle["reminderDate"]
@@ -95,18 +105,17 @@ class CreateReminderViewModel @Inject constructor(
         } else {
             value
         }
-
         val hasError = trimmedValue.isBlank() || trimmedValue.length > ReminderValidation.MAX_TEXT_LENGTH
-
+        val error = when {
+            trimmedValue.isBlank() -> ReminderError.TextBlank
+            trimmedValue.length > ReminderValidation.MAX_TEXT_LENGTH -> ReminderError.TextTooLong(ReminderValidation.MAX_TEXT_LENGTH)
+            else -> null
+        }
         _state.value = _state.value.copy(
             reminderText = trimmedValue,
             textLength = trimmedValue.length,
             hasTextError = hasError,
-            error = when {
-                trimmedValue.isBlank() -> "Текст не может быть пустым"
-                trimmedValue.length > ReminderValidation.MAX_TEXT_LENGTH -> "Превышен лимит в ${ReminderValidation.MAX_TEXT_LENGTH} символов"
-                else -> null
-            }
+            error = error
         )
     }
 
@@ -134,16 +143,25 @@ class CreateReminderViewModel @Inject constructor(
         val isPast = timestamp < now
         val maxFuture = now + (ReminderValidation.MAX_FUTURE_DAYS * ReminderValidation.MILLIS_PER_DAY)
         val isTooFar = timestamp > maxFuture
-
+        val error = when {
+            isPast -> ReminderError.DateTimePast
+            isTooFar -> ReminderError.DateTimeTooFar(ReminderValidation.MAX_FUTURE_DAYS)
+            else -> null
+        }
         _state.value = _state.value.copy(
             hasDateError = isPast || isTooFar,
             hasTimeError = isPast,
-            dateTimeErrorMessage = when {
-                isPast -> "Указана прошедшая дата и время"
-                isTooFar -> "Дата слишком далеко (макс. ${ReminderValidation.MAX_FUTURE_DAYS} дней)"
-                else -> null
-            }
+            dateTimeErrorMessage = error?.let { getDateTimeErrorMessage(it) },
+            error = if (error != null && _state.value.error == null) error else _state.value.error
         )
+    }
+
+    private fun getDateTimeErrorMessage(error: ReminderError): String {
+        return when (error) {
+            is ReminderError.DateTimePast -> "Указана прошедшая дата и время"
+            is ReminderError.DateTimeTooFar -> "Дата слишком далеко (макс. ${error.maxDays} дней)"
+            else -> ""
+        }
     }
 
     fun onTimestampChange(selectedTimestamp: Long) {
@@ -174,42 +192,31 @@ class CreateReminderViewModel @Inject constructor(
     }
 
     fun saveReminder() {
-        if (!isSaveEnabled.value) {
-            return
-        }
-
+        if (!isSaveEnabled.value) return
         val currentState = _state.value
-
         if (currentState.reminderText.isBlank()) {
-            _state.value = currentState.copy(
-                error = "Введите текст напоминания",
-                hasTextError = true
-            )
+            _state.value = currentState.copy(error = ReminderError.TextBlank, hasTextError = true)
             return
         }
-
         if (currentState.reminderText.length > ReminderValidation.MAX_TEXT_LENGTH) {
             _state.value = currentState.copy(
-                error = "Текст слишком длинный (макс. ${ReminderValidation.MAX_TEXT_LENGTH} символов)",
+                error = ReminderError.TextTooLong(ReminderValidation.MAX_TEXT_LENGTH),
                 hasTextError = true
             )
             return
         }
-
         val now = System.currentTimeMillis()
         if (currentState.timestamp < now) {
             _state.value = currentState.copy(
-                error = "Дата не может быть в прошлом",
+                error = ReminderError.DateTimePast,
                 hasDateError = true,
                 hasTimeError = true,
                 dateTimeErrorMessage = "Указана прошедшая дата и время"
             )
             return
         }
-
         viewModelScope.launch {
             _state.value = currentState.copy(isLoading = true, error = null)
-
             try {
                 val reminder = Reminder(
                     id = currentState.reminderId,
@@ -217,7 +224,6 @@ class CreateReminderViewModel @Inject constructor(
                     text = currentState.reminderText.trim(),
                     date = currentState.timestamp
                 )
-
                 val savedReminderId = if (currentState.isEditMode && currentState.reminderId > 0) {
                     repository.updateReminder(reminder)
                     currentState.reminderId
@@ -233,17 +239,13 @@ class CreateReminderViewModel @Inject constructor(
                     text = reminder.text,
                     timestamp = reminder.date
                 )
-                _state.value = currentState.copy(
-                    isLoading = false,
-                    isSuccess = true,
-                    error = null
-                )
+                _state.value = currentState.copy(isLoading = false, isSuccess = true, error = null)
             } catch (e: Exception) {
                 Log.e("CreateReminderVM", "💥 Error saving reminder", e)
                 _state.value = currentState.copy(
                     isLoading = false,
                     isSuccess = false,
-                    error = "Ошибка при сохранении: ${e.message ?: "Неизвестная ошибка"}"
+                    error = ReminderError.SaveError(e.message)
                 )
             }
         }
@@ -259,22 +261,20 @@ class CreateReminderViewModel @Inject constructor(
             hasTextError = false,
             hasDateError = false,
             hasTimeError = false,
-            dateTimeErrorMessage = null
+            dateTimeErrorMessage = null,
+            error = null
         )
         validateDateTime()
     }
 
     fun deleteReminder() {
         val currentState = _state.value
-
         if (currentState.reminderId <= 0) {
-            _state.value = currentState.copy(error = "Нельзя удалить несуществующее напоминание")
+            _state.value = currentState.copy(error = ReminderError.ReminderNotExist)
             return
         }
-
         viewModelScope.launch {
             _state.value = currentState.copy(isLoading = true, error = null)
-
             try {
                 val reminder = Reminder(
                     id = currentState.reminderId,
@@ -282,14 +282,13 @@ class CreateReminderViewModel @Inject constructor(
                     text = currentState.reminderText,
                     date = currentState.timestamp
                 )
-
                 repository.deleteReminder(reminder)
                 ReminderScheduler.cancelReminder(application, currentState.reminderId)
                 _state.value = currentState.copy(isLoading = false, isSuccess = true)
             } catch (e: Exception) {
                 _state.value = currentState.copy(
                     isLoading = false,
-                    error = "Ошибка при удалении: ${e.message}"
+                    error = ReminderError.DeleteError(e.message)
                 )
             }
         }

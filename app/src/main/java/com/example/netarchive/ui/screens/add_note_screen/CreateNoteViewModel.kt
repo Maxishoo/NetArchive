@@ -19,6 +19,17 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 import javax.inject.Inject
 
+sealed class NoteError {
+    object EmptyNoteText : NoteError()
+    data class SaveError(val cause: String?) : NoteError()
+    data class DeleteError(val cause: String?) : NoteError()
+    object SpeechNotSupported : NoteError()
+    object SpeechRecognizerCreationFailed : NoteError()
+    data class SpeechRecognitionError(val code: Int) : NoteError()
+    object SpeechNotRecognized : NoteError()
+    data class InitializationError(val cause: String?) : NoteError()
+}
+
 data class CreateNoteState(
     val contactId: Int = 0,
     val contactName: String = "",
@@ -28,9 +39,8 @@ data class CreateNoteState(
     val date: Long = System.currentTimeMillis(),
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
-    val error: String? = null,
+    val error: NoteError? = null,
     val isEditMode: Boolean = false,
-
     val isVoicePageOpen: Boolean = true,
     val isVoiceRecording: Boolean = false,
     val isVoiceProcessing: Boolean = false,
@@ -51,6 +61,7 @@ class CreateNoteViewModel @Inject constructor(
     private val noteId: Int? = savedStateHandle["noteId"]
     private val noteText: String? = savedStateHandle["noteText"]
     private val noteDate: Long? = savedStateHandle["noteDate"]
+
     private val _state = MutableStateFlow(
         CreateNoteState(
             contactId = contactId,
@@ -58,11 +69,7 @@ class CreateNoteViewModel @Inject constructor(
             contactAvatar = contactAvatar,
             noteId = noteId ?: 0,
             noteText = noteText ?: "",
-            date = if (noteDate == null || noteDate == 0L) {
-                System.currentTimeMillis()
-            } else {
-                noteDate
-            },
+            date = if (noteDate == null || noteDate == 0L) System.currentTimeMillis() else noteDate,
             isEditMode = noteId != null && noteId > 0,
         )
     )
@@ -76,15 +83,12 @@ class CreateNoteViewModel @Inject constructor(
 
     fun saveNote() {
         val currentState = _state.value
-
         if (currentState.noteText.isBlank()) {
-            _state.value = currentState.copy(error = "Заметка не может быть пустой")
+            _state.value = currentState.copy(error = NoteError.EmptyNoteText)
             return
         }
-
         viewModelScope.launch {
-            _state.value = currentState.copy(isLoading = true)
-
+            _state.value = currentState.copy(isLoading = true, error = null)
             try {
                 val note = Note(
                     id = currentState.noteId,
@@ -92,7 +96,6 @@ class CreateNoteViewModel @Inject constructor(
                     text = currentState.noteText.trim(),
                     date = currentState.date
                 )
-
                 if (currentState.isEditMode && currentState.noteId > 0) {
                     repository.updateNote(note)
                 } else {
@@ -100,9 +103,7 @@ class CreateNoteViewModel @Inject constructor(
                 }
                 _state.value = currentState.copy(isSuccess = true)
             } catch (e: Exception) {
-                _state.value = currentState.copy(
-                    error = "Ошибка при сохранении: ${e.message}",
-                )
+                _state.value = currentState.copy(error = NoteError.SaveError(e.message))
             }
         }
     }
@@ -126,12 +127,9 @@ class CreateNoteViewModel @Inject constructor(
 
     fun deleteNote() {
         val currentState = _state.value
-
         if (currentState.noteId <= 0) return
-
         viewModelScope.launch {
-            _state.value = currentState.copy(isLoading = true)
-
+            _state.value = currentState.copy(isLoading = true, error = null)
             try {
                 val note = Note(
                     id = currentState.noteId,
@@ -139,13 +137,10 @@ class CreateNoteViewModel @Inject constructor(
                     text = currentState.noteText,
                     date = currentState.date
                 )
-
                 repository.deleteNote(note)
                 _state.value = currentState.copy(isSuccess = true)
             } catch (e: Exception) {
-                _state.value = currentState.copy(
-                    error = "Ошибка при удалении: ${e.message}",
-                )
+                _state.value = currentState.copy(error = NoteError.DeleteError(e.message))
             }
         }
     }
@@ -158,92 +153,64 @@ class CreateNoteViewModel @Inject constructor(
         _state.value = _state.value.copy(error = null)
     }
 
-    fun openVoicePage(){
+    fun openVoicePage() {
         _state.value = _state.value.copy(isVoicePageOpen = true)
     }
 
     fun initialize(context: Context) {
         try {
             val isAvailable = SpeechRecognizer.isRecognitionAvailable(context)
-
             if (!isAvailable) {
                 _state.value = _state.value.copy(
-                    error = "Распознавание речи не поддерживается на этом устройстве",
+                    error = NoteError.SpeechNotSupported,
                     isVoiceRecordDone = true
                 )
                 return
             }
             speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
-
             if (speechRecognizer == null) {
                 _state.value = _state.value.copy(
-                    error = "Не удалось создать SpeechRecognizer",
+                    error = NoteError.SpeechRecognizerCreationFailed,
                     isVoiceRecordDone = true
                 )
                 return
             }
-
             speechRecognizer?.setRecognitionListener(object : RecognitionListener {
-                override fun onReadyForSpeech(params: Bundle?) {
-                }
-
-                override fun onBeginningOfSpeech() {
-                }
-
-                override fun onRmsChanged(rmsdB: Float) {
-                }
-
-                override fun onBufferReceived(buffer: ByteArray?) {
-                }
-
-                override fun onEndOfSpeech() {
-                }
-
+                override fun onReadyForSpeech(params: Bundle?) {}
+                override fun onBeginningOfSpeech() {}
+                override fun onRmsChanged(rmsdB: Float) {}
+                override fun onBufferReceived(buffer: ByteArray?) {}
+                override fun onEndOfSpeech() {}
                 override fun onError(error: Int) {
-                    val errorMessage = when (error) {
-                        SpeechRecognizer.ERROR_NO_MATCH -> "Речь не распознана. Попробуйте еще раз."
-                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Речь не обнаружена. Попробуйте еще раз."
-                        SpeechRecognizer.ERROR_NETWORK -> "Ошибка сети. Проверьте подключение."
-                        SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Таймаут сети. Проверьте подключение."
-                        SpeechRecognizer.ERROR_AUDIO -> "Ошибка записи аудио"
-                        SpeechRecognizer.ERROR_CLIENT -> "Ошибка клиента"
-                        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Распознаватель занят"
-                        SpeechRecognizer.ERROR_SERVER -> "Ошибка сервера"
-                        else -> "Ошибка распознавания: $error"
-                    }
-
                     _state.value = _state.value.copy(
                         isVoiceRecording = false,
                         isVoiceProcessing = false,
-                        recognizedText = errorMessage,
-                        isVoiceRecordDone = true
+                        recognizedText = "",
+                        isVoiceRecordDone = true,
+                        error = NoteError.SpeechRecognitionError(error)
                     )
                 }
-
                 override fun onResults(results: Bundle?) {
                     val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     _state.value = _state.value.copy(
                         isVoiceRecording = false,
                         isVoiceProcessing = false,
                         isVoiceRecordDone = true,
-                        recognizedText = matches?.firstOrNull() ?: "Речь не распознана"
+                        error = null,
+                        recognizedText = matches?.firstOrNull() ?: ""
                     )
                 }
-
                 override fun onPartialResults(partialResults: Bundle?) {
                     val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     _state.value = _state.value.copy(
                         recognizedText = matches?.firstOrNull() ?: ""
                     )
                 }
-
-                override fun onEvent(eventType: Int, params: Bundle?) {
-                }
+                override fun onEvent(eventType: Int, params: Bundle?) {}
             })
-
         } catch (e: Exception) {
             _state.value = _state.value.copy(
-                error = "Ошибка инициализации: ${e.message}",
+                error = NoteError.InitializationError(e.message),
                 isVoiceRecordDone = true
             )
         }
@@ -262,13 +229,15 @@ class CreateNoteViewModel @Inject constructor(
                 isVoiceRecording = true,
                 recognizedText = "",
                 isVoiceRecordDone = false,
-                isVoiceProcessing = false
+                isVoiceProcessing = false,
+                error = null
             )
         } catch (e: Exception) {
             _state.value = _state.value.copy(
                 isVoiceRecording = false,
-                recognizedText = "Ошибка: ${e.message}",
-                isVoiceRecordDone = true
+                recognizedText = "",
+                isVoiceRecordDone = true,
+                error = NoteError.InitializationError(e.message)
             )
         }
     }
@@ -284,8 +253,9 @@ class CreateNoteViewModel @Inject constructor(
             _state.value = _state.value.copy(
                 isVoiceRecording = false,
                 isVoiceProcessing = false,
-                recognizedText = "Ошибка: ${e.message}",
-                isVoiceRecordDone = true
+                recognizedText = "",
+                isVoiceRecordDone = true,
+                error = NoteError.InitializationError(e.message)
             )
         }
     }
@@ -300,21 +270,23 @@ class CreateNoteViewModel @Inject constructor(
                 recognizedText = "",
                 isVoiceRecordDone = false,
                 isVoiceProcessing = false,
-                isVoicePageOpen = false
+                isVoicePageOpen = false,
+                error = null
             )
         } catch (e: Exception) {
             _state.value = _state.value.copy(
                 isVoiceRecording = false,
                 isVoiceProcessing = false,
                 isVoiceRecordDone = false,
-                isVoicePageOpen = false
+                isVoicePageOpen = false,
+                error = null
             )
         }
     }
 
     fun applyRecognizedText() {
         val currentState = _state.value
-        if (currentState.recognizedText.isNotBlank() && currentState.recognizedText != "Речь не распознана") {
+        if (currentState.recognizedText.isNotBlank()) {
             val newText = if (currentState.noteText.isNotBlank()) {
                 "${currentState.noteText}\n${currentState.recognizedText}"
             } else {

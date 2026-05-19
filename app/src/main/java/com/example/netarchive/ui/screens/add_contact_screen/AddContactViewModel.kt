@@ -3,7 +3,9 @@ package com.example.netarchive.ui.screens.add_contact_screen
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.netarchive.R
 import com.example.netarchive.data.local.db.entity.CategoryEntity
+import com.example.netarchive.data.local.FileManager
 import com.example.netarchive.data.repository.CategoryRepository
 import com.example.netarchive.data.repository.ContactRepository
 import com.example.netarchive.domain.model.Contact
@@ -14,9 +16,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import com.example.netarchive.data.local.FileManager
 import java.net.URLDecoder
+import javax.inject.Inject
 
 @Stable
 data class ContactFormState(
@@ -31,10 +32,9 @@ data class ContactFormState(
     val description: String = "",
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
-    val isQrImport: Boolean =false,
+    val isQrImport: Boolean = false,
     val error: String? = null
 )
-
 
 @HiltViewModel
 class AddContactViewModel @Inject constructor(
@@ -64,11 +64,11 @@ class AddContactViewModel @Inject constructor(
         _imagePickerResult.value = null
     }
 
-    fun openQrImport(){
+    fun openQrImport() {
         _formState.value = _formState.value.copy(isQrImport = true)
     }
 
-    fun closeQrImport(){
+    fun closeQrImport() {
         _formState.value = _formState.value.copy(isQrImport = false)
     }
 
@@ -82,13 +82,13 @@ class AddContactViewModel @Inject constructor(
             }
 
             _formState.value = _formState.value.copy(
-                username = params["u"] ?: "",
-                phone = params["p"] ?: "",
-                email = params["e"] ?: "",
-                telegram = params["t"] ?: "",
-                max = params["m"] ?: "",
-                job = params["j"] ?: "",
-                birthday = params["b"]?.toLongOrNull(),
+                username = params[QR_PARAM_USERNAME] ?: "",
+                phone = params[QR_PARAM_PHONE] ?: "",
+                email = params[QR_PARAM_EMAIL] ?: "",
+                telegram = params[QR_PARAM_TELEGRAM] ?: "",
+                max = params[QR_PARAM_MAX] ?: "",
+                job = params[QR_PARAM_JOB] ?: "",
+                birthday = params[QR_PARAM_BIRTHDAY]?.toLongOrNull(),
                 error = null
             )
             closeQrImport()
@@ -157,6 +157,7 @@ class AddContactViewModel @Inject constructor(
             }
         }
     }
+
     fun onBirthdayChange(timestamp: Long?) {
         _formState.value = _formState.value.copy(birthday = timestamp)
     }
@@ -238,5 +239,14 @@ class AddContactViewModel @Inject constructor(
     fun setSelectedCategories(categories: List<CategoryEntity>) {
         _selectedCategories.value = categories
     }
-}
 
+    companion object {
+        private const val QR_PARAM_USERNAME = "u"
+        private const val QR_PARAM_PHONE = "p"
+        private const val QR_PARAM_EMAIL = "e"
+        private const val QR_PARAM_TELEGRAM = "t"
+        private const val QR_PARAM_MAX = "m"
+        private const val QR_PARAM_JOB = "j"
+        private const val QR_PARAM_BIRTHDAY = "b"
+    }
+}
