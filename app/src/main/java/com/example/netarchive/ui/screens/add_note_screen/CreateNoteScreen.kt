@@ -8,7 +8,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.integerResource
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.app.DatePickerDialog
@@ -18,15 +20,10 @@ import android.os.Vibrator
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.integerArrayResource
-import androidx.compose.ui.res.integerResource
-import androidx.compose.ui.res.stringResource
 import com.example.netarchive.R
 import com.example.netarchive.ui.components.cards.ActionButtonsSaveCancel
 import com.example.netarchive.ui.components.cards.SimpleContactCard
 import com.example.netarchive.ui.components.cards.DateTimeSelector
-
 import java.util.Calendar
 
 @Composable
@@ -85,9 +82,7 @@ fun CreateNoteScreen(
             onNoteCreated()
         }
     }
-
     val resources = LocalResources.current
-
     LaunchedEffect(state.error) {
         state.error?.let { error ->
             val message = when (error) {
@@ -105,14 +100,13 @@ fun CreateNoteScreen(
         }
     }
 
-
-        Scaffold(
+    Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(text = if (state.isEditMode) stringResource(R.string.modify_note) else stringResource(
-                            R.string.add_note,
-                        ),
+                        R.string.add_note,
+                    ),
                         style = MaterialTheme.typography.headlineLarge,
                     )
                 },
@@ -133,8 +127,8 @@ fun CreateNoteScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(dimensionResource(R.dimen.padding_horizontal_screen))
-                .padding(dimensionResource(R.dimen.screen_padding_bottom)),
+                .padding(horizontal = dimensionResource(R.dimen.padding_horizontal_screen))
+                .padding(bottom = dimensionResource(R.dimen.screen_padding_bottom)),
             verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_large))
         ) {
             SimpleContactCard(
@@ -173,13 +167,23 @@ fun CreateNoteScreen(
             ActionButtonsSaveCancel(
                 onCancelClick = {
                     if (vibrator.hasVibrator()) {
-                        vibrator.vibrate(VibrationEffect.createOneShot(R.integer.vibration_duration.toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
+                        vibrator.vibrate(
+                            VibrationEffect.createOneShot(
+                                R.integer.vibration_duration.toLong(),
+                                VibrationEffect.DEFAULT_AMPLITUDE
+                            )
+                        )
                     }
                     onBackClick()
                 },
                 onSaveClick = {
                     if (vibrator.hasVibrator()) {
-                        vibrator.vibrate(VibrationEffect.createOneShot(R.integer.vibration_duration.toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
+                        vibrator.vibrate(
+                            VibrationEffect.createOneShot(
+                                R.integer.vibration_duration.toLong(),
+                                VibrationEffect.DEFAULT_AMPLITUDE
+                            )
+                        )
                     }
                     viewModel.saveNote()
                 },

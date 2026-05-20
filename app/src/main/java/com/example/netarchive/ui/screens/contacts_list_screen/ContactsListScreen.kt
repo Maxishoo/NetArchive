@@ -50,8 +50,13 @@ fun ContactListScreen(
     val showSearchFieldState = remember { mutableStateOf(false) }
 
     val searchFieldOffset by animateDpAsState(
-        targetValue = if (showSearchFieldState.value) dimensionResource(id = R.dimen.contact_list_search_field_offset) else 0.dp,
-        animationSpec = tween(durationMillis = integerResource(id = R.integer.contact_list_search_animation_duration_ms), easing = FastOutSlowInEasing),
+        targetValue = if (showSearchFieldState.value)
+            dimensionResource(id = R.dimen.contact_list_search_field_offset)
+        else 0.dp,
+        animationSpec = tween(
+            durationMillis = integerResource(id = R.integer.contact_list_search_animation_duration_ms),
+            easing = FastOutSlowInEasing
+        ),
         label = "searchFieldOffset"
     )
 
@@ -87,7 +92,9 @@ fun ContactListScreen(
                     modifier = Modifier.fillMaxSize(),
                     state = listState,
                     contentPadding = PaddingValues(top = topBarHeight),
-                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.contact_list_card_spacing))
+                    verticalArrangement = Arrangement.spacedBy(
+                        dimensionResource(id = R.dimen.contact_list_card_spacing)
+                    )
                 ) {
                     itemsIndexed(
                         animatedList,
@@ -112,7 +119,7 @@ fun ContactListScreen(
                             onVerticalDragStart = {
                                 vibrator.vibrate(
                                     VibrationEffect.createOneShot(
-                                        R.integer.vibration_duration.toLong(),
+                                         R.integer.vibration_duration.toLong(),
                                         VibrationEffect.DEFAULT_AMPLITUDE
                                     )
                                 )
@@ -175,7 +182,9 @@ fun ContactListScreen(
                         )
                     }
                     item {
-                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.contact_list_bottom_spacer)))
+                        Spacer(modifier = Modifier.height(
+                            dimensionResource(id = R.dimen.contact_list_bottom_spacer)
+                        ))
                     }
                 }
             }
