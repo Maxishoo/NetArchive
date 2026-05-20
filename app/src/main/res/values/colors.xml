@@ -11,6 +11,8 @@
 
     <!-- Material theme (light) — dark blue -->
     <color name="md_primary">#FF0D47A1</color>
+    <color name="md_tertiary">#FF2DD4BF</color>
+    <color name="md_on_tertiary">#FF042F2E</color>
     <color name="md_on_primary">#FFFFFFFF</color>
     <color name="md_primary_container">#FFBBDEFB</color>
     <color name="md_on_primary_container">#FF001D36</color>
@@ -23,16 +25,21 @@
     <color name="md_surface_variant">#FFDEE3EB</color>
     <color name="md_on_surface_variant">#FF42474E</color>
     <color name="md_outline">#FF73777F</color>
+    <color name="md_outline_variant">#FF1E293B</color>
 
     <!-- App surfaces -->
     <color name="top_bar_background">#E8EEF5</color>
     <color name="bottom_bar_background">#E8EEF5</color>
     <color name="nav_icon">#000000</color>
+    <color name="nav_icon_selected">#FF0D47A1</color>
     <color name="card_background">#FFFFFF</color>
     <color name="light_blue">#D6EBFE</color>
     <color name="no_avatar_background">#D6E4F0</color>
     <color name="pink_let_card">#FFC1AB</color>
     <color name="add_button">#0D47A1</color>
+    <color name="scrim_overlay">#990B1120</color>
+    <color name="no_avatar_text">#FFC7D2FE</color>
+    <color name="card_border">#FF334155</color>
 
     <!-- Text fields -->
     <color name="text_field_focused">#0D47A1</color>
