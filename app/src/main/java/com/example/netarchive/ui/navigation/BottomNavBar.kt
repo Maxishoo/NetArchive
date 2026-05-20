@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,76 +20,73 @@ import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.netarchive.ui.theme.LightBlue
-
+import com.example.netarchive.R
 
 enum class BottomNavItem(
     val icon: ImageVector,
     val route: Any,
-    val label: String,
+    val labelResId: Int,
     val isPlusButton: Boolean = false
 ) {
     Contacts(
         icon = Icons.Outlined.People,
         route = Routes.Contacts,
-        label = "Контакты"
+        labelResId = R.string.contacts_title
     ),
-
     Reminds(
         icon = Icons.Outlined.Notifications,
         route = Routes.RemindersList,
-        label = "Напоминания"
+        labelResId = R.string.nav_reminders
     ),
-
     Add(
         icon = Icons.Outlined.AddCircleOutline,
         route = Routes.AddButt,
-        label = "Добавить",
+        labelResId = R.string.nav_add,
         isPlusButton = true
     ),
-
     Analytics(
         icon = Icons.Outlined.BarChart,
         route = Routes.Analytics,
-        label = "Аналитика"
+        labelResId = R.string.nav_analytics
     ),
-
     Profile(
         icon = Icons.Outlined.Person,
         route = Routes.Profile,
-        label = "Профиль",
+        labelResId = R.string.nav_profile,
     ),
 }
 
 enum class AddMenuItem(
-    val label: String,
+    val labelResId: Int,
     val route: Any
 ) {
     CreateContact(
-        label = "Контакт",
+        labelResId = R.string.contacts_title,
         route = Routes.CreateContact
     ),
     CreateNote(
-    label = "Заметка",
-    route = Routes.CreateConnection(type = Routes.CreateConnection.EntryType.NOTE)
+        labelResId = R.string.add_item_note,
+        route = Routes.CreateConnection(type = Routes.CreateConnection.EntryType.NOTE)
     ),
     CreateReminder(
-    label = "Напоминание",
-    route = Routes.CreateConnection(type = Routes.CreateConnection.EntryType.REMINDER)
+        labelResId = R.string.add_item_reminder,
+        route = Routes.CreateConnection(type = Routes.CreateConnection.EntryType.REMINDER)
     )
 }
 
@@ -104,20 +100,20 @@ fun BottomNavBar(
     NavigationBar(
         modifier = modifier,
         windowInsets = NavigationBarDefaults.windowInsets,
-        containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f),
+        containerColor = colorResource(id = R.color.top_bar_background).copy(alpha = 0.95f),
     ) {
-        BottomNavItem.entries.forEachIndexed { index, tab ->
+        BottomNavItem.entries.forEach { tab ->
             NavigationBarItem(
                 selected = selectedTab == tab,
                 onClick = { onTabSelected(tab) },
                 icon = {
                     Icon(
                         imageVector = tab.icon,
-                        contentDescription = tab.label,
-                        modifier = Modifier.size(32.dp)
+                        contentDescription = stringResource(tab.labelResId),
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.nav_bar_icon_size))
                     )
                 }
-
+                // ✅ Убран параметр `label` — теперь только иконки, без текста
             )
         }
     }
@@ -143,10 +139,14 @@ fun AddMenuOverlay(
     ) {
         Column(
             modifier = Modifier
-                .padding(bottom = 125.dp, start = 16.dp, end = 16.dp)
+                .padding(
+                    bottom = dimensionResource(id = R.dimen.add_menu_bottom_padding),
+                    start = dimensionResource(id = R.dimen.padding_medium),
+                    end = dimensionResource(id = R.dimen.padding_medium)
+                )
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.add_menu_spacing))
         ) {
             val colorScheme = MaterialTheme.colorScheme
 
@@ -154,21 +154,21 @@ fun AddMenuOverlay(
                 Button(
                     onClick = { onActionSelected(action) },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = LightBlue.copy(alpha = 0.95f),
+                        containerColor = colorResource(id = R.color.add_menu_button_bg).copy(alpha = 0.95f),
                         contentColor = colorScheme.onPrimaryContainer
                     ),
-                    shape = RoundedCornerShape(50),
+                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill)),
                     modifier = Modifier
-                        .widthIn(min = 180.dp)
-                        .height(48.dp),
+                        .widthIn(min = dimensionResource(id = R.dimen.add_menu_button_min_width))
+                        .height(dimensionResource(id = R.dimen.button_height)),
                     elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 1.dp
+                        defaultElevation = dimensionResource(id = R.dimen.button_elevation)
                     )
                 ) {
                     Text(
-                        text = action.label,
+                        text = stringResource(action.labelResId),
                         style = MaterialTheme.typography.titleMedium.copy(
-                            fontSize = 20.sp
+                            fontSize = dimensionResource(id = R.dimen.add_menu_button_font_size).value.sp
                         )
                     )
                 }

@@ -46,60 +46,61 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.netarchive.R
 import com.example.netarchive.ui.screens.settings_screen.pages.AboutPage
 import com.example.netarchive.ui.screens.settings_screen.pages.AppDataPage
 import com.example.netarchive.ui.screens.settings_screen.pages.ChangeDesignPage
 import com.example.netarchive.ui.screens.settings_screen.pages.ImportContactsPage
-import com.example.netarchive.ui.theme.CardBackground
 
 enum class SettingsPages(
     val icon: ImageVector,
-    val title: String,
+    val titleResId: Int, // ✅ Было: title: String
 ) {
     Data(
         icon = Icons.Outlined.Folder,
-        title = "Данные приложения"
+        titleResId = R.string.settings_page_data
     ),
     ContactsImport(
         icon = Icons.Filled.EmojiPeople,
-        title = "Импорт контактов"
+        titleResId = R.string.settings_page_import_contacts
     ),
     Design(
         icon = Icons.Outlined.FormatPaint,
-        title = "Дизайн интерфейса"
+        titleResId = R.string.settings_page_design
     ),
     Notifications(
         icon = Icons.Outlined.Notifications,
-        title = "Уведомления"
+        titleResId = R.string.settings_page_notifications
     ),
     AI(
         icon = Icons.Outlined.AutoAwesome,
-        title = "ИИ ассистент"
+        titleResId = R.string.settings_page_ai
     ),
     Language(
         icon = Icons.Outlined.Language,
-        title = "Язык"
+        titleResId = R.string.settings_page_language
     ),
     Security(
         icon = Icons.Outlined.Lock,
-        title = "Безопасность"
+        titleResId = R.string.settings_page_security
     ),
     Subscription(
         icon = Icons.Outlined.Wallet,
-        title = "NetArchive премиум"
+        titleResId = R.string.settings_page_subscription
     ),
     About(
         icon = Icons.Outlined.Info,
-        title = "О приложении"
+        titleResId = R.string.settings_page_about
     ),
     Help(
         icon = Icons.Filled.QuestionAnswer,
-        title = "Задать вопрос"
+        titleResId = R.string.settings_page_help
     );
 }
 
@@ -113,7 +114,7 @@ fun SettingsScreen(
 
     val onArrowClick = {
         if (viewState.selectedPage == 0) onBackClick()
-        else viewModel.changeSelectedPage(0)
+        else viewModel.changeSelectedPage(0, R.string.settings_title)
     }
 
     AnimatedContent(
@@ -122,15 +123,21 @@ fun SettingsScreen(
             if (targetState > initialState) {
                 slideInHorizontally(
                     initialOffsetX = { it },
-                    animationSpec = tween(300)
+                    animationSpec = tween(R.integer.settings_animation_duration_ms)
                 ) togetherWith
-                        slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(300))
+                        slideOutHorizontally(
+                            targetOffsetX = { -it },
+                            animationSpec = tween(R.integer.settings_animation_duration_ms)
+                        )
             } else {
                 slideInHorizontally(
                     initialOffsetX = { -it },
-                    animationSpec = tween(300)
+                    animationSpec = tween(R.integer.settings_animation_duration_ms)
                 ) togetherWith
-                        slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(300))
+                        slideOutHorizontally(
+                            targetOffsetX = { it },
+                            animationSpec = tween(R.integer.settings_animation_duration_ms)
+                        )
             }
         },
         label = "SettingsPageTransition"
@@ -139,7 +146,10 @@ fun SettingsScreen(
             0 -> MainSettings(viewModel)
             1 -> AppDataPage()
             2 -> ImportContactsPage()
-            3 -> ChangeDesignPage()
+            3 -> ChangeDesignPage(
+                isDarkTheme = viewState.isDarkTheme,
+                onThemeChange = { viewModel.setDarkTheme(it) }
+            )
             9 -> AboutPage()
             else -> EmptyPage()
         }
@@ -148,18 +158,30 @@ fun SettingsScreen(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(color = Color(0xFFECEBF4).copy(alpha = 0.95f))
-            .padding(top = 30.dp, bottom = 8.dp, start = 10.dp, end = 10.dp),
+            .background(
+                color = colorResource(id = R.color.top_bar_background).copy(alpha = 0.95f)
+            )
+            .padding(
+                top = dimensionResource(id = R.dimen.top_bar_padding_top_small),
+                bottom = dimensionResource(id = R.dimen.top_bar_padding_bottom),
+                start = dimensionResource(id = R.dimen.padding_small),
+                end = dimensionResource(id = R.dimen.padding_small)
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onArrowClick) {
             Icon(
-                modifier = Modifier.size(30.dp),
+                modifier = Modifier.size(dimensionResource(id = R.dimen.settings_back_icon_size)),
                 imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                contentDescription = viewState.topBarText
+                contentDescription = stringResource(
+                    if (viewState.selectedPage == 0) R.string.back_to_main else R.string.back_to_settings
+                )
             )
         }
-        Text(viewState.topBarText, style = MaterialTheme.typography.headlineLarge)
+        Text(
+            text = stringResource(viewState.topBarTextResId), // ✅ Конвертация в @Composable-контексте
+            style = MaterialTheme.typography.headlineLarge
+        )
     }
 }
 
@@ -170,13 +192,15 @@ fun MainSettings(viewModel: SettingsViewModel) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         state = listState,
-        verticalArrangement = Arrangement.spacedBy(1.dp),
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.settings_card_spacing)),
         contentPadding = PaddingValues(
-            top = 85.dp,
+            top = dimensionResource(id = R.dimen.settings_list_top_padding)
         )
     ) {
         itemsIndexed(SettingsPages.entries) { index, page ->
-            PageCard(page) { viewModel.changeSelectedPage(index + 1, page.title) }
+            PageCard(page) {
+                viewModel.changeSelectedPage(index + 1, page.titleResId) // ✅ Передаём Int, а не String
+            }
         }
     }
 }
@@ -188,25 +212,23 @@ fun EmptyPage() {
         contentAlignment = Alignment.Center
     ) {
         Card(
-            modifier = Modifier
-                .wrapContentSize(),
-            shape = RoundedCornerShape(10.dp),
-            colors = CardDefaults.cardColors(containerColor = CardBackground),
-            elevation = CardDefaults.cardElevation(2.dp)
+            modifier = Modifier.wrapContentSize(),
+            shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_medium)),
+            colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.card_background)),
+            elevation = CardDefaults.cardElevation(defaultElevation = dimensionResource(id = R.dimen.settings_card_elevation))
         ) {
             Column(
-                modifier = Modifier
-                    .padding(all = 50.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(all = dimensionResource(id = R.dimen.settings_empty_page_padding)),
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_medium)),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    modifier = Modifier.size(55.dp),
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.settings_empty_icon_size)),
                     imageVector = Icons.Outlined.SentimentDissatisfied,
                     contentDescription = null
                 )
                 Text(
-                    "Страницы пока нет\nпоявится в новых версиях",
+                    text = stringResource(R.string.settings_page_coming_soon),
                     style = MaterialTheme.typography.labelLarge,
                     textAlign = TextAlign.Center
                 )
@@ -224,23 +246,29 @@ fun PageCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        shape = RoundedCornerShape(0.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBackground),
-        elevation = CardDefaults.cardElevation(2.dp)
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_zero)),
+        colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.card_background)),
+        elevation = CardDefaults.cardElevation(defaultElevation = dimensionResource(id = R.dimen.settings_card_elevation))
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 10.dp),
+                .padding(
+                    horizontal = dimensionResource(id = R.dimen.padding_medium),
+                    vertical = dimensionResource(id = R.dimen.settings_card_vertical_padding)
+                ),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_medium))
         ) {
             Icon(
-                modifier = Modifier.size(35.dp),
+                modifier = Modifier.size(dimensionResource(id = R.dimen.settings_page_icon_size)),
                 imageVector = element.icon,
-                contentDescription = element.title
+                contentDescription = stringResource(element.titleResId) // ✅ Вызов в @Composable
             )
-            Text(element.title, style = MaterialTheme.typography.labelLarge)
+            Text(
+                text = stringResource(element.titleResId), // ✅ Вызов в @Composable
+                style = MaterialTheme.typography.labelLarge
+            )
         }
     }
 }

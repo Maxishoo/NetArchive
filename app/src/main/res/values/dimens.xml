@@ -238,4 +238,82 @@
     <dimen name="import_contacts_row_spacing">6dp</dimen>
     <dimen name="import_contacts_avatar_size">56dp</dimen>
     <dimen name="import_contacts_duplicate_icon_padding">12dp</dimen>
+
+
+
+    <dimen name="settings_animation_duration_ms">300</dimen>
+    <dimen name="top_bar_padding_top_small">30dp</dimen>
+    <dimen name="settings_back_icon_size">30dp</dimen>
+    <dimen name="settings_card_spacing">1dp</dimen>
+    <dimen name="settings_list_top_padding">85dp</dimen>
+    <dimen name="settings_card_elevation">2dp</dimen>
+    <dimen name="settings_empty_page_padding">50dp</dimen>
+    <dimen name="settings_empty_icon_size">55dp</dimen>
+    <dimen name="settings_card_vertical_padding">10dp</dimen>
+    <dimen name="settings_page_icon_size">35dp</dimen>
+    <dimen name="contact_card_avatar_size">40dp</dimen>
+
+
+    <dimen name="contact_card_background_width">160dp</dimen>
+    <dimen name="contact_card_swipe_threshold">120dp</dimen>
+    <dimen name="contact_card_vertical_drag_threshold">80dp</dimen>
+    <dimen name="contact_card_click_threshold">5dp</dimen>
+    <dimen name="contact_card_height">80dp</dimen>
+    <dimen name="contact_avatar_size">56dp</dimen>
+    <dimen name="contact_card_name_font_size">18sp</dimen>
+    <dimen name="contact_card_icon_size">30dp</dimen>
+    <dimen name="contact_card_elevation">2dp</dimen>
+
+    <!-- Chip Dimensions -->
+    <dimen name="chip_height_max">20dp</dimen>
+    <dimen name="chip_corner_radius">10dp</dimen>
+    <dimen name="chip_border_width">1dp</dimen>
+
+
+    <!-- Animations -->
+    <integer name="animation_duration_short">200</integer>
+    <integer name="animation_duration_medium">250</integer>
+
+
+    <!-- NoteCard Dimensions -->
+    <dimen name="note_icon_size">16dp</dimen>
+    <!-- corner_radius_medium(12dp), card_padding(16dp), spacing_small(8dp), spacing_medium(12dp) уже есть -->
+    <!-- CategorySelector -->
+    <dimen name="category_chip_icon_size">16dp</dimen>
+
+    <dimen name="qr_dialog_width">350dp</dimen>
+    <dimen name="qr_dialog_height">450dp</dimen>
+    <dimen name="qr_dialog_padding">16dp</dimen>
+    <dimen name="qr_code_size">300dp</dimen>
+
+    <!-- QR Scanner Dimensions -->
+    <dimen name="qr_scanner_title_font_size">24sp</dimen>
+    <dimen name="qr_scanner_title_padding_bottom">32dp</dimen>
+    <dimen name="qr_scanner_view_size">280dp</dimen>
+    <dimen name="qr_scanner_corner_radius">24dp</dimen>
+    <dimen name="qr_scanner_border_width">2dp</dimen>
+    <dimen name="qr_scanner_inner_clip_radius">20dp</dimen>
+    <dimen name="qr_scanner_instruction_padding_top">24dp</dimen>
+    <dimen name="qr_scanner_instruction_padding_bottom">16dp</dimen>
+    <dimen name="qr_scanner_text_font_size">14sp</dimen>
+    <dimen name="qr_scanner_controls_padding_horizontal">20dp</dimen>
+    <dimen name="qr_scanner_controls_padding_vertical">8dp</dimen>
+    <dimen name="qr_scanner_controls_height">56dp</dimen>
+    <dimen name="qr_scanner_controls_corner_radius">50dp</dimen>
+    <dimen name="qr_scanner_icon_size">24dp</dimen>
+    <dimen name="qr_scanner_spacer_width">8dp</dimen>
+    <dimen name="qr_scanner_divider_height">32dp</dimen>
+    <dimen name="qr_scanner_divider_thickness">1dp</dimen>
+    <dimen name="qr_scanner_close_top_padding">40dp</dimen>
+    <dimen name="qr_scanner_close_end_padding">12dp</dimen>
+    <dimen name="qr_scanner_close_button_size">44dp</dimen>
+
+
+    <dimen name="nav_bar_icon_size">32dp</dimen>
+    <dimen name="add_menu_bottom_padding">125dp</dimen>
+    <dimen name="add_menu_spacing">20dp</dimen>
+    <dimen name="corner_radius_pill">50dp</dimen>
+    <dimen name="add_menu_button_min_width">180dp</dimen>
+    <dimen name="button_elevation">1dp</dimen>
+    <dimen name="add_menu_button_font_size">20sp</dimen>
 </resources>

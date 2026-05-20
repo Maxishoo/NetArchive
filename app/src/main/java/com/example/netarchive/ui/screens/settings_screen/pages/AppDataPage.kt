@@ -48,8 +48,8 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
     var showProfileDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.successMessage, state.error) {
-        state.successMessage?.let { msg ->
-            snackbarHostState.showSnackbar(msg)
+        state.successMessage?.let { resId ->
+            snackbarHostState.showSnackbar(context.getString(resId))
             viewModel.resetMessages()
         }
         state.error?.let { err ->
@@ -62,7 +62,7 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
         modifier = Modifier
             .fillMaxSize()
             .padding(
-                top = dimensionResource(id = R.dimen.screen_padding_top),
+                top = dimensionResource(id = R.dimen.padding_top_header),
                 start = dimensionResource(id = R.dimen.padding_medium),
                 end = dimensionResource(id = R.dimen.padding_medium)
             ),

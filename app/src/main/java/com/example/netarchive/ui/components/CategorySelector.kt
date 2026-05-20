@@ -1,16 +1,22 @@
 package com.example.netarchive.ui.components
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
+import com.example.netarchive.R
 import com.example.netarchive.data.local.db.entity.CategoryEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,23 +28,21 @@ fun CategorySelector(
     onCreateCategory: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-
     var searchQuery by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
 
-
     Column(modifier = modifier) {
         Text(
-            text = "Категории:",
+            text = stringResource(R.string.categories_label),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.spacing_small)))
 
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_extra_small)),
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_extra_small)),
             modifier = Modifier.fillMaxWidth()
         ) {
             selectedCategories.forEach { category ->
@@ -56,8 +60,8 @@ fun CategorySelector(
                     trailingIcon = {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Удалить категорию",
-                            modifier = Modifier.size(16.dp)
+                            contentDescription = stringResource(R.string.category_remove),
+                            modifier = Modifier.size(dimensionResource(id = R.dimen.category_chip_icon_size))
                         )
                     },
                     colors = AssistChipDefaults.assistChipColors(
@@ -71,7 +75,7 @@ fun CategorySelector(
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.spacing_medium)))
 
         ExposedDropdownMenuBox(
             expanded = expanded,
@@ -83,8 +87,8 @@ fun CategorySelector(
                     searchQuery = it
                     expanded = it.isNotEmpty()
                 },
-                label = { Text("Добавить категорию") },
-                placeholder = { Text("Начните вводить...") },
+                label = { Text(stringResource(R.string.category_add)) },
+                placeholder = { Text(stringResource(R.string.category_search_hint)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .menuAnchor(),
@@ -94,7 +98,10 @@ fun CategorySelector(
                             searchQuery = ""
                             expanded = false
                         }) {
-                            Icon(Icons.Default.Clear, "Очистить")
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = stringResource(R.string.clear)
+                            )
                         }
                     }
                 },
@@ -120,7 +127,7 @@ fun CategorySelector(
                                 Text(text = category.name)
                                 if (category.isDefault) {
                                     Text(
-                                        text = "Стандартная",
+                                        text = stringResource(R.string.category_default),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -150,21 +157,21 @@ fun CategorySelector(
                     }
 
                     DropdownMenuItem(
-                        text = { Text("Создать \"$searchQuery\"") },
+                        text = { Text(stringResource(R.string.category_create, searchQuery)) },
                         onClick = {
                             onCreateCategory(searchQuery)
                             searchQuery = ""
                             expanded = false
                         },
                         leadingIcon = {
-                            Icon(Icons.Default.Add, "Создать")
+                            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.create))
                         }
                     )
                 }
 
                 if (filteredCategories.isEmpty() && searchQuery.isEmpty()) {
                     DropdownMenuItem(
-                        text = { Text("Начните вводить для поиска...") },
+                        text = { Text(stringResource(R.string.category_search_empty)) },
                         onClick = { },
                         enabled = false
                     )

@@ -38,13 +38,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.integerResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.netarchive.R
 import qrscanner.CameraLens
 import qrscanner.QrScanner
 
@@ -68,167 +71,166 @@ fun QrScannerDialog(
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
-                    .background(color = Color.White)
+                    .background(colorResource(id = R.color.black))
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
+                Text(
+                    text = stringResource(R.string.qr_scanner_title),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        color = colorResource(id = R.color.white),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = dimensionResource(id = R.dimen.qr_scanner_title_font_size).value.sp
+                    ),
+                    modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.qr_scanner_title_padding_bottom))
+                )
+                Box(
                     modifier = Modifier
-                        .background(color = Color.Black)
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Сканирование QR кода",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 24.sp
-                        ),
-                        modifier = Modifier.padding(bottom = 32.dp)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(280.dp)
-                            .clip(shape = RoundedCornerShape(24.dp))
-                            .background(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(
-                                        Color(0xFF1A1A1A),
-                                        Color(0xFF0A0A0A)
-                                    )
+                        .size(dimensionResource(id = R.dimen.qr_scanner_view_size))
+                        .clip(shape = RoundedCornerShape(dimensionResource(id = R.dimen.qr_scanner_corner_radius)))
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    colorResource(id = R.color.qr_scanner_bg_start),
+                                    colorResource(id = R.color.qr_scanner_bg_end)
                                 )
                             )
-                            .border(
-                                width = 2.dp,
-                                brush = Brush.linearGradient(
-                                    colors = listOf(
-                                        Color(0xFF4CAF50),
-                                        Color(0xFF2196F3)
-                                    )
-                                ),
-                                shape = RoundedCornerShape(24.dp)
+                        )
+                        .border(
+                            width = dimensionResource(id = R.dimen.qr_scanner_border_width),
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    colorResource(id = R.color.qr_scanner_border_green),
+                                    colorResource(id = R.color.qr_scanner_border_blue)
+                                )
                             ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isScanning) {
-                            QrScanner(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(20.dp)),
-                                flashlightOn = flashlightOn,
-                                cameraLens = CameraLens.Back,
-                                openImagePicker = openImagePicker,
-                                onCompletion = { scannedData ->
-                                    safeVibrate(context)
-                                    isScanning = false
-                                    onQrUrlChange(scannedData)
-                                    onCloseClick()
-                                },
-                                imagePickerHandler = { shouldOpen ->
-                                    openImagePicker = shouldOpen
-                                },
-                                onFailure = { exception ->
-                                    println("Scanning failed: $exception")
-                                    isScanning = true
-                                },
-                                zoomLevel = 1.5f,
-                                maxZoomLevel = 3f
-                            )
-                        }
-
-                    }
-                    Text(
-                        text = "Наведите камеру на QR код",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color.White.copy(alpha = 0.8f),
-                            fontSize = 14.sp
+                            shape = RoundedCornerShape(dimensionResource(id = R.dimen.qr_scanner_corner_radius))
                         ),
-                        modifier = Modifier.padding(top = 24.dp, bottom = 16.dp)
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isScanning) {
+                        QrScanner(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(dimensionResource(id = R.dimen.qr_scanner_inner_clip_radius))),
+                            flashlightOn = flashlightOn,
+                            cameraLens = CameraLens.Back,
+                            openImagePicker = openImagePicker,
+                            onCompletion = { scannedData ->
+                                safeVibrate(context)
+                                isScanning = false
+                                onQrUrlChange(scannedData)
+                                onCloseClick()
+                            },
+                            imagePickerHandler = { shouldOpen ->
+                                openImagePicker = shouldOpen
+                            },
+                            onFailure = { exception ->
+                                println("Scanning failed: $exception")
+                                isScanning = true
+                            },
+                            zoomLevel = 1.5f,
+                            maxZoomLevel = 3f
+                        )
+                    }
+                }
+                Text(
+                    text = stringResource(R.string.qr_scanner_instruction),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = colorResource(id = R.color.white).copy(alpha = 0.8f),
+                        fontSize = dimensionResource(id = R.dimen.qr_scanner_text_font_size).value.sp
+                    ),
+                    modifier = Modifier.padding(
+                        top = dimensionResource(id = R.dimen.qr_scanner_instruction_padding_top),
+                        bottom = dimensionResource(id = R.dimen.qr_scanner_instruction_padding_bottom)
+                    )
+                )
+                Row(
+                    modifier = Modifier
+                        .padding(
+                            horizontal = dimensionResource(id = R.dimen.qr_scanner_controls_padding_horizontal),
+                            vertical = dimensionResource(id = R.dimen.qr_scanner_controls_padding_vertical)
+                        )
+                        .background(
+                            color = colorResource(id = R.color.qr_scanner_controls_bg),
+                            shape = RoundedCornerShape(dimensionResource(id = R.dimen.qr_scanner_controls_corner_radius))
+                        )
+                        .height(dimensionResource(id = R.dimen.qr_scanner_controls_height))
+                        .fillMaxWidth(0.8f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { flashlightOn = !flashlightOn }
+                            .padding(vertical = dimensionResource(id = R.dimen.qr_scanner_controls_padding_vertical)),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = if (flashlightOn) Icons.Filled.FlashOn else Icons.Filled.FlashOff,
+                            contentDescription = stringResource(R.string.qr_scanner_flashlight),
+                            modifier = Modifier.size(dimensionResource(id = R.dimen.qr_scanner_icon_size)),
+                            tint = if (flashlightOn) colorResource(id = R.color.qr_scanner_border_green) else colorResource(id = R.color.white)
+                        )
+                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.qr_scanner_spacer_width)))
+                        Text(
+                            text = stringResource(if (flashlightOn) R.string.qr_scanner_flash_off else R.string.qr_scanner_flash_on),
+                            color = if (flashlightOn) colorResource(id = R.color.qr_scanner_border_green) else colorResource(id = R.color.white),
+                            fontSize = dimensionResource(id = R.dimen.qr_scanner_text_font_size).value.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    VerticalDivider(
+                        modifier = Modifier
+                            .height(dimensionResource(id = R.dimen.qr_scanner_divider_height))
+                            .width(dimensionResource(id = R.dimen.qr_scanner_divider_thickness)),
+                        color = colorResource(id = R.color.qr_scanner_divider)
                     )
                     Row(
                         modifier = Modifier
-                            .padding(horizontal = 20.dp, vertical = 8.dp)
-                            .background(
-                                color = Color(0xFF1C1C1E),
-                                shape = RoundedCornerShape(50.dp)
-                            )
-                            .height(56.dp)
-                            .fillMaxWidth(0.8f),
+                            .weight(1f)
+                            .clickable { openImagePicker = true }
+                            .padding(vertical = dimensionResource(id = R.dimen.qr_scanner_controls_padding_vertical)),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { flashlightOn = !flashlightOn }
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = if (flashlightOn) Icons.Filled.FlashOn else Icons.Filled.FlashOff,
-                                contentDescription = "flash",
-                                modifier = Modifier.size(24.dp),
-                                tint = if (flashlightOn) Color(0xFF4CAF50) else Color.White
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = if (flashlightOn) "Выкл." else "Вкл.",
-                                color = if (flashlightOn) Color(0xFF4CAF50) else Color.White,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                        VerticalDivider(
-                            modifier = Modifier
-                                .height(32.dp)
-                                .width(1.dp),
-                            thickness = 1.dp,
-                            color = Color(0xFF38383A)
+                        Icon(
+                            imageVector = Icons.Filled.Image,
+                            contentDescription = stringResource(R.string.qr_scanner_gallery),
+                            modifier = Modifier.size(dimensionResource(id = R.dimen.qr_scanner_icon_size)),
+                            tint = colorResource(id = R.color.white)
                         )
-                        Row(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { openImagePicker = true }
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Image,
-                                contentDescription = "gallery",
-                                modifier = Modifier.size(24.dp),
-                                tint = Color.White
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Галерея",
-                                color = Color.White,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
+                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.qr_scanner_spacer_width)))
+                        Text(
+                            text = stringResource(R.string.qr_scanner_gallery),
+                            color = colorResource(id = R.color.white),
+                            fontSize = dimensionResource(id = R.dimen.qr_scanner_text_font_size).value.sp,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
                 }
             }
             IconButton(
                 onClick = onCloseClick,
                 modifier = Modifier
-                    .padding(top = 40.dp, end = 12.dp)
-                    .size(44.dp)
+                    .padding(
+                        top = dimensionResource(id = R.dimen.qr_scanner_close_top_padding),
+                        end = dimensionResource(id = R.dimen.qr_scanner_close_end_padding)
+                    )
+                    .size(dimensionResource(id = R.dimen.qr_scanner_close_button_size))
                     .background(
-                        color = Color.White.copy(alpha = 0.2f),
+                        color = colorResource(id = R.color.white).copy(alpha = 0.2f),
                         shape = CircleShape
                     )
                     .align(Alignment.TopEnd)
             ) {
                 Icon(
                     imageVector = Icons.Filled.Close,
-                    contentDescription = "Close",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+                    contentDescription = stringResource(R.string.close),
+                    tint = colorResource(id = R.color.white),
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.qr_scanner_icon_size))
                 )
             }
         }
@@ -239,7 +241,12 @@ private fun safeVibrate(context: Context) {
     try {
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
         if (vibrator?.hasVibrator() == true) {
-            vibrator.vibrate(VibrationEffect.createOneShot(80, VibrationEffect.DEFAULT_AMPLITUDE))
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(
+                    R.integer.qr_scanner_vibration_duration.toLong(),
+                    VibrationEffect.DEFAULT_AMPLITUDE
+                )
+            )
         }
     } catch (e: Exception) {
         e.printStackTrace()

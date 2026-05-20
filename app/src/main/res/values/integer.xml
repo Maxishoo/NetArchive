@@ -42,8 +42,11 @@
     <integer name="voice_animation_duration_long">1000</integer>
     <integer name="voice_animation_bar_delay">20</integer>
 
+    <integer name="qr_scanner_vibration_duration">80</integer>
+
+
     <integer name="contact_list_search_debounce_ms">100</integer>
     <integer name="contact_list_sharing_timeout_ms">5000</integer>
     <integer name="contact_list_search_animation_duration_ms">300</integer>
-
+    <integer name="settings_animation_duration_ms">300</integer>
 </resources>

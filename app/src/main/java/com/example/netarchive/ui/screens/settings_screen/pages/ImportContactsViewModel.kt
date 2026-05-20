@@ -4,6 +4,7 @@ import android.content.Context
 import android.provider.ContactsContract
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.netarchive.R
 import com.example.netarchive.data.repository.ContactRepository
 import com.example.netarchive.domain.model.Contact
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,6 +17,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+
+sealed class ImportContactsError {
+    object PermissionDenied : ImportContactsError()
+    object NoContactsFound : ImportContactsError()
+    object NoSelection : ImportContactsError()
+    data class LoadError(val cause: String?) : ImportContactsError()
+    data class SaveError(val cause: String?) : ImportContactsError()
+    data class UnknownError(val message: String?) : ImportContactsError()
+}
 
 data class ContactPreviewItem(
     val deviceContactId: Long,
@@ -30,8 +40,8 @@ data class ImportContactsState(
     val isContactsListLoading: Boolean = false,
     val isContactsListSaving: Boolean = false,
     val previewContacts: List<ContactPreviewItem> = emptyList(),
-    val successMessage: String? = null,
-    val error: String? = null
+    val successMessage: Int? = null, // Resource ID
+    val error: ImportContactsError? = null
 )
 
 @HiltViewModel
@@ -63,12 +73,11 @@ class ImportContactsViewModel @Inject constructor(
         )?.use { cursor ->
             while (cursor.moveToNext()) {
                 val deviceId = cursor.getLong(0)
-                val name = cursor.getString(1)?.takeIf { it.isNotBlank() } ?: "Без имени"
+                val name = cursor.getString(1)?.takeIf { it.isNotBlank() } ?: context.getString(R.string.import_contacts_default_name)
                 val phone = cursor.getString(2)
                 val avatar = cursor.getString(3)
 
-                contactsMap[deviceId] =
-                    Contact(id = 0, username = name, phone = phone, avatar = avatar)
+                contactsMap[deviceId] = Contact(id = 0, username = name, phone = phone, avatar = avatar)
             }
         }
 
@@ -97,8 +106,17 @@ class ImportContactsViewModel @Inject constructor(
             _state.update { it.copy(isContactsListLoading = true, error = null) }
             try {
                 val contacts = fetchContacts()
-                val existingPhones = repository.getContactsPhones()
+                if (contacts.isEmpty()) {
+                    _state.update {
+                        it.copy(
+                            isContactsListLoading = false,
+                            error = ImportContactsError.NoContactsFound
+                        )
+                    }
+                    return@launch
+                }
 
+                val existingPhones = repository.getContactsPhones()
                 val phonesInDb = existingPhones
                     .mapNotNull { normalizePhone(it).takeIf { it.isNotBlank() } }
                     .toSet()
@@ -125,7 +143,7 @@ class ImportContactsViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         isContactsListLoading = false,
-                        error = e.message ?: "Ошибка"
+                        error = ImportContactsError.LoadError(e.message)
                     )
                 }
             }
@@ -145,48 +163,44 @@ class ImportContactsViewModel @Inject constructor(
 
     fun toggleChangeSelectedAll(selected: Boolean) {
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isContactsListLoading = true
-                )
-            }
+            _state.update { it.copy(isContactsListLoading = true) }
 
             _state.update { currentState ->
                 currentState.copy(
                     previewContacts = currentState.previewContacts.map { item ->
-                        if(!item.isDuplicate) item.copy(isSelected = selected)
+                        if (!item.isDuplicate) item.copy(isSelected = selected)
                         else item
                     }
                 )
             }
 
-            _state.update {
-                it.copy(
-                    isContactsListLoading = false
-                )
-            }
+            _state.update { it.copy(isContactsListLoading = false) }
         }
     }
 
     fun saveSelectedContacts() {
         val selected = _state.value.previewContacts.filter { it.isSelected && !it.isDuplicate }
             .map { it.contact }
+
         if (selected.isEmpty()) {
-            _state.update { it.copy(error = "Не выбрано ни одного контакта") }
+            _state.update { it.copy(error = ImportContactsError.NoSelection) }
             return
         }
 
         viewModelScope.launch(Dispatchers.IO) {
             _state.update { it.copy(isContactsListSaving = true, error = null) }
             try {
-                selected.forEach {
-                    repository.addContact(it)
-                }
+                selected.forEach { repository.addContact(it) }
+
+                val successRes = if (selected.size == 1)
+                    R.string.import_contacts_success_single
+                else
+                    R.string.import_contacts_success_multiple
 
                 _state.update {
                     it.copy(
                         isContactsListSaving = false,
-                        successMessage = "Импортировано: ${selected.size}",
+                        successMessage = successRes,
                         isMainPage = true,
                         isImportFromContacts = false
                     )
@@ -195,7 +209,7 @@ class ImportContactsViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         isContactsListSaving = false,
-                        error = e.message ?: "Ошибка сохранения"
+                        error = ImportContactsError.SaveError(e.message)
                     )
                 }
             }
@@ -216,6 +230,6 @@ class ImportContactsViewModel @Inject constructor(
     }
 
     fun consumeMessage() {
-        _state.update { it.copy(error = null) }
+        _state.update { it.copy(successMessage = null, error = null) }
     }
 }

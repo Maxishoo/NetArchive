@@ -19,14 +19,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-
+import com.example.netarchive.R
 
 @Composable
 fun QrDialog(qrCode: ImageBitmap?, onCloseClick: () -> Unit) {
@@ -39,29 +40,32 @@ fun QrDialog(qrCode: ImageBitmap?, onCloseClick: () -> Unit) {
     ) {
         Box(
             modifier = Modifier
-                .width(350.dp)
-                .height(450.dp)
-                .background(Color.White, shape = RoundedCornerShape(16.dp))
-                .padding(16.dp)
+                .width(dimensionResource(id = R.dimen.qr_dialog_width))
+                .height(dimensionResource(id = R.dimen.qr_dialog_height))
+                .background(
+                    color = colorResource(id = R.color.white),
+                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_large))
+                )
+                .padding(dimensionResource(id = R.dimen.qr_dialog_padding))
                 .clickable(onClick = {})
         ) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_dialog))
             ) {
                 if (qrCode != null) {
                     Image(
                         bitmap = qrCode,
-                        contentDescription = "QR Code",
-                        modifier = Modifier.size(300.dp),
+                        contentDescription = stringResource(R.string.qr_code_content_description),
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.qr_code_size)),
                         contentScale = ContentScale.Fit
                     )
                 } else {
-                    Text("Не удалось загрузить QR код")
+                    Text(stringResource(R.string.qr_load_error))
                 }
                 Text(
-                    text = "Для добавления контакта на странице добавления нажмите \"По QR коду\"",
+                    text = stringResource(R.string.qr_dialog_instruction),
                     style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
                 )
@@ -70,12 +74,11 @@ fun QrDialog(qrCode: ImageBitmap?, onCloseClick: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Закрыть",
+                        text = stringResource(R.string.close),
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
             }
         }
-
     }
 }

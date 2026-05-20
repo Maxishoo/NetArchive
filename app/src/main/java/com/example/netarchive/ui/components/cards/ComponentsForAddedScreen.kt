@@ -1,14 +1,10 @@
 package com.example.netarchive.ui.components.cards
 
-import android.widget.DatePicker
 import android.widget.NumberPicker
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,12 +22,10 @@ import androidx.compose.material.icons.filled.Event
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -46,14 +40,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.example.netarchive.R
 import java.text.SimpleDateFormat
@@ -69,35 +61,35 @@ fun SimpleContactCard(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_medium)),
         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(dimensionResource(id = R.dimen.card_padding)),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_medium))
         ) {
             if (!contactAvatar.isNullOrEmpty()) {
                 AsyncImage(
                     model = contactAvatar,
-                    contentDescription = "Avatar of $contactName",
+                    contentDescription = stringResource(R.string.contact_avatar_description, contactName),
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(dimensionResource(id = R.dimen.contact_card_avatar_size))
                         .clip(CircleShape),
                     contentScale = ContentScale.Crop
                 )
             } else {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(dimensionResource(id = R.dimen.contact_card_avatar_size))
                         .clip(CircleShape)
-                        .background(color = Color(0xFFDBE0F7)),
+                        .background(color = colorResource(id = R.color.reminder_contact_avatar_placeholder)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = contactName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                        text = contactName.firstOrNull()?.uppercaseChar()?.toString() ?: stringResource(R.string.default_avatar),
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
@@ -128,7 +120,7 @@ fun DateTimeSelector(
         label = { Text(stringResource(R.string.date)) },
         modifier = modifier
             .fillMaxWidth()
-            .padding(top = 8.dp),
+            .padding(top = dimensionResource(id = R.dimen.padding_small)),
         leadingIcon = {
             Icon(
                 imageVector = Icons.Filled.CalendarToday,
@@ -139,7 +131,7 @@ fun DateTimeSelector(
             IconButton(onClick = onDateClick) {
                 Icon(
                     imageVector = Icons.Filled.Event,
-                    contentDescription = stringResource(R.string.icon_event_description),
+                    contentDescription = stringResource(R.string.select_date),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
@@ -165,10 +157,10 @@ fun DateTimeSelector_with_valid(
         value = dateString,
         onValueChange = {},
         readOnly = true,
-        label = { Text("Дата") },
+        label = { Text(stringResource(R.string.date)) },
         modifier = modifier
             .fillMaxWidth()
-            .padding(top = 8.dp),
+            .padding(top = dimensionResource(id = R.dimen.padding_small)),
         leadingIcon = {
             Icon(imageVector = Icons.Filled.CalendarToday, contentDescription = null)
         },
@@ -176,7 +168,7 @@ fun DateTimeSelector_with_valid(
             IconButton(onClick = onDateClick) {
                 Icon(
                     imageVector = Icons.Filled.Event,
-                    contentDescription = "Выбрать дату",
+                    contentDescription = stringResource(R.string.select_date),
                     tint = if (isError) MaterialTheme.colorScheme.error
                     else MaterialTheme.colorScheme.primary
                 )
@@ -189,7 +181,7 @@ fun DateTimeSelector_with_valid(
             else MaterialTheme.colorScheme.outline
         ),
         supportingText = if (isError) {
-            { Text("Неверная дата", color = MaterialTheme.colorScheme.error) }
+            { Text(stringResource(R.string.error_invalid_date), color = MaterialTheme.colorScheme.error) }
         } else null
     )
 }
@@ -218,7 +210,7 @@ fun TimeSelectorCard(
         label = { Text(stringResource(R.string.content_description_clock)) },
         modifier = modifier
             .fillMaxWidth()
-            .padding(top = 8.dp),
+            .padding(top = dimensionResource(id = R.dimen.padding_small)),
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.AccessTime,
@@ -229,7 +221,7 @@ fun TimeSelectorCard(
             IconButton(onClick = onTimeClick) {
                 Icon(
                     imageVector = Icons.Default.ArrowOutward,
-                    contentDescription = stringResource(R.string.content_description_clock),
+                    contentDescription = stringResource(R.string.select_time),
                     tint = if (isError) MaterialTheme.colorScheme.error
                     else MaterialTheme.colorScheme.primary
                 )
@@ -268,7 +260,9 @@ private fun NumberPickerColumn(
                     }
                 }
             },
-            modifier = Modifier.width(80.dp).height(120.dp),
+            modifier = Modifier
+                .width(dimensionResource(id = R.dimen.number_picker_width))
+                .height(dimensionResource(id = R.dimen.number_picker_height)),
             update = { picker ->
                 if (picker.value != value) {
                     picker.value = value
@@ -307,12 +301,12 @@ private fun ShowTimePickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Выберите время") },
+        title = { Text(stringResource(R.string.select_time)) },
         text = {
             Column(
                 modifier = Modifier
-                    .padding(vertical = 8.dp)
-                    .width(280.dp),
+                    .padding(vertical = dimensionResource(id = R.dimen.spacing_small))
+                    .width(dimensionResource(id = R.dimen.time_picker_dialog_width)),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Row(
@@ -323,14 +317,18 @@ private fun ShowTimePickerDialog(
                         value = hour,
                         onValueChange = { hour = it },
                         range = 0..23,
-                        label = "Ч"
+                        label = stringResource(R.string.hour_abbr)
                     )
-                    Text(":", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 24.dp))
+                    Text(
+                        text = stringResource(R.string.time_separator),
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.time_separator_vertical_padding))
+                    )
                     NumberPickerColumn(
                         value = minute,
                         onValueChange = { minute = it },
                         range = 0..59,
-                        label = "М"
+                        label = stringResource(R.string.minute_abbr)
                     )
                 }
             }
@@ -355,12 +353,12 @@ private fun ShowTimePickerDialog(
                     }
                 }
             ) {
-                Text("OK")
+                Text(stringResource(R.string.ok))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Отмена")
+                Text(stringResource(R.string.cancel))
             }
         }
     )
@@ -377,7 +375,7 @@ fun ActionButtonsSaveCancel(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.spacing_medium))
     ) {
         Button(
             onClick = onCancelClick,
@@ -397,7 +395,7 @@ fun ActionButtonsSaveCancel(
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.progress_indicator_size)),
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {

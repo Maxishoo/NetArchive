@@ -59,6 +59,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.netarchive.R
 
+
+
 @Composable
 fun ImportContactsPage(
     viewModel: ImportContactsViewModel = hiltViewModel()
@@ -76,18 +78,29 @@ fun ImportContactsPage(
             viewModel.goBackToSettings()
         }
     }
-
-    LaunchedEffect(state.successMessage, state.error) {
-        state.successMessage?.let { message ->
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            viewModel.consumeMessage()
+    state.successMessage?.let { resId ->
+        val count = state.previewContacts.count { it.isSelected && !it.isDuplicate }
+        val message = if (resId == R.string.import_contacts_success_multiple) {
+            context.getString(resId, count)
+        } else {
+            context.getString(resId)
         }
-        state.error?.let { err ->
-            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
-            viewModel.consumeMessage()
-        }
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        viewModel.consumeMessage()
     }
 
+    state.error?.let { error ->
+        val message = when (error) {
+            ImportContactsError.PermissionDenied -> context.getString(R.string.import_contacts_error_permission)
+            ImportContactsError.NoContactsFound -> context.getString(R.string.import_contacts_error_none)
+            ImportContactsError.NoSelection -> context.getString(R.string.import_contacts_error_no_selection)
+            is ImportContactsError.LoadError -> context.getString(R.string.import_contacts_error_load, error.cause.orEmpty())
+            is ImportContactsError.SaveError -> context.getString(R.string.import_contacts_error_save, error.cause.orEmpty())
+            is ImportContactsError.UnknownError -> context.getString(R.string.import_contacts_error_unknown, error.message.orEmpty())
+        }
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        viewModel.consumeMessage()
+    }
     if (state.isMainPage) {
         Column(
             modifier = Modifier

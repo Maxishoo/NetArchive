@@ -324,6 +324,84 @@
     <string name="import_contacts_duplicate">уже есть</string>
     <string name="import_contacts_select">Выбрать</string>
     <string name="import_contacts_deselect">Снять выбор</string>
+
+
+    <!-- Импорт контактов: данные и ошибки -->
+    <string name="import_contacts_default_name">Без имени</string>
+    <string name="import_contacts_success_single">Контакт импортирован</string>
+    <string name="import_contacts_success_multiple">Импортировано контактов: %d</string>
+    <string name="import_contacts_error_permission">Нет разрешения на доступ к контактам</string>
+    <string name="import_contacts_error_none">Контакты не найдены в устройстве</string>
+    <string name="import_contacts_error_no_selection">Не выбрано ни одного контакта</string>
+    <string name="import_contacts_error_load">Ошибка загрузки: %s</string>
+    <string name="import_contacts_error_save">Ошибка сохранения: %s</string>
+    <string name="import_contacts_error_unknown">Ошибка: %s</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Настройки</string>
+    <string name="back_to_main">Назад</string>
+    <string name="back_to_settings">В настройки</string>
+    <string name="settings_page_coming_soon">Страницы пока нет\nпоявится в новых версиях</string>
+
+    <!-- Settings Pages -->
+    <string name="settings_page_data">Данные приложения</string>
+    <string name="settings_page_import_contacts">Импорт контактов</string>
+    <string name="settings_page_design">Дизайн интерфейса</string>
+    <string name="settings_page_notifications">Уведомления</string>
+    <string name="settings_page_ai">ИИ ассистент</string>
+    <string name="settings_page_language">Язык</string>
+    <string name="settings_page_security">Безопасность</string>
+    <string name="settings_page_subscription">NetArchive премиум</string>
+    <string name="settings_page_about">О приложении</string>
+    <string name="settings_page_help">Задать вопрос</string>
     <string name="back">Назад</string>
+
+    <string name="error_invalid_date">Неверная дата</string>
+
+    <string name="action_pin">ЗАКРЕПИТЬ</string>
+    <string name="action_unpin">ОТКРЕПИТЬ</string>
+    <string name="content_description_pin">Закрепить контакт</string>
+    <string name="content_description_swap">Поменять местами</string>
+
+
+    <string name="category_hash">#</string>
+
+    <string name="delete_note">Удалить заметку</string>
+
+    <!-- CategorySelector -->
+    <string name="category_remove">Удалить категорию</string>
+    <string name="category_add">Добавить категорию</string>
+    <string name="category_search_hint">Начните вводить...</string>
+    <string name="category_default">Стандартная</string>
+    <string name="category_create">Создать "%1$s"</string>
+    <string name="category_search_empty">Начните вводить для поиска...</string>
+    <string name="clear">Очистить</string>
+    <!-- categories_label уже есть -->
+
+    <!-- QR Dialog Strings -->
+    <string name="qr_code_content_description">QR код</string>
+    <string name="qr_load_error">Не удалось загрузить QR код</string>
+    <string name="qr_dialog_instruction">Для добавления контакта на странице добавления нажмите \"По QR коду\"</string>
+    <!-- close уже есть -->
+
+
+    <string name="qr_scanner_instruction">Наведите камеру на QR код</string>
+    <string name="qr_scanner_flash_on">Вкл.</string>
+    <string name="qr_scanner_flash_off">Выкл.</string>
+    <string name="qr_scanner_flashlight">Фонарик</string>
+    <string name="qr_scanner_gallery">Галерея</string>
+
+
+    <!-- Navigation -->
+
+    <string name="nav_reminders">Напоминания</string>
+    <string name="nav_add">Добавить</string>
+    <string name="nav_analytics">Аналитика</string>
+    <string name="nav_profile">Профиль</string>
+
+    <!-- Add Menu Items -->
+
+    <string name="add_item_note">Заметка</string>
+    <string name="add_item_reminder">Напоминание</string>
 </resources>
 

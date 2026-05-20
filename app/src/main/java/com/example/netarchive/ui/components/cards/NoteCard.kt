@@ -11,10 +11,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.example.netarchive.R
 import com.example.netarchive.domain.model.Note
 import java.text.SimpleDateFormat
@@ -38,13 +37,13 @@ fun NoteCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onNoteClick() },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_medium)),
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(dimensionResource(id = R.dimen.card_padding)),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -57,13 +56,13 @@ fun NoteCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 Row(
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier.padding(top = dimensionResource(id = R.dimen.spacing_small)),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Default.CalendarToday,
                         contentDescription = stringResource(R.string.date),
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.note_icon_size)),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
 
@@ -71,20 +70,20 @@ fun NoteCard(
                         text = dateString,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        modifier = Modifier.padding(start = 4.dp)
+                        modifier = Modifier.padding(start = dimensionResource(id = R.dimen.spacing_extra_small))
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.spacing_medium)))
                     Icon(
                         imageVector = Icons.Default.AccessTime,
                         contentDescription = stringResource(R.string.content_description_clock),
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.note_icon_size)),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
                     Text(
                         text = timeString,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        modifier = Modifier.padding(start = 4.dp)
+                        modifier = Modifier.padding(start = dimensionResource(id = R.dimen.spacing_extra_small))
                     )
                 }
             }
@@ -92,7 +91,7 @@ fun NoteCard(
                 IconButton(onClick = onDeleteClick) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Удалить заметку",
+                        contentDescription = stringResource(R.string.delete_note),
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
@@ -100,5 +99,3 @@ fun NoteCard(
         }
     }
 }
-
-

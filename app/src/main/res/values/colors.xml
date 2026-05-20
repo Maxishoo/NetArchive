@@ -67,4 +67,16 @@
     <!-- Импорт контактов -->
     <color name="import_action_primary">#FF4D5D8A</color>
     <color name="import_action_secondary">#FF90A4D1</color>
+    <color name="transparent">#00000000</color>
+
+    <!-- QR Scanner Colors -->
+    <color name="qr_scanner_bg_start">#1A1A1A</color>
+    <color name="qr_scanner_bg_end">#0A0A0A</color>
+    <color name="qr_scanner_border_green">#4CAF50</color>
+    <color name="qr_scanner_border_blue">#2196F3</color>
+    <color name="qr_scanner_controls_bg">#1C1C1E</color>
+    <color name="qr_scanner_divider">#38383A</color>
+    <!-- black, white уже есть -->
+
+    <color name="add_menu_button_bg">#FFD6EBFE</color>
 </resources>
