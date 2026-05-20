@@ -9,9 +9,11 @@ import android.speech.SpeechRecognizer
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.netarchive.R
 import com.example.netarchive.data.repository.NoteRepository
 import com.example.netarchive.domain.model.Note
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,9 +42,12 @@ data class CreateNoteState(
 
 @HiltViewModel
 class CreateNoteViewModel @Inject constructor(
+    @ApplicationContext private val appContext: Context,
     private val repository: NoteRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private val speechNotRecognized = appContext.getString(R.string.speech_not_recognized)
 
     private val contactId: Int = checkNotNull(savedStateHandle["contactId"])
     private val contactName: String = checkNotNull(savedStateHandle["contactName"])
@@ -78,7 +83,7 @@ class CreateNoteViewModel @Inject constructor(
         val currentState = _state.value
 
         if (currentState.noteText.isBlank()) {
-            _state.value = currentState.copy(error = "Заметка не может быть пустой")
+            _state.value = currentState.copy(error = appContext.getString(R.string.error_note_empty))
             return
         }
 
@@ -101,7 +106,7 @@ class CreateNoteViewModel @Inject constructor(
                 _state.value = currentState.copy(isSuccess = true)
             } catch (e: Exception) {
                 _state.value = currentState.copy(
-                    error = "Ошибка при сохранении: ${e.message}",
+                    error = appContext.getString(R.string.error_save, e.message ?: ""),
                 )
             }
         }
@@ -144,7 +149,7 @@ class CreateNoteViewModel @Inject constructor(
                 _state.value = currentState.copy(isSuccess = true)
             } catch (e: Exception) {
                 _state.value = currentState.copy(
-                    error = "Ошибка при удалении: ${e.message}",
+                    error = appContext.getString(R.string.error_delete, e.message ?: ""),
                 )
             }
         }
@@ -168,7 +173,7 @@ class CreateNoteViewModel @Inject constructor(
 
             if (!isAvailable) {
                 _state.value = _state.value.copy(
-                    error = "Распознавание речи не поддерживается на этом устройстве",
+                    error = appContext.getString(R.string.speech_not_supported),
                     isVoiceRecordDone = true
                 )
                 return
@@ -177,7 +182,7 @@ class CreateNoteViewModel @Inject constructor(
 
             if (speechRecognizer == null) {
                 _state.value = _state.value.copy(
-                    error = "Не удалось создать SpeechRecognizer",
+                    error = appContext.getString(R.string.speech_recognizer_create_failed),
                     isVoiceRecordDone = true
                 )
                 return
@@ -201,15 +206,15 @@ class CreateNoteViewModel @Inject constructor(
 
                 override fun onError(error: Int) {
                     val errorMessage = when (error) {
-                        SpeechRecognizer.ERROR_NO_MATCH -> "Речь не распознана. Попробуйте еще раз."
-                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Речь не обнаружена. Попробуйте еще раз."
-                        SpeechRecognizer.ERROR_NETWORK -> "Ошибка сети. Проверьте подключение."
-                        SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Таймаут сети. Проверьте подключение."
-                        SpeechRecognizer.ERROR_AUDIO -> "Ошибка записи аудио"
-                        SpeechRecognizer.ERROR_CLIENT -> "Ошибка клиента"
-                        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Распознаватель занят"
-                        SpeechRecognizer.ERROR_SERVER -> "Ошибка сервера"
-                        else -> "Ошибка распознавания: $error"
+                        SpeechRecognizer.ERROR_NO_MATCH -> appContext.getString(R.string.speech_not_recognized_retry)
+                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> appContext.getString(R.string.speech_not_detected)
+                        SpeechRecognizer.ERROR_NETWORK -> appContext.getString(R.string.speech_network_error)
+                        SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> appContext.getString(R.string.speech_network_timeout)
+                        SpeechRecognizer.ERROR_AUDIO -> appContext.getString(R.string.speech_audio_error)
+                        SpeechRecognizer.ERROR_CLIENT -> appContext.getString(R.string.speech_client_error)
+                        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> appContext.getString(R.string.speech_recognizer_busy)
+                        SpeechRecognizer.ERROR_SERVER -> appContext.getString(R.string.speech_server_error)
+                        else -> appContext.getString(R.string.speech_recognition_error, error)
                     }
 
                     _state.value = _state.value.copy(
@@ -226,7 +231,7 @@ class CreateNoteViewModel @Inject constructor(
                         isVoiceRecording = false,
                         isVoiceProcessing = false,
                         isVoiceRecordDone = true,
-                        recognizedText = matches?.firstOrNull() ?: "Речь не распознана"
+                        recognizedText = matches?.firstOrNull() ?: speechNotRecognized
                     )
                 }
 
@@ -243,7 +248,7 @@ class CreateNoteViewModel @Inject constructor(
 
         } catch (e: Exception) {
             _state.value = _state.value.copy(
-                error = "Ошибка инициализации: ${e.message}",
+                error = appContext.getString(R.string.speech_init_error, e.message ?: ""),
                 isVoiceRecordDone = true
             )
         }
@@ -255,7 +260,7 @@ class CreateNoteViewModel @Inject constructor(
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
                 putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-                putExtra(RecognizerIntent.EXTRA_PROMPT, "Говорите...")
+                putExtra(RecognizerIntent.EXTRA_PROMPT, appContext.getString(R.string.speech_prompt))
             }
             speechRecognizer?.startListening(intent)
             _state.value = _state.value.copy(
@@ -267,7 +272,7 @@ class CreateNoteViewModel @Inject constructor(
         } catch (e: Exception) {
             _state.value = _state.value.copy(
                 isVoiceRecording = false,
-                recognizedText = "Ошибка: ${e.message}",
+                recognizedText = appContext.getString(R.string.error_with_message, e.message ?: ""),
                 isVoiceRecordDone = true
             )
         }
@@ -284,7 +289,7 @@ class CreateNoteViewModel @Inject constructor(
             _state.value = _state.value.copy(
                 isVoiceRecording = false,
                 isVoiceProcessing = false,
-                recognizedText = "Ошибка: ${e.message}",
+                recognizedText = appContext.getString(R.string.error_with_message, e.message ?: ""),
                 isVoiceRecordDone = true
             )
         }
@@ -314,7 +319,7 @@ class CreateNoteViewModel @Inject constructor(
 
     fun applyRecognizedText() {
         val currentState = _state.value
-        if (currentState.recognizedText.isNotBlank() && currentState.recognizedText != "Речь не распознана") {
+        if (currentState.recognizedText.isNotBlank() && currentState.recognizedText != speechNotRecognized) {
             val newText = if (currentState.noteText.isNotBlank()) {
                 "${currentState.noteText}\n${currentState.recognizedText}"
             } else {

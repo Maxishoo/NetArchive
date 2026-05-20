@@ -19,11 +19,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.netarchive.R
+import com.example.netarchive.ui.theme.AppTheme
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 
@@ -41,7 +43,7 @@ fun QrDialog(qrCode: ImageBitmap?, onCloseClick: () -> Unit) {
             modifier = Modifier
                 .width(350.dp)
                 .height(450.dp)
-                .background(Color.White, shape = RoundedCornerShape(16.dp))
+                .background(AppTheme.colors.cardBackground, shape = RoundedCornerShape(16.dp))
                 .padding(16.dp)
                 .clickable(onClick = {})
         ) {
@@ -58,10 +60,10 @@ fun QrDialog(qrCode: ImageBitmap?, onCloseClick: () -> Unit) {
                         contentScale = ContentScale.Fit
                     )
                 } else {
-                    Text("Не удалось загрузить QR код")
+                    Text(stringResource(R.string.qr_load_failed))
                 }
                 Text(
-                    text = "Для добавления контакта на странице добавления нажмите \"По QR коду\"",
+                    text = stringResource(R.string.qr_hint),
                     style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
                 )
@@ -70,7 +72,7 @@ fun QrDialog(qrCode: ImageBitmap?, onCloseClick: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Закрыть",
+                        text = stringResource(R.string.close),
                         style = MaterialTheme.typography.labelLarge
                     )
                 }

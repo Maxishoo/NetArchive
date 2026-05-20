@@ -44,13 +44,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.annotation.StringRes
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.netarchive.ui.theme.AppTheme
+import com.example.netarchive.R
 import com.example.netarchive.ui.screens.settings_screen.pages.AboutPage
 import com.example.netarchive.ui.screens.settings_screen.pages.AppDataPage
 import com.example.netarchive.ui.screens.settings_screen.pages.ChangeDesignPage
@@ -59,47 +62,47 @@ import com.example.netarchive.ui.theme.CardBackground
 
 enum class SettingsPages(
     val icon: ImageVector,
-    val title: String,
+    @StringRes val titleRes: Int,
 ) {
     Data(
         icon = Icons.Outlined.Folder,
-        title = "Данные приложения"
+        titleRes = R.string.settings_app_data
     ),
     ContactsImport(
         icon = Icons.Filled.EmojiPeople,
-        title = "Импорт контактов"
+        titleRes = R.string.settings_import_contacts
     ),
     Design(
         icon = Icons.Outlined.FormatPaint,
-        title = "Дизайн интерфейса"
+        titleRes = R.string.settings_design
     ),
     Notifications(
         icon = Icons.Outlined.Notifications,
-        title = "Уведомления"
+        titleRes = R.string.settings_notifications
     ),
     AI(
         icon = Icons.Outlined.AutoAwesome,
-        title = "ИИ ассистент"
+        titleRes = R.string.settings_ai
     ),
     Language(
         icon = Icons.Outlined.Language,
-        title = "Язык"
+        titleRes = R.string.settings_language
     ),
     Security(
         icon = Icons.Outlined.Lock,
-        title = "Безопасность"
+        titleRes = R.string.settings_security
     ),
     Subscription(
         icon = Icons.Outlined.Wallet,
-        title = "NetArchive премиум"
+        titleRes = R.string.settings_premium
     ),
     About(
         icon = Icons.Outlined.Info,
-        title = "О приложении"
+        titleRes = R.string.settings_about
     ),
     Help(
         icon = Icons.Filled.QuestionAnswer,
-        title = "Задать вопрос"
+        titleRes = R.string.settings_help
     );
 }
 
@@ -148,7 +151,7 @@ fun SettingsScreen(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(color = Color(0xFFECEBF4).copy(alpha = 0.95f))
+            .background(color = AppTheme.topBarBackground())
             .padding(top = 30.dp, bottom = 8.dp, start = 10.dp, end = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -156,10 +159,10 @@ fun SettingsScreen(
             Icon(
                 modifier = Modifier.size(30.dp),
                 imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                contentDescription = viewState.topBarText
+                contentDescription = stringResource(viewState.topBarTextRes)
             )
         }
-        Text(viewState.topBarText, style = MaterialTheme.typography.headlineLarge)
+        Text(stringResource(viewState.topBarTextRes), style = MaterialTheme.typography.headlineLarge)
     }
 }
 
@@ -176,7 +179,7 @@ fun MainSettings(viewModel: SettingsViewModel) {
         )
     ) {
         itemsIndexed(SettingsPages.entries) { index, page ->
-            PageCard(page) { viewModel.changeSelectedPage(index + 1, page.title) }
+            PageCard(page) { viewModel.changeSelectedPage(index + 1, page.titleRes) }
         }
     }
 }
@@ -206,7 +209,7 @@ fun EmptyPage() {
                     contentDescription = null
                 )
                 Text(
-                    "Страницы пока нет\nпоявится в новых версиях",
+                    stringResource(R.string.settings_page_not_ready),
                     style = MaterialTheme.typography.labelLarge,
                     textAlign = TextAlign.Center
                 )
@@ -238,9 +241,9 @@ fun PageCard(
             Icon(
                 modifier = Modifier.size(35.dp),
                 imageVector = element.icon,
-                contentDescription = element.title
+                contentDescription = stringResource(element.titleRes)
             )
-            Text(element.title, style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(element.titleRes), style = MaterialTheme.typography.labelLarge)
         }
     }
 }

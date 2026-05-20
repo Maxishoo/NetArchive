@@ -47,14 +47,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.netarchive.R
+import com.example.netarchive.ui.theme.AppTheme
 import com.example.netarchive.ui.theme.CardBackground
 
 @Composable
@@ -115,7 +117,7 @@ fun ImportContactsPage(
                         modifier = Modifier.size(50.dp)
                     )
                     Text(
-                        "Вы можете импортировать контакты из сторонних приложений",
+                        stringResource(R.string.import_contacts_hint),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -126,10 +128,10 @@ fun ImportContactsPage(
                     .fillMaxWidth()
                     .height(50.dp)
             ) {
-                Text("Из приложения Контакты", fontWeight = FontWeight.Medium)
+                Text(stringResource(R.string.import_from_contacts_app), fontWeight = FontWeight.Medium)
             }
             Text(
-                "Список приложений будет расширяться",
+                stringResource(R.string.import_apps_expanding),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -147,7 +149,7 @@ fun ImportContactsPage(
                 CircularProgressIndicator()
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(
-                    "Читаем контакты",
+                    stringResource(R.string.import_reading_contacts),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -162,7 +164,7 @@ fun ImportContactsPage(
                 CircularProgressIndicator()
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(
-                    "Сохранение в бд",
+                    stringResource(R.string.import_saving_db),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -194,7 +196,7 @@ fun ImportContactsPage(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    "Контакты не найдены",
+                                    stringResource(R.string.import_no_contacts_found),
                                     style = MaterialTheme.typography.bodyMedium,
                                     textAlign = TextAlign.Center
                                 )
@@ -237,7 +239,7 @@ fun ImportContactsPage(
                                     )
                                 }
                                 Text(
-                                    "Выберите контакты, которые нужно импортировать",
+                                    stringResource(R.string.import_select_contacts_hint),
                                     style = MaterialTheme.typography.bodyLarge,
                                     textAlign = TextAlign.Center
                                 )
@@ -251,7 +253,7 @@ fun ImportContactsPage(
                                     containerColor = colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
                                 ),
                             ) {
-                                Text("Импортировать выбранные", fontWeight = FontWeight.Medium)
+                                Text(stringResource(R.string.import_selected_button), fontWeight = FontWeight.Medium)
                             }
                             Row(
                                 modifier = Modifier.fillMaxWidth()
@@ -265,7 +267,7 @@ fun ImportContactsPage(
                                         containerColor = colorScheme.onPrimaryContainer.copy(alpha = 0.65f)
                                     ),
                                 ) {
-                                    Text("Выбрать все", fontWeight = FontWeight.Medium)
+                                    Text(stringResource(R.string.import_select_all), fontWeight = FontWeight.Medium)
                                 }
 
                                 Spacer(modifier = Modifier.width(4.dp))
@@ -279,7 +281,7 @@ fun ImportContactsPage(
                                         containerColor = colorScheme.onPrimaryContainer.copy(alpha = 0.65f)
                                     ),
                                 ) {
-                                    Text("Снять все", fontWeight = FontWeight.Medium)
+                                    Text(stringResource(R.string.import_deselect_all), fontWeight = FontWeight.Medium)
                                 }
                             }
                         }
@@ -328,7 +330,7 @@ fun PreviewContactCard(
                         modifier = Modifier
                             .size(56.dp)
                             .clip(CircleShape)
-                            .background(color = Color(0xFFDBE0F7)),
+                            .background(color = AppTheme.colors.noAvatar),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -348,9 +350,9 @@ fun PreviewContactCard(
                     Text(
                         text = contactPreviewItem.contact.phone
                             ?: contactPreviewItem.contact.email
-                            ?: "Нет телефона",
+                            ?: stringResource(R.string.import_no_phone),
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -364,7 +366,7 @@ fun PreviewContactCard(
                             imageVector = Icons.Outlined.Error,
                             contentDescription = null
                         )
-                        Text("уже есть")
+                        Text(stringResource(R.string.import_already_exists))
                     }
                 }else{
                     IconButton(

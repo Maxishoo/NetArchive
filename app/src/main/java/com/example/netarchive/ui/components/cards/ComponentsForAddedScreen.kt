@@ -46,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -56,6 +55,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.example.netarchive.R
+import com.example.netarchive.ui.theme.AppTheme
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -93,7 +93,7 @@ fun SimpleContactCard(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(color = Color(0xFFDBE0F7)),
+                        .background(color = AppTheme.colors.noAvatar),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -165,7 +165,7 @@ fun DateTimeSelector_with_valid(
         value = dateString,
         onValueChange = {},
         readOnly = true,
-        label = { Text("Дата") },
+        label = { Text(stringResource(R.string.date)) },
         modifier = modifier
             .fillMaxWidth()
             .padding(top = 8.dp),
@@ -176,7 +176,7 @@ fun DateTimeSelector_with_valid(
             IconButton(onClick = onDateClick) {
                 Icon(
                     imageVector = Icons.Filled.Event,
-                    contentDescription = "Выбрать дату",
+                    contentDescription = stringResource(R.string.pick_date),
                     tint = if (isError) MaterialTheme.colorScheme.error
                     else MaterialTheme.colorScheme.primary
                 )
@@ -189,7 +189,7 @@ fun DateTimeSelector_with_valid(
             else MaterialTheme.colorScheme.outline
         ),
         supportingText = if (isError) {
-            { Text("Неверная дата", color = MaterialTheme.colorScheme.error) }
+            { Text(stringResource(R.string.invalid_date), color = MaterialTheme.colorScheme.error) }
         } else null
     )
 }
@@ -307,7 +307,7 @@ private fun ShowTimePickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Выберите время") },
+        title = { Text(stringResource(R.string.select_time)) },
         text = {
             Column(
                 modifier = Modifier
@@ -323,14 +323,14 @@ private fun ShowTimePickerDialog(
                         value = hour,
                         onValueChange = { hour = it },
                         range = 0..23,
-                        label = "Ч"
+                        label = stringResource(R.string.time_hour_label)
                     )
                     Text(":", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 24.dp))
                     NumberPickerColumn(
                         value = minute,
                         onValueChange = { minute = it },
                         range = 0..59,
-                        label = "М"
+                        label = stringResource(R.string.time_minute_label)
                     )
                 }
             }
@@ -360,7 +360,7 @@ private fun ShowTimePickerDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Отмена")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

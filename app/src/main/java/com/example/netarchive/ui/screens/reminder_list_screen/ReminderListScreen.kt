@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.netarchive.R
+import com.example.netarchive.ui.theme.AppTheme
 import com.example.netarchive.domain.model.ReminderContact
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -26,7 +27,6 @@ import java.util.Locale
 import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
@@ -249,7 +249,7 @@ private fun ContactHeader(contact: com.example.netarchive.domain.model.Contact?)
                 modifier = Modifier
                     .size(56.dp)
                     .clip(CircleShape)
-                    .background(color = Color(0xFFDBE0F7)),
+                    .background(color = AppTheme.colors.noAvatar),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -328,7 +328,7 @@ fun ReminderCard(
                     )
                     if (isOverdue) {
                         Text(
-                            text = "Просрочено",
+                            text = stringResource(R.string.overdue),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error
                         )
@@ -368,7 +368,7 @@ fun ReminderListTopBar(
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f)
+                containerColor = AppTheme.topBarBackground()
             ),
             actions = {
                 IconButton(onClick = onDeleteSelected) {
@@ -385,7 +385,7 @@ fun ReminderListTopBar(
                 )
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f)
+                containerColor = AppTheme.topBarBackground()
             ),
             actions = {
                 IconButton(onClick = onSortClick) {

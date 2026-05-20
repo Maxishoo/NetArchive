@@ -3,7 +3,10 @@ package com.example.netarchive.ui.screens.profile_screen
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.content.Context
+import com.example.netarchive.R
 import com.example.netarchive.data.local.FileManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.example.netarchive.data.repository.ProfileRepository
 import com.example.netarchive.domain.model.Profile
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,6 +42,7 @@ data class ProfileViewState(
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val repository: ProfileRepository,
     private val fileManager: FileManager
 ) : ViewModel() {
@@ -182,7 +186,7 @@ class ProfileViewModel @Inject constructor(
                 _viewState.update { it.copy(avatar = localPath) }
             } catch (e: Exception) {
                 _viewState.update {
-                    it.copy(error = "Ошибка загрузки фото: ${e.message}")
+                    it.copy(error = context.getString(R.string.error_profile_photo, e.message ?: ""))
                 }
             }
         }
@@ -208,7 +212,7 @@ class ProfileViewModel @Inject constructor(
 
     fun saveProfile() {
         if (_viewState.value.username.isBlank()) {
-            _viewState.update { it.copy(error = "Имя обязательно") }
+            _viewState.update { it.copy(error = context.getString(R.string.error_name_required)) }
             return
         }
 

@@ -2,8 +2,6 @@ package com.example.netarchive.ui.screens.add_reminder_screen
 
 import android.app.DatePickerDialog
 import android.content.Context
-import android.os.VibrationEffect
-import android.os.Vibrator
 import android.widget.DatePicker
 import android.widget.NumberPicker
 import androidx.compose.foundation.layout.*
@@ -15,7 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -23,10 +20,13 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.netarchive.R
+import com.example.netarchive.ui.theme.AppTheme
 import com.example.netarchive.ui.components.cards.ActionButtonsSaveCancel
 import com.example.netarchive.ui.components.cards.DateTimeSelector_with_valid
 import com.example.netarchive.ui.components.cards.SimpleContactCard
 import com.example.netarchive.ui.components.cards.TimeSelectorCard
+import com.example.netarchive.utils.rememberDefaultVibrator
+import com.example.netarchive.utils.vibrateOneShotShort
 import java.util.*
 
 const val MAX_TEXT_LENGTH = 500
@@ -90,7 +90,7 @@ private fun TimePickerDialogContent(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Выберите время") },
+        title = { Text(stringResource(R.string.select_time)) },
         text = {
             Column(
                 modifier = Modifier
@@ -106,14 +106,14 @@ private fun TimePickerDialogContent(
                         curvalue = hour,
                         onValueChange = { hour = it },
                         range = 0..23,
-                        label = "Ч"
+                        label = stringResource(R.string.time_hour_label)
                     )
                     Text(":", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 24.dp))
                     NumberPickerCard(
                         curvalue = minute,
                         onValueChange = { minute = it },
                         range = 0..59,
-                        label = "М"
+                        label = stringResource(R.string.time_minute_label)
                     )
                 }
             }
@@ -138,7 +138,7 @@ private fun TimePickerDialogContent(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Отмена")
+                Text(stringResource(R.string.cancel))
             }
         }
     )
@@ -179,7 +179,7 @@ fun CreateReminderScreen(
     } }
 
     val context = LocalContext.current
-    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+    val vibrator = rememberDefaultVibrator()
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
@@ -212,7 +212,7 @@ fun CreateReminderScreen(
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f)
+                    containerColor = AppTheme.topBarBackground()
                 ),
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
@@ -281,15 +281,11 @@ fun CreateReminderScreen(
 
             ActionButtonsSaveCancel(
                 onCancelClick = {
-                    if (vibrator.hasVibrator()) {
-                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
-                    }
+                    vibrator.vibrateOneShotShort()
                     onBackClick()
                 },
                 onSaveClick = {
-                    if (vibrator.hasVibrator()) {
-                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
-                    }
+                    vibrator.vibrateOneShotShort()
                     viewModel.saveReminder()
                 },
                 saveButtonText = stringResource(R.string.save),

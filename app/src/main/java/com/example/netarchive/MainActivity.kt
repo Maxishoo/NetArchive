@@ -14,10 +14,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.example.netarchive.data.local.preferences.ThemeRepository
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -51,6 +53,10 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var reminderRepository: ReminderRepository
+
+    @Inject
+    lateinit var themeRepository: ThemeRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -65,7 +71,8 @@ class MainActivity : ComponentActivity() {
         rescheduleAllReminders()
 
         setContent {
-            NetArchiveTheme {
+            val isDarkTheme by themeRepository.isDarkTheme.collectAsState()
+            NetArchiveTheme(darkTheme = isDarkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -120,7 +127,7 @@ class MainActivity : ComponentActivity() {
                     ReminderScheduler.scheduleReminder(
                         context = this@MainActivity,
                         reminderId = reminder.id,
-                        title = "Напоминание",
+                        title = getString(R.string.reminder_title),
                         text = reminder.text,
                         timestamp = reminder.date
                     )

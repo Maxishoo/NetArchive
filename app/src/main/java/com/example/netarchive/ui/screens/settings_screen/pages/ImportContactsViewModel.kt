@@ -4,6 +4,7 @@ import android.content.Context
 import android.provider.ContactsContract
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.netarchive.R
 import com.example.netarchive.data.repository.ContactRepository
 import com.example.netarchive.domain.model.Contact
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -63,7 +64,7 @@ class ImportContactsViewModel @Inject constructor(
         )?.use { cursor ->
             while (cursor.moveToNext()) {
                 val deviceId = cursor.getLong(0)
-                val name = cursor.getString(1)?.takeIf { it.isNotBlank() } ?: "Без имени"
+                val name = cursor.getString(1)?.takeIf { it.isNotBlank() } ?: context.getString(R.string.import_no_name)
                 val phone = cursor.getString(2)
                 val avatar = cursor.getString(3)
 
@@ -125,7 +126,7 @@ class ImportContactsViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         isContactsListLoading = false,
-                        error = e.message ?: "Ошибка"
+                        error = e.message ?: context.getString(R.string.import_error)
                     )
                 }
             }
@@ -172,7 +173,7 @@ class ImportContactsViewModel @Inject constructor(
         val selected = _state.value.previewContacts.filter { it.isSelected && !it.isDuplicate }
             .map { it.contact }
         if (selected.isEmpty()) {
-            _state.update { it.copy(error = "Не выбрано ни одного контакта") }
+            _state.update { it.copy(error = context.getString(R.string.import_none_selected)) }
             return
         }
 
@@ -186,7 +187,7 @@ class ImportContactsViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         isContactsListSaving = false,
-                        successMessage = "Импортировано: ${selected.size}",
+                        successMessage = context.getString(R.string.import_success_count, selected.size),
                         isMainPage = true,
                         isImportFromContacts = false
                     )
@@ -195,7 +196,7 @@ class ImportContactsViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         isContactsListSaving = false,
-                        error = e.message ?: "Ошибка сохранения"
+                        error = e.message ?: context.getString(R.string.import_save_error)
                     )
                 }
             }

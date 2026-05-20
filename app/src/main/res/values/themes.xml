@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.NetArchive" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.NetArchive" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/top_bar_background</item>
+        <item name="android:navigationBarColor">@color/top_bar_background</item>
+        <item name="android:windowBackground">@color/md_background</item>
+    </style>
 </resources>

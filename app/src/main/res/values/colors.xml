@@ -1,10 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
+    <!-- Legacy / launcher -->
+    <color name="purple_200">#FF90CAF9</color>
+    <color name="purple_500">#FF0D47A1</color>
+    <color name="purple_700">#FF002171</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Material theme (light) — dark blue -->
+    <color name="md_primary">#FF0D47A1</color>
+    <color name="md_on_primary">#FFFFFFFF</color>
+    <color name="md_primary_container">#FFBBDEFB</color>
+    <color name="md_on_primary_container">#FF001D36</color>
+    <color name="md_secondary">#FF455A64</color>
+    <color name="md_on_secondary">#FFFFFFFF</color>
+    <color name="md_background">#FFFAFCFF</color>
+    <color name="md_on_background">#FF1A1C1E</color>
+    <color name="md_surface">#FFFAFCFF</color>
+    <color name="md_on_surface">#FF1A1C1E</color>
+    <color name="md_surface_variant">#FFDEE3EB</color>
+    <color name="md_on_surface_variant">#FF42474E</color>
+    <color name="md_outline">#FF73777F</color>
+
+    <!-- App surfaces -->
+    <color name="top_bar_background">#E8EEF5</color>
+    <color name="bottom_bar_background">#E8EEF5</color>
+    <color name="nav_icon">#000000</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="light_blue">#D6EBFE</color>
+    <color name="no_avatar_background">#D6E4F0</color>
+    <color name="pink_let_card">#FFC1AB</color>
+    <color name="add_button">#0D47A1</color>
+
+    <!-- Text fields -->
+    <color name="text_field_focused">#0D47A1</color>
+    <color name="text_field_unfocused">#78909C</color>
+
+    <!-- Actions -->
+    <color name="primary_action">#0D47A1</color>
+    <color name="confirm_action">#1565C0</color>
+    <color name="destructive_action">#E85653</color>
+    <color name="disabled_action">#9E9E9E</color>
+
+    <!-- Theme switch -->
+    <color name="theme_icon_light_mode">#FF9800</color>
+    <color name="theme_icon_dark_mode">#FCD139</color>
+    <color name="theme_switch_track_light">#E0E0E0</color>
+    <color name="theme_switch_track_dark">#6E6E6E</color>
+    <color name="theme_switch_thumb">#FFFFFF</color>
+
+    <!-- Analytics -->
+    <color name="chart_bar_background">#D8DEE7</color>
+    <color name="analytics_warning">#D75C5C</color>
+    <color name="chart_color_1">#4CAF50</color>
+    <color name="chart_color_2">#2196F3</color>
+    <color name="chart_color_3">#FF9800</color>
+    <color name="chart_color_4">#E05080</color>
+    <color name="chart_color_5">#3949AB</color>
+    <color name="chart_color_6">#00BCD4</color>
+    <color name="chart_color_7">#795548</color>
+    <color name="chart_color_8">#607D8B</color>
+
+    <!-- Categories -->
+    <color name="category_work">#509C50</color>
+    <color name="category_study">#5DA4A4</color>
+    <color name="category_friend">#FB9C9C</color>
+    <color name="category_family">#F687AC</color>
+    <color name="category_colleague">#5D81A4</color>
+    <color name="category_default">#7A9C50</color>
+
+    <!-- QR scanner -->
+    <color name="qr_overlay_dark_start">#1A1A1A</color>
+    <color name="qr_overlay_dark_end">#0A0A0A</color>
+    <color name="qr_overlay_success_start">#4CAF50</color>
+    <color name="qr_overlay_success_end">#2196F3</color>
+    <color name="qr_button_background">#1C1C1E</color>
+    <color name="qr_divider">#38383A</color>
+    <color name="qr_flashlight_active">#4CAF50</color>
 </resources>

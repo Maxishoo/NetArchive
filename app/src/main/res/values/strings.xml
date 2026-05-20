@@ -2,26 +2,45 @@
     <string name="app_name">NetArchive</string>
     <string name="empty_field">Не задано</string>
 
+    <!-- Contacts list -->
     <string name="error_contacts_load">Ошибка загрузки контактов</string>
     <string name="contacts_empty">Нет контактов</string>
+    <string name="contacts_title">Контакты</string>
+    <string name="select_contact_title">Выберите контакт</string>
+    <string name="search_contacts_placeholder">Поиск контактов</string>
+    <string name="filter_all">Все</string>
+    <string name="search">Поиск</string>
 
+    <!-- Date / time -->
     <string name="date">Дата</string>
     <string name="content_description_clock">Время</string>
-
     <string name="icon_event_description">Выбрать дату</string>
+    <string name="pick_date">Выбрать дату</string>
     <string name="cancel">Отмена</string>
+    <string name="invalid_date">Неверная дата</string>
+    <string name="select_time">Выберите время</string>
+    <string name="time_hour_label">Ч</string>
+    <string name="time_minute_label">М</string>
 
+    <!-- Notes -->
     <string name="modify_note">Редактировать запись</string>
     <string name="add_note">Добавьте запись</string>
     <string name="close">Закрыть</string>
     <string name="note_text">Текст заметки</string>
     <string name="save">Сохранить</string>
     <string name="create">Создать</string>
+    <string name="edit">Редактировать</string>
+    <string name="done">Готово</string>
+    <string name="error_note_empty">Заметка не может быть пустой</string>
+    <string name="error_save">Ошибка при сохранении: %s</string>
+    <string name="error_delete">Ошибка при удалении: %s</string>
+    <string name="delete_note_cd">Удалить заметку</string>
+
+    <!-- Reminders -->
     <string name="reminder_text">Текст напоминания</string>
     <string name="add_reminder">Добавьте напоминание</string>
     <string name="modify_reminder">Редактировать напоминание</string>
-
-
+    <string name="reminder_title">Напоминание</string>
     <string name="reminders_title">Напоминания</string>
     <string name="error_reminders_load">Не удалось загрузить напоминания</string>
     <string name="reminders_empty">Список напоминаний пуст</string>
@@ -29,10 +48,208 @@
     <string name="sort_by_date">По дате</string>
     <string name="no_contact">Без контакта</string>
     <string name="contact_label">Контакт: %s</string>
-
     <string name="selected">выбрано</string>
     <string name="sort_by">Сортировка</string>
     <string name="reminders_deleted">Напоминания удалены</string>
     <string name="sort_by_contact_then_date">По контакту</string>
     <string name="delete">удалить</string>
+    <string name="action_delete">Удалить</string>
+    <string name="overdue">Просрочено</string>
+    <string name="error_reminder_text_empty">Введите текст напоминания</string>
+    <string name="error_reminder_text_too_long">Текст слишком длинный (макс. %d символов)</string>
+    <string name="error_reminder_date_past">Дата не может быть в прошлом</string>
+    <string name="error_reminder_text_blank">Текст не может быть пустым</string>
+    <string name="error_reminder_text_limit">Превышен лимит в %d символов</string>
+    <string name="error_reminder_datetime_past">Указана прошедшая дата и время</string>
+    <string name="error_reminder_datetime_far">Дата слишком далеко (макс. %d дней)</string>
+    <string name="error_reminder_save">Ошибка при сохранении: %s</string>
+    <string name="error_unknown">Неизвестная ошибка</string>
+    <string name="error_reminder_delete_missing">Нельзя удалить несуществующее напоминание</string>
+    <string name="notification_action_done">Выполнено</string>
+    <string name="notification_channel_name">Дневные напоминания</string>
+    <string name="notification_channel_description">Уведомления о событиях, запланированных на день</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_contacts">Контакты</string>
+    <string name="nav_reminders">Напоминания</string>
+    <string name="nav_add">Добавить</string>
+    <string name="nav_analytics">Аналитика</string>
+    <string name="nav_profile">Профиль</string>
+    <string name="add_menu_contact">Контакт</string>
+    <string name="add_menu_note">Заметка</string>
+    <string name="add_menu_reminder">Напоминание</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Настройки</string>
+    <string name="settings_app_data">Данные приложения</string>
+    <string name="settings_import_contacts">Импорт контактов</string>
+    <string name="settings_design">Дизайн интерфейса</string>
+    <string name="settings_notifications">Уведомления</string>
+    <string name="settings_ai">ИИ ассистент</string>
+    <string name="settings_language">Язык</string>
+    <string name="settings_security">Безопасность</string>
+    <string name="settings_premium">NetArchive премиум</string>
+    <string name="settings_about">О приложении</string>
+    <string name="settings_help">Задать вопрос</string>
+    <string name="settings_page_not_ready">Страницы пока нет\nпоявится в новых версиях</string>
+    <string name="design_dark_theme">Темная тема</string>
+    <string name="design_light_theme">Светлая тема</string>
+
+    <!-- Import contacts -->
+    <string name="import_contacts_hint">Вы можете импортировать контакты из сторонних приложений</string>
+    <string name="import_from_contacts_app">Из приложения Контакты</string>
+    <string name="import_apps_expanding">Список приложений будет расширяться</string>
+    <string name="import_reading_contacts">Читаем контакты</string>
+    <string name="import_saving_db">Сохранение в бд</string>
+    <string name="import_no_contacts_found">Контакты не найдены</string>
+    <string name="import_select_contacts_hint">Выберите контакты, которые нужно импортировать</string>
+    <string name="import_selected_button">Импортировать выбранные</string>
+    <string name="import_select_all">Выбрать все</string>
+    <string name="import_deselect_all">Снять все</string>
+    <string name="import_no_phone">Нет телефона</string>
+    <string name="import_already_exists">уже есть</string>
+    <string name="import_no_name">Без имени</string>
+    <string name="import_error">Ошибка</string>
+    <string name="import_none_selected">Не выбрано ни одного контакта</string>
+    <string name="import_success_count">Импортировано: %d</string>
+    <string name="import_save_error">Ошибка сохранения</string>
+
+    <!-- App data -->
+    <string name="app_data_error">Ошибка: %s</string>
+    <string name="app_data_db_size">Размер базы данных</string>
+    <string name="app_data_clear_contacts">Очистить контакты</string>
+    <string name="app_data_clear_profile">Очистить профиль</string>
+    <string name="app_data_delete_contacts_title">Удалить все контакты?</string>
+    <string name="app_data_delete_contacts_message">Все сохранённые контакты и связанные заметки будут удалены безвозвратно.</string>
+    <string name="app_data_reset_profile_title">Сбросить профиль?</string>
+    <string name="app_data_reset_profile_message">Данные профиля будут удалены.</string>
+    <string name="app_data_reset">Сбросить</string>
+    <string name="app_data_table_cleared">Таблица \'%s\' очищена</string>
+    <string name="app_data_clear_error">Ошибка очистки</string>
+    <string name="app_data_unknown_table">Неизвестная таблица</string>
+
+    <!-- About -->
+    <string name="about_description">NetArchive - мобильное приложение для поддержания слабых связей. Многие специалисты теряют ценные связи из-за отсутствия удобного инструмента для регулярного поддержания контактов: они забывают важные детали общения, пропускают поводы для взаимодействия и упускают карьерные возможности. Приложение решает эту проблему с помощью метода «картотеки» — фиксации взаимодействий, системы проактивных напоминаний и ИИ ассистента.</string>
+    <string name="about_version">Версия приложения: v1.0</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Профиль</string>
+    <string name="profile_show_qr">Показать qr код</string>
+    <string name="profile_settings">Настройки</string>
+    <string name="profile_create_hint">Создайте профиль, чтобы делиться им с другими</string>
+    <string name="profile_create_continue">Чтобы продолжить, нажмите кнопку создать</string>
+    <string name="profile_name_label">Имя *</string>
+    <string name="profile_phone_label">Телефон</string>
+    <string name="profile_job_label">Работа</string>
+    <string name="profile_birthday_label">Дата рождения</string>
+    <string name="error_profile_photo">Ошибка загрузки фото: %s</string>
+    <string name="error_name_required">Имя обязательно</string>
+
+    <!-- Contact view -->
+    <string name="contact_title">Контакт</string>
+    <string name="tab_info">Информация</string>
+    <string name="tab_notes">Заметки</string>
+    <string name="delete_contact_title">Удалить контакт?</string>
+    <string name="delete_contact_confirm">Вы уверены что хотите удалить контакт \"%s\"?</string>
+    <string name="delete_contact_notes_warning">Все связанные заметки будут безвозвратно удалены</string>
+    <string name="ai_generating_title">Генерирую подсказку...</string>
+    <string name="ai_analyzing">Анализирую информацию о контакте</string>
+    <string name="ai_message_ideas">Идеи для сообщения</string>
+    <string name="copied">Скопировано</string>
+    <string name="copy">Копировать</string>
+    <string name="more_variants">Ещё варианты</string>
+    <string name="error_title">Ошибка</string>
+    <string name="understood">Понятно</string>
+    <string name="categories_label">Категории:</string>
+    <string name="call">Позвонить</string>
+    <string name="write_email">Написать email</string>
+    <string name="open_telegram">Открыть Telegram</string>
+    <string name="delete_contact">Удалить контакт</string>
+    <string name="no_notes">Нет заметок</string>
+    <string name="add_note_button">Добавить заметку</string>
+    <string name="notes_about">Заметки о %s</string>
+    <string name="description_label">Описание</string>
+    <string name="error_contact_not_found">Контакт не найден</string>
+    <string name="error_contact_load">Ошибка при загрузке: %s</string>
+    <string name="error_photo_load">Ошибка загрузки фото: %s</string>
+    <string name="error_name_required_full">Имя обязательно для заполнения</string>
+    <string name="error_ai_generate">Не удалось сгенерировать подсказки</string>
+    <string name="error_ai">Ошибка AI: %s</string>
+
+    <!-- Add contact -->
+    <string name="add_contact_title">Добавить контакт</string>
+    <string name="add_by_qr">По QR коду</string>
+    <string name="required_field">Обязательное поле</string>
+    <string name="job_place_label">Место работы</string>
+    <string name="error_qr_parse">Ошибка при разборе QR кода: %s</string>
+
+    <!-- Analytics -->
+    <string name="analytics_title">Аналитика</string>
+    <string name="analytics_section_overall">📈 Общая статистика</string>
+    <string name="analytics_section_top">🔥 Топ контактов</string>
+    <string name="analytics_section_write_soon">💬 Пора написать</string>
+    <string name="analytics_section_categories">📁 Распределение по категориям</string>
+    <string name="analytics_no_data">Пока нет данных</string>
+    <string name="analytics_all_good">Все контакты в порядке! 🎉</string>
+    <string name="analytics_collapse">Свернуть ▲</string>
+    <string name="analytics_show_all">Показать всех (%d ещё) ▼</string>
+    <string name="analytics_stat_total">Всего</string>
+    <string name="analytics_stat_new_month">Новых за мес.</string>
+    <string name="analytics_stat_active">Активных</string>
+    <string name="analytics_stat_dash">–</string>
+    <string name="analytics_long_no_contact">Давно не общались</string>
+    <string name="analytics_no_chart_data">Нет данных для графика</string>
+    <string name="analytics_no_categories">Нет контактов в категориях</string>
+
+    <!-- Categories -->
+    <string name="add_category">Добавить категорию</string>
+    <string name="category_search_placeholder">Начните вводить...</string>
+    <string name="clear">Очистить</string>
+    <string name="category_default">Стандартная</string>
+    <string name="create_category">Создать \"%s\"</string>
+    <string name="category_search_hint">Начните вводить для поиска...</string>
+    <string name="delete_category_cd">Удалить категорию</string>
+
+    <!-- QR -->
+    <string name="qr_load_failed">Не удалось загрузить QR код</string>
+    <string name="qr_hint">Для добавления контакта на странице добавления нажмите \"По QR коду\"</string>
+    <string name="qr_scan_title">Сканирование QR кода</string>
+    <string name="qr_scan_hint">Наведите камеру на QR код</string>
+    <string name="flash_off">Выкл.</string>
+    <string name="flash_on">Вкл.</string>
+    <string name="gallery">Галерея</string>
+
+    <!-- Voice recording -->
+    <string name="voice_permission_required">Для записи голоса нужно разрешение</string>
+    <string name="voice_recording">Запись голоса...</string>
+    <string name="voice_processing">Обработка...</string>
+    <string name="voice_note">Голосовая заметка</string>
+    <string name="stop">Остановить</string>
+    <string name="record">Запись</string>
+    <string name="voice_tap_to_stop">Нажмите, чтобы остановить</string>
+    <string name="voice_tap_to_start">Нажмите, чтобы начать запись</string>
+    <string name="voice_processing_detail">Обработка голоса...</string>
+    <string name="recognized_text_label">Распознанный текст:</string>
+    <string name="apply">Применить</string>
+    <string name="try_again">Ещё раз</string>
+    <string name="speak">Говорите</string>
+    <string name="speech_not_recognized">Речь не распознана</string>
+    <string name="speech_not_recognized_retry">Речь не распознана. Попробуйте еще раз.</string>
+    <string name="speech_not_detected">Речь не обнаружена. Попробуйте еще раз.</string>
+    <string name="speech_network_error">Ошибка сети. Проверьте подключение.</string>
+    <string name="speech_network_timeout">Таймаут сети. Проверьте подключение.</string>
+    <string name="speech_audio_error">Ошибка записи аудио</string>
+    <string name="speech_client_error">Ошибка клиента</string>
+    <string name="speech_recognizer_busy">Распознаватель занят</string>
+    <string name="speech_server_error">Ошибка сервера</string>
+    <string name="speech_recognition_error">Ошибка распознавания: %d</string>
+    <string name="speech_not_supported">Распознавание речи не поддерживается на этом устройстве</string>
+    <string name="speech_recognizer_create_failed">Не удалось создать SpeechRecognizer</string>
+    <string name="speech_init_error">Ошибка инициализации: %s</string>
+    <string name="speech_prompt">Говорите...</string>
+    <string name="error_with_message">Ошибка: %s</string>
+
+    <!-- Contact card -->
+    <string name="unpin">ОТКРЕПИТЬ</string>
+    <string name="pin">ЗАКРЕПИТЬ</string>
 </resources>
