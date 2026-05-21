@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.netarchive.R
+import com.example.netarchive.data.remote.calendar.GoogleCalendarSyncService
 import com.example.netarchive.data.repository.ReminderRepository
 import com.example.netarchive.domain.model.Reminder
 import com.example.netarchive.utils.ReminderScheduler
@@ -48,6 +49,7 @@ data class CreateReminderState(
 class CreateReminderViewModel @Inject constructor(
     private val application: Application,
     private val repository: ReminderRepository,
+    private val calendarSync: GoogleCalendarSyncService,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -227,6 +229,9 @@ class CreateReminderViewModel @Inject constructor(
                 }
                 val justSaved = repository.getReminderById(savedReminderId)
                 Log.d("CreateReminderVM", "🔍 Read back after save: ${justSaved?.text ?: "NULL"}")
+                justSaved?.let { saved ->
+                    calendarSync.syncAfterSave(saved, currentState.contactName)
+                }
                 ReminderScheduler.scheduleReminder(
                     context = application,
                     reminderId = savedReminderId,
@@ -280,13 +285,15 @@ class CreateReminderViewModel @Inject constructor(
             _state.value = currentState.copy(isLoading = true, error = null)
 
             try {
-                val reminder = Reminder(
+                val persisted = repository.getReminderById(currentState.reminderId)
+                val reminder = persisted ?: Reminder(
                     id = currentState.reminderId,
                     contactId = currentState.contactId,
                     text = currentState.reminderText,
                     date = currentState.timestamp
                 )
 
+                calendarSync.syncAfterDelete(reminder)
                 repository.deleteReminder(reminder)
                 ReminderScheduler.cancelReminder(application, currentState.reminderId)
                 _state.value = currentState.copy(isLoading = false, isSuccess = true)

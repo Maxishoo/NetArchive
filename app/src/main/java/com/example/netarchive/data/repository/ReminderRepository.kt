@@ -1,13 +1,11 @@
 package com.example.netarchive.data.repository
 
-import android.util.Log
 import com.example.netarchive.data.mapper.toDomain
 import com.example.netarchive.data.mapper.toEntity
 import com.example.netarchive.domain.model.Reminder
 import com.example.netarchive.domain.model.ReminderContact
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.util.Date
 import javax.inject.Inject
 
 class ReminderRepository @Inject constructor(
@@ -52,6 +50,14 @@ class ReminderRepository @Inject constructor(
 
      suspend fun deleteRemindersByIds(ids: List<Int>): Int {
         return reminderDao.deleteRemindersByIds(ids)
+    }
+
+    suspend fun getRemindersByIds(ids: List<Int>): List<Reminder> {
+        return reminderDao.getRemindersByIds(ids).map { it.toDomain() }
+    }
+
+    suspend fun updateGoogleCalendarEventId(reminderId: Int, eventId: String?) {
+        reminderDao.updateGoogleCalendarEventId(reminderId, eventId)
     }
 }
 

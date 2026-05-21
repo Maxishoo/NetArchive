@@ -57,6 +57,7 @@ import com.example.netarchive.R
 import com.example.netarchive.ui.screens.settings_screen.pages.AboutPage
 import com.example.netarchive.ui.screens.settings_screen.pages.AppDataPage
 import com.example.netarchive.ui.screens.settings_screen.pages.ChangeDesignPage
+import com.example.netarchive.ui.screens.settings_screen.pages.GoogleCalendarPage
 import com.example.netarchive.ui.screens.settings_screen.pages.ImportContactsPage
 import com.example.netarchive.ui.theme.CardBackground
 
@@ -143,6 +144,7 @@ fun SettingsScreen(
             1 -> AppDataPage()
             2 -> ImportContactsPage()
             3 -> ChangeDesignPage()
+            4 -> GoogleCalendarPage()
             9 -> AboutPage()
             else -> EmptyPage()
         }

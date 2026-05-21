@@ -85,6 +85,15 @@
     <string name="settings_import_contacts">Импорт контактов</string>
     <string name="settings_design">Дизайн интерфейса</string>
     <string name="settings_notifications">Уведомления</string>
+
+    <!-- Google Calendar -->
+    <string name="google_calendar_title">Google Календарь</string>
+    <string name="google_calendar_description">Новые и изменённые напоминания будут создавать события в вашем календаре. Локальные push-уведомления приложения продолжают работать отдельно.</string>
+    <string name="google_calendar_sync_toggle">Синхронизировать напоминания</string>
+    <string name="google_calendar_account">Аккаунт: %s</string>
+    <string name="google_calendar_sign_in">Войти в Google</string>
+    <string name="google_calendar_sign_out">Выйти из аккаунта</string>
+    <string name="google_calendar_setup_hint">Для работы включите Google Calendar API в Google Cloud Console и добавьте SHA-1 отпечаток подписи приложения в OAuth-клиент типа Android (package: com.example.netarchive).</string>
     <string name="settings_ai">ИИ ассистент</string>
     <string name="settings_language">Язык</string>
     <string name="settings_security">Безопасность</string>
