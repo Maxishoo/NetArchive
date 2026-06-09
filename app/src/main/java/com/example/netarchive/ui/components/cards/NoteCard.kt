@@ -92,7 +92,7 @@ fun NoteCard(
                 IconButton(onClick = onDeleteClick) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Удалить заметку",
+                        contentDescription = stringResource(R.string.delete_note_cd),
                         tint = MaterialTheme.colorScheme.error
                     )
                 }

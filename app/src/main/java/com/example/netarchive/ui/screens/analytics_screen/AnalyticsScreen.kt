@@ -11,7 +11,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,7 +21,10 @@ import com.example.netarchive.data.local.db.dao.CategoryWithCount
 import com.example.netarchive.domain.model.Contact
 import com.example.netarchive.domain.model.OverallStats
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import com.example.netarchive.R
+import com.example.netarchive.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,12 +43,12 @@ fun AnalyticsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Аналитика",
+                        text = stringResource(R.string.analytics_title),
                         style = MaterialTheme.typography.headlineLarge
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f)
+                    containerColor = AppTheme.topBarBackground()
                 )
             )
         }
@@ -63,15 +65,15 @@ fun AnalyticsScreen(
         ) {
 
             item {
-                SectionTitle("📈 Общая статистика")
+                SectionTitle(stringResource(R.string.analytics_section_overall))
                 OverallStatsCard(stats = overallStats)
             }
 
 
             item {
-                SectionTitle("🔥 Топ контактов")
+                SectionTitle(stringResource(R.string.analytics_section_top))
                 if (topContacts.isEmpty()) {
-                    EmptyStateText("Пока нет данных")
+                    EmptyStateText(stringResource(R.string.analytics_no_data))
                 } else {
                     topContacts.take(5).forEach { contact ->
                         ContactListItem(contact = contact, onClick = { onContactClick(contact.id) })
@@ -82,10 +84,10 @@ fun AnalyticsScreen(
             item {
                 var showAllWriteSoon by remember { mutableStateOf(false) }
 
-                SectionTitle("💬 Пора написать")
+                SectionTitle(stringResource(R.string.analytics_section_write_soon))
 
                 if (contactsToWrite.isEmpty()) {
-                    EmptyStateText("Все контакты в порядке! 🎉")
+                    EmptyStateText(stringResource(R.string.analytics_all_good))
                 } else {
                     val displayedList =
                         if (showAllWriteSoon) contactsToWrite else contactsToWrite.take(5)
@@ -104,8 +106,8 @@ fun AnalyticsScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = if (showAllWriteSoon) "Свернуть ▲"
-                                else "Показать всех (${contactsToWrite.size - 5} ещё) ▼",
+                                text = if (showAllWriteSoon) stringResource(R.string.analytics_collapse)
+                                else stringResource(R.string.analytics_show_all, contactsToWrite.size - 5),
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Medium
                             )
@@ -115,7 +117,7 @@ fun AnalyticsScreen(
             }
 
             item {
-                SectionTitle("📁 Распределение по категориям")
+                SectionTitle(stringResource(R.string.analytics_section_categories))
                 CategoryPieChart(categories = categories)
             }
         }
@@ -127,7 +129,7 @@ fun AnalyticsScreen(
 fun OverallStatsCard(stats: OverallStats?, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFECEBF4))
+        colors = CardDefaults.cardColors(containerColor = AppTheme.colors.topBarBackground)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -137,9 +139,9 @@ fun OverallStatsCard(stats: OverallStats?, modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                StatItem("Всего", stats?.totalContacts?.toString() ?: "–")
-                StatItem("Новых за мес.", stats?.newContactsThisMonth?.toString() ?: "–")
-                StatItem("Активных", "${stats?.activeContactsPercent?.toInt() ?: 0}%")
+                StatItem(stringResource(R.string.analytics_stat_total), stats?.totalContacts?.toString() ?: stringResource(R.string.analytics_stat_dash))
+                StatItem(stringResource(R.string.analytics_stat_new_month), stats?.newContactsThisMonth?.toString() ?: stringResource(R.string.analytics_stat_dash))
+                StatItem(stringResource(R.string.analytics_stat_active), "${stats?.activeContactsPercent?.toInt() ?: 0}%")
             }
         }
     }
@@ -192,7 +194,7 @@ fun ContactListItem(
             .padding(vertical = 4.dp)
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
-            if (highlight) Color(0xFFECEBF4) else Color(0xFFECEBF4)
+            AppTheme.colors.topBarBackground
         )
     ) {
         Row(
@@ -216,7 +218,7 @@ fun ContactListItem(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(color = Color(0xFFDDDDE7)),
+                        .background(color = AppTheme.colors.chartBarBackground),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -234,9 +236,9 @@ fun ContactListItem(
                 )
                 if (highlight) {
                     Text(
-                        text = "Давно не общались",
+                        text = stringResource(R.string.analytics_long_no_contact),
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFFD75C5C)
+                        color = AppTheme.colors.analyticsWarning
                     )
                 }
             }
@@ -249,7 +251,7 @@ fun CategoryPieChart(categories: List<CategoryWithCount>) {
     if (categories.isEmpty()) {
         Card(modifier = Modifier.fillMaxWidth()) {
             Box(modifier = Modifier.padding(24.dp)) {
-                EmptyStateText("Нет данных для графика")
+                EmptyStateText(stringResource(R.string.analytics_no_chart_data))
             }
         }
         return
@@ -259,17 +261,13 @@ fun CategoryPieChart(categories: List<CategoryWithCount>) {
     if (total == 0.0) {
         Card(modifier = Modifier.fillMaxWidth()) {
             Box(modifier = Modifier.padding(24.dp)) {
-                EmptyStateText("Нет контактов в категориях")
+                EmptyStateText(stringResource(R.string.analytics_no_categories))
             }
         }
         return
     }
 
-    val palette = listOf(
-        Color(0xFF4CAF50), Color(0xFF2196F3), Color(0xFFFF9800),
-        Color(0xFFE05080), Color(0xFF9C27B0), Color(0xFF00BCD4),
-        Color(0xFF795548), Color(0xFF607D8B)
-    )
+    val palette = AppTheme.colors.chartColors
 
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(

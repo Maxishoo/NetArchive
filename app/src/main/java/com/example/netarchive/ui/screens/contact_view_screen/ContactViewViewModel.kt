@@ -26,6 +26,7 @@ import qrgenerator.generateQrCode
 import java.io.File
 import java.net.URLEncoder
 import com.example.netarchive.BuildConfig
+import com.example.netarchive.R
 import com.example.netarchive.data.remote.ai.model.AiFeatureConfig
 import com.example.netarchive.data.remote.ai.model.RetrofitClient
 import com.example.netarchive.data.remote.ai.model.CompletionOptions
@@ -200,11 +201,16 @@ class ContactViewViewModel @Inject constructor(
                 if (suggestions.isNotEmpty()) {
                     _aiState.value = AiState.Success(suggestions)
                 } else {
-                    _aiState.value = AiState.Error("Не удалось сгенерировать подсказки")
+                    _aiState.value = AiState.Error(context.getString(R.string.error_ai_generate))
                 }
 
             } catch (e: Exception) {
-                _aiState.value = AiState.Error("Ошибка AI: ${e.message ?: "Неизвестная ошибка"}")
+                _aiState.value = AiState.Error(
+                    context.getString(
+                        R.string.error_ai,
+                        e.message ?: context.getString(R.string.error_unknown)
+                    )
+                )
             }
         }
     }
@@ -269,14 +275,14 @@ class ContactViewViewModel @Inject constructor(
                     } ?: run {
                             _viewState.value = _viewState.value.copy(
                                 isLoading = false,
-                                error = "Контакт не найден"
+                                error = context.getString(R.string.error_contact_not_found)
                             )
                     }
                 }
             } catch (e: Exception) {
                 _viewState.value = _viewState.value.copy(
                     isLoading = false,
-                    error = "Ошибка при загрузке: ${e.message}"
+                    error = context.getString(R.string.error_contact_load, e.message ?: "")
                 )
             }
         }
@@ -358,7 +364,7 @@ class ContactViewViewModel @Inject constructor(
                 )
             } catch (e: Exception) {
                 _viewState.value = _viewState.value.copy(
-                    error = "Ошибка загрузки фото: ${e.message}"
+                    error = context.getString(R.string.error_photo_load, e.message ?: "")
                 )
             }
         }
@@ -433,7 +439,7 @@ class ContactViewViewModel @Inject constructor(
         val state = _viewState.value
 
         if (state.username.isBlank()) {
-            _viewState.value = state.copy(error = "Имя обязательно для заполнения")
+            _viewState.value = state.copy(error = context.getString(R.string.error_name_required_full))
             return
         }
 
@@ -471,7 +477,7 @@ class ContactViewViewModel @Inject constructor(
             } catch (e: Exception) {
                 _viewState.value = state.copy(
                     isLoading = false,
-                    error = "Ошибка при сохранении: ${e.message}"
+                    error = context.getString(R.string.error_save, e.message ?: "")
                 )
             }
         }
@@ -527,7 +533,7 @@ class ContactViewViewModel @Inject constructor(
             } catch (e: Exception) {
                 _viewState.value = _viewState.value.copy(
                     isLoading = false,
-                    error = "Ошибка при удалении: ${e.message}"
+                    error = context.getString(R.string.error_delete, e.message ?: "")
                 )
             }
         }

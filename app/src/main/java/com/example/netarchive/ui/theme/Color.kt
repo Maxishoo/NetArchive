@@ -1,36 +1,48 @@
 package com.example.netarchive.ui.theme
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
+/** @deprecated Use [AppTheme.colors] instead */
+val CardBackground: Color
+    @Composable get() = AppTheme.colors.cardBackground
 
+/** @deprecated Use [AppTheme.colors] instead */
+val LightBlue: Color
+    @Composable get() = AppTheme.colors.lightBlue
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+/** @deprecated Use [AppTheme.colors] instead */
+val AddButton: Color
+    @Composable get() = AppTheme.colors.addButton
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+/** @deprecated Use [AppTheme.colors] instead */
+val NoAvatar: Color
+    @Composable get() = AppTheme.colors.noAvatar
 
+/** @deprecated Use [AppTheme.colors] instead */
+val PinkLetCard: Color
+    @Composable get() = AppTheme.colors.pinkLetCard
 
-val Purple200 = Color(0xFFBB86FC)
-val Purple500 = Color(0xFF6200EE)
-val Purple700 = Color(0xFF3700B3)
-val Teal200 = Color(0xFF03DAC5)
-val Teal700 = Color(0xFF018786)
-val Black = Color(0xFF000000)
-val White = Color(0xFFFFFFFF)
+/** @deprecated Use [AppTheme.colors] instead */
+val CategoryWork: Color
+    @Composable get() = AppTheme.colors.categoryWork
 
-val CategoryWork = Color(0xFF509C50)
-val CategoryStudy = Color(0xFF5DA4A4)
-val CategoryFriend = Color(0xFFFB9C9C)
-val CategoryFamily = Color(0xFFF687AC)
-val CategoryColleague = Color(0xFF5D81A4)
-val CategoryDefault = Color(0xFF7A9C50)
+/** @deprecated Use [AppTheme.colors] instead */
+val CategoryStudy: Color
+    @Composable get() = AppTheme.colors.categoryStudy
 
-val PinkLetCard = Color(0xFFFFC1AB)
-val CardBackground = Color.White
-val AddButton = Color(0xFF5162E5)
-val NoAvatar = Color(0xFFDBE0F7)
+/** @deprecated Use [AppTheme.colors] instead */
+val CategoryFriend: Color
+    @Composable get() = AppTheme.colors.categoryFriend
 
-val LightBlue = Color(color = 0xFFD6EBFE)
+/** @deprecated Use [AppTheme.colors] instead */
+val CategoryFamily: Color
+    @Composable get() = AppTheme.colors.categoryFamily
+
+/** @deprecated Use [AppTheme.colors] instead */
+val CategoryColleague: Color
+    @Composable get() = AppTheme.colors.categoryColleague
+
+/** @deprecated Use [AppTheme.colors] instead */
+val CategoryDefault: Color
+    @Composable get() = AppTheme.colors.categoryDefault

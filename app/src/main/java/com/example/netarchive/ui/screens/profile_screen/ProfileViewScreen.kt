@@ -32,7 +32,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
@@ -49,9 +48,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.example.netarchive.R
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,6 +59,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.netarchive.ui.components.QrDialog
+import com.example.netarchive.ui.theme.AppTheme
+import com.example.netarchive.ui.theme.appOutlinedTextFieldColors
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -98,23 +100,23 @@ fun ProfileViewScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Профиль", style = MaterialTheme.typography.headlineLarge) },
+                title = { Text(stringResource(R.string.profile_title), style = MaterialTheme.typography.headlineLarge) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFECEBF4),
+                    containerColor = AppTheme.colors.topBarBackground,
                 ),
                 actions = {
                     if (!viewState.showQrDialog) {
                         IconButton(onClick = viewModel::openQr) {
                             Icon(
                                 imageVector = Icons.Filled.Share,
-                                contentDescription = "Показать qr код"
+                                contentDescription = stringResource(R.string.profile_show_qr)
                             )
                         }
                         IconButton(onClick = onSettingsClick) {
                             Icon(
                                 modifier = Modifier.size(28.dp),
                                 imageVector = Icons.Outlined.Settings,
-                                contentDescription = "Настройки"
+                                contentDescription = stringResource(R.string.profile_settings)
                             )
                         }
                     }
@@ -179,13 +181,13 @@ fun NoProfile(onCreateClick: () -> Unit) {
             imageVector = Icons.Default.PersonAdd,
             contentDescription = null,
             modifier = Modifier.size(80.dp),
-            tint = Color.Gray
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Создайте профиль, чтобы делиться им с другими",
+            text = stringResource(R.string.profile_create_hint),
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
         )
@@ -193,16 +195,16 @@ fun NoProfile(onCreateClick: () -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Чтобы продолжить, нажмите кнопку создать",
+            text = stringResource(R.string.profile_create_continue),
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(onClick = onCreateClick) {
-            Text("Создать")
+            Text(stringResource(R.string.create))
         }
     }
 }
@@ -278,11 +280,11 @@ private fun ProfileInfo(
         OutlinedTextField(
             value = viewState.username,
             onValueChange = viewModel::onUsernameChange,
-            label = { Text("Имя *") },
+            label = { Text(stringResource(R.string.profile_name_label)) },
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
-            colors = profileTextFieldColors()
+            colors = appOutlinedTextFieldColors()
         )
 
         ProfileBirthdayField(
@@ -294,11 +296,11 @@ private fun ProfileInfo(
         OutlinedTextField(
             value = viewState.phone,
             onValueChange = viewModel::onPhoneChange,
-            label = { Text("Телефон") },
+            label = { Text(stringResource(R.string.profile_phone_label)) },
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
-            colors = profileTextFieldColors()
+            colors = appOutlinedTextFieldColors()
         )
         OutlinedTextField(
             value = viewState.email,
@@ -307,7 +309,7 @@ private fun ProfileInfo(
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
-            colors = profileTextFieldColors()
+            colors = appOutlinedTextFieldColors()
         )
         OutlinedTextField(
             value = viewState.telegram,
@@ -316,7 +318,7 @@ private fun ProfileInfo(
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
-            colors = profileTextFieldColors()
+            colors = appOutlinedTextFieldColors()
         )
         OutlinedTextField(
             value = viewState.max,
@@ -325,16 +327,16 @@ private fun ProfileInfo(
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
-            colors = profileTextFieldColors()
+            colors = appOutlinedTextFieldColors()
         )
         OutlinedTextField(
             value = viewState.job,
             onValueChange = viewModel::onJobChange,
-            label = { Text("Работа") },
+            label = { Text(stringResource(R.string.profile_job_label)) },
             modifier = Modifier.fillMaxWidth(),
             enabled = viewState.isEditMode,
             singleLine = true,
-            colors = profileTextFieldColors()
+            colors = appOutlinedTextFieldColors()
         )
 
         if (viewState.isEditMode) {
@@ -344,10 +346,10 @@ private fun ProfileInfo(
                 modifier = Modifier.fillMaxWidth(),
                 colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                     containerColor = if (viewState.hasChanges && viewState.username.isNotBlank())
-                        Color(0xFF4D5D8A)  // Синий при активности
+                        AppTheme.colors.primaryAction
                     else
-                        Color.Gray.copy(alpha = 0.3f), // Серый при неактивности
-                    disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
+                        AppTheme.disabledContainerColor(),
+                    disabledContainerColor = AppTheme.disabledContainerColor()
                 )
             ) {
                 Icon(
@@ -357,7 +359,7 @@ private fun ProfileInfo(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Сохранить",
+                    text = stringResource(R.string.save),
                     style = MaterialTheme.typography.labelLarge
                 )
             }
@@ -374,7 +376,7 @@ private fun ProfileInfo(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Редактировать",
+                    text = stringResource(R.string.edit),
                     style = MaterialTheme.typography.labelLarge
                 )
             }
@@ -410,7 +412,7 @@ private fun ProfileBirthdayField(
     OutlinedTextField(
         value = displayText,
         onValueChange = { }, // ReadOnly
-        label = { Text("Дата рождения") },
+        label = { Text(stringResource(R.string.profile_birthday_label)) },
         placeholder = { Text("") },
         modifier = modifier.fillMaxWidth(),
         enabled = isEditMode,
@@ -420,22 +422,14 @@ private fun ProfileBirthdayField(
         trailingIcon = {
             Icon(
                 imageVector = Icons.Default.CalendarToday,
-                contentDescription = "Выбрать дату",
+                contentDescription = stringResource(R.string.pick_date),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = modifier.clickable(enabled = isEditMode) {
                     showDatePicker = true  // ✅ Клик по иконке тоже работает
                 }
             )
         },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color(0xFF64B5F6),
-            unfocusedBorderColor = Color(0xFF90CAF9),
-            disabledBorderColor = Color(0xFF90CAF9),
-            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            focusedLabelColor = Color(0xFF64B5F6),
-            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        colors = appOutlinedTextFieldColors()
     )
 
 
@@ -489,13 +483,3 @@ private fun ShowDatePickerDialog(
     dialog.show()
 }
 
-@Composable
-private fun profileTextFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = Color(0xFF64B5F6),
-    unfocusedBorderColor = Color(0xFF90CAF9),
-    disabledBorderColor = Color(0xFF90CAF9),
-    disabledTextColor = MaterialTheme.colorScheme.onSurface,
-    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    focusedLabelColor = Color(0xFF64B5F6),
-    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-)

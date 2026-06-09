@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import com.example.netarchive.R
 import com.example.netarchive.receiver.ReminderActionReceiver
 import com.example.netarchive.utils.NotificationHelper
 
@@ -16,7 +17,7 @@ class ReminderNotificationWorker(
 ) : Worker(context, params) {
 
     override fun doWork(): Result {
-        val title = inputData.getString(KEY_TITLE) ?: "Напоминание"
+        val title = inputData.getString(KEY_TITLE) ?: applicationContext.getString(R.string.reminder_title)
         val text = inputData.getString(KEY_TEXT) ?: ""
         val reminderId = inputData.getInt(KEY_REMINDER_ID, 0)
 
@@ -52,7 +53,7 @@ class ReminderNotificationWorker(
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-            .addAction(0, "Выполнено", pendingIntent)
+            .addAction(0, applicationContext.getString(R.string.notification_action_done), pendingIntent)
             .build()
 
         notificationManager.notify(reminderId, notification)

@@ -13,8 +13,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.app.DatePickerDialog
 import android.content.Context
-import android.os.VibrationEffect
-import android.os.Vibrator
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.ui.res.stringResource
@@ -22,6 +20,9 @@ import com.example.netarchive.R
 import com.example.netarchive.ui.components.cards.ActionButtonsSaveCancel
 import com.example.netarchive.ui.components.cards.SimpleContactCard
 import com.example.netarchive.ui.components.cards.DateTimeSelector
+
+import com.example.netarchive.utils.rememberDefaultVibrator
+import com.example.netarchive.utils.vibrateOneShotShort
 
 import java.util.Calendar
 
@@ -74,7 +75,7 @@ fun CreateNoteScreen(
     var showDatePicker by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
-    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+    val vibrator = rememberDefaultVibrator()
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
@@ -155,15 +156,11 @@ fun CreateNoteScreen(
 
             ActionButtonsSaveCancel(
                 onCancelClick = {
-                    if (vibrator.hasVibrator()) {
-                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
-                    }
+                    vibrator.vibrateOneShotShort()
                     onBackClick()
                 },
                 onSaveClick = {
-                    if (vibrator.hasVibrator()) {
-                        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
-                    }
+                    vibrator.vibrateOneShotShort()
                     viewModel.saveNote()
                 },
                 saveButtonText = if (state.isEditMode) stringResource(R.string.save) else stringResource(

@@ -40,10 +40,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.example.netarchive.R
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,7 +55,9 @@ import com.example.netarchive.domain.model.Note
 import com.example.netarchive.ui.components.CategorySelector
 import com.example.netarchive.ui.components.QrDialog
 import com.example.netarchive.ui.components.cards.NoteCard
+import com.example.netarchive.ui.theme.AppTheme
 import com.example.netarchive.ui.theme.NetArchiveTheme
+import com.example.netarchive.ui.theme.appOutlinedTextFieldColors
 import com.example.netarchive.ui.navigation.NoteNavigationData
 import androidx.core.net.toUri
 import java.text.SimpleDateFormat
@@ -77,7 +80,7 @@ fun ContactViewScreen(
 ) {
     val viewState by viewModel.viewState.collectAsState()
     var selectedTab by rememberSaveable { mutableIntStateOf(initialTab) }
-    val tabs = listOf("Информация", "Заметки")
+    val tabs = listOf(stringResource(R.string.tab_info), stringResource(R.string.tab_notes))
     var isNotesEditMode by remember { mutableStateOf(false) }
     val aiState by viewModel.aiState.collectAsState()
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -91,12 +94,12 @@ fun ContactViewScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Контакт") },
+                title = { Text(stringResource(R.string.contact_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Закрыть"
+                            contentDescription = stringResource(R.string.close)
                         )
                     }
                 },
@@ -116,7 +119,7 @@ fun ContactViewScreen(
                         IconButton(onClick = viewModel::openQr) {
                             Icon(
                                 imageVector = Icons.Filled.Share,
-                                contentDescription = "Показать qr код"
+                                contentDescription = stringResource(R.string.profile_show_qr)
                             )
                         }
                     }
@@ -229,13 +232,13 @@ fun ContactViewScreen(
     if (viewState.showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.hideDeleteDialog() },
-            title = { Text("Удалить контакт?") },
+            title = { Text(stringResource(R.string.delete_contact_title)) },
             text = {
                 Column {
-                    Text("Вы уверены что хотите удалить контакт \"${viewState.username}\"?")
+                    Text(stringResource(R.string.delete_contact_confirm, viewState.username))
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Все связанные заметки будут безвозвратно удалены",
+                        text = stringResource(R.string.delete_contact_notes_warning),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -248,12 +251,12 @@ fun ContactViewScreen(
                         containerColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Text("Удалить")
+                    Text(stringResource(R.string.action_delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.hideDeleteDialog() }) {
-                    Text("Отмена")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -269,12 +272,12 @@ fun ContactViewScreen(
         is AiState.Loading -> {
             AlertDialog(
                 onDismissRequest = { viewModel.resetAiState() },
-                title = { Text("Генерирую подсказку...") },
+                title = { Text(stringResource(R.string.ai_generating_title)) },
                 text = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator()
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("Анализирую информацию о контакте",
+                        Text(stringResource(R.string.ai_analyzing),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -282,7 +285,7 @@ fun ContactViewScreen(
                 confirmButton = {},
                 dismissButton = {
                     TextButton(onClick = { viewModel.resetAiState() }) {
-                        Text("Отмена")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )
@@ -295,7 +298,7 @@ fun ContactViewScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Outlined.AutoAwesome, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Идеи для сообщения")
+                        Text(stringResource(R.string.ai_message_ideas))
                     }
                 },
                 text = {
@@ -327,14 +330,14 @@ fun ContactViewScreen(
                                     if (isCopied) {
                                         Icon(
                                             Icons.Default.Check,
-                                            contentDescription = "Скопировано",
+                                            contentDescription = stringResource(R.string.copied),
                                             tint = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.size(18.dp)
                                         )
                                     } else {
                                         Icon(
                                             Icons.Default.ContentCopy,
-                                            contentDescription = "Копировать",
+                                            contentDescription = stringResource(R.string.copy),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(18.dp)
                                         )
@@ -363,10 +366,10 @@ fun ContactViewScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Ещё варианты")
+                            Text(stringResource(R.string.more_variants))
                         }
                         TextButton(onClick = { viewModel.resetAiState() }) {
-                            Text("Закрыть")
+                            Text(stringResource(R.string.close))
                         }
                     }
                 },
@@ -377,11 +380,11 @@ fun ContactViewScreen(
         is AiState.Error -> {
             AlertDialog(
                 onDismissRequest = { viewModel.resetAiState() },
-                title = { Text("Ошибка") },
+                title = { Text(stringResource(R.string.error_title)) },
                 text = { Text(state.message) },
                 confirmButton = {
                     Button(onClick = { viewModel.resetAiState() }) {
-                        Text("Понятно")
+                        Text(stringResource(R.string.understood))
                     }
                 }
             )
@@ -402,7 +405,7 @@ fun ContactViewScreen(
                 },
                 confirmButton = {
                     Button(onClick = { viewModel.resetAiState() }) {
-                        Text("Понятно")
+                        Text(stringResource(R.string.understood))
                     }
                 }
             )
@@ -462,7 +465,8 @@ private fun ContactInfoTab(
                 } else {
                     Text(
                         text = viewState.username.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-                        style = MaterialTheme.typography.titleLarge.copy(fontSize = 30.sp)
+                        style = MaterialTheme.typography.titleLarge.copy(fontSize = 30.sp),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -502,9 +506,9 @@ private fun ContactInfoTab(
             val selectedCategories by viewModel.selectedCategories.collectAsState()
             if (selectedCategories.isNotEmpty()) {
                 Text(
-                    text = "Категории:",
+                    text = stringResource(R.string.categories_label),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -531,19 +535,11 @@ private fun ContactInfoTab(
         OutlinedTextField(
             value = viewState.username,
             onValueChange = { viewModel.onUsernameChange(it) },
-            label = { Text("Имя *") },
+            label = { Text(stringResource(R.string.profile_name_label)) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = viewState.isEditMode,
+            readOnly = !viewState.isEditMode,
             singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF64B5F6),
-                unfocusedBorderColor = Color(0xFF90CAF9),
-                disabledBorderColor = Color(0xFF90CAF9),
-                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                focusedLabelColor = Color(0xFF64B5F6),
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            colors = appOutlinedTextFieldColors()
         )
         BirthdayField(
             timestamp = viewState.birthday,
@@ -554,9 +550,9 @@ private fun ContactInfoTab(
         OutlinedTextField(
             value = viewState.phone,
             onValueChange = { viewModel.onPhoneChange(it) },
-            label = { Text("Телефон") },
+            label = { Text(stringResource(R.string.profile_phone_label)) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = viewState.isEditMode,
+            readOnly = !viewState.isEditMode,
             singleLine = true,
             trailingIcon = {
                 if (!viewState.isEditMode && viewState.phone.isNotBlank()) {
@@ -573,21 +569,13 @@ private fun ContactInfoTab(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Call,
-                            contentDescription = "Позвонить",
+                            contentDescription = stringResource(R.string.call),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
             },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF64B5F6),
-                unfocusedBorderColor = Color(0xFF90CAF9),
-                disabledBorderColor = Color(0xFF90CAF9),
-                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                focusedLabelColor = Color(0xFF64B5F6),
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            colors = appOutlinedTextFieldColors()
         )
 
         OutlinedTextField(
@@ -595,7 +583,7 @@ private fun ContactInfoTab(
             onValueChange = { viewModel.onEmailChange(it) },
             label = { Text("Email") },
             modifier = Modifier.fillMaxWidth(),
-            enabled = viewState.isEditMode,
+            readOnly = !viewState.isEditMode,
             singleLine = true,
             trailingIcon = {
                 if (!viewState.isEditMode && viewState.email.isNotBlank()) {
@@ -612,21 +600,13 @@ private fun ContactInfoTab(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Email,
-                            contentDescription = "Написать email",
+                            contentDescription = stringResource(R.string.write_email),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
             },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF64B5F6),
-                unfocusedBorderColor = Color(0xFF90CAF9),
-                disabledBorderColor = Color(0xFF90CAF9),
-                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                focusedLabelColor = Color(0xFF64B5F6),
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            colors = appOutlinedTextFieldColors()
         )
 
         OutlinedTextField(
@@ -634,7 +614,7 @@ private fun ContactInfoTab(
             onValueChange = { viewModel.onTelegramChange(it) },
             label = { Text("Telegram") },
             modifier = Modifier.fillMaxWidth(),
-            enabled = viewState.isEditMode,
+            readOnly = !viewState.isEditMode,
             singleLine = true,
             trailingIcon = {
                 if (!viewState.isEditMode && viewState.telegram.isNotBlank()) {
@@ -660,21 +640,13 @@ private fun ContactInfoTab(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Outlined.Send,
-                            contentDescription = "Открыть Telegram",
+                            contentDescription = stringResource(R.string.open_telegram),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
             },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF64B5F6),
-                unfocusedBorderColor = Color(0xFF90CAF9),
-                disabledBorderColor = Color(0xFF90CAF9),
-                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                focusedLabelColor = Color(0xFF64B5F6),
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            colors = appOutlinedTextFieldColors()
         )
 
         OutlinedTextField(
@@ -682,35 +654,19 @@ private fun ContactInfoTab(
             onValueChange = { viewModel.onMaxChange(it) },
             label = { Text("MAX") },
             modifier = Modifier.fillMaxWidth(),
-            enabled = viewState.isEditMode,
+            readOnly = !viewState.isEditMode,
             singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF64B5F6),
-                unfocusedBorderColor = Color(0xFF90CAF9),
-                disabledBorderColor = Color(0xFF90CAF9),
-                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                focusedLabelColor = Color(0xFF64B5F6),
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            colors = appOutlinedTextFieldColors()
         )
 
         OutlinedTextField(
             value = viewState.job,
             onValueChange = { viewModel.onJobChange(it) },
-            label = { Text("Работа") },
+            label = { Text(stringResource(R.string.profile_job_label)) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = viewState.isEditMode,
+            readOnly = !viewState.isEditMode,
             singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF64B5F6),
-                unfocusedBorderColor = Color(0xFF90CAF9),
-                disabledBorderColor = Color(0xFF90CAF9),
-                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                focusedLabelColor = Color(0xFF64B5F6),
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            colors = appOutlinedTextFieldColors()
         )
 
         DescriptionField(
@@ -741,10 +697,10 @@ private fun ContactInfoTab(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (viewState.hasChanges && viewState.username.isNotBlank())
-                            Color(0xFF4D5D8A)
+                            AppTheme.colors.primaryAction
                         else
-                            Color.Gray.copy(alpha = 0.3f),
-                        disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
+                            AppTheme.disabledContainerColor(),
+                        disabledContainerColor = AppTheme.disabledContainerColor()
                     )
                 ) {
                     Icon(
@@ -754,7 +710,7 @@ private fun ContactInfoTab(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Сохранить",
+                        text = stringResource(R.string.save),
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -771,7 +727,7 @@ private fun ContactInfoTab(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Редактировать",
+                        text = stringResource(R.string.edit),
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -791,7 +747,7 @@ private fun ContactInfoTab(
                     contentDescription = null,
                     modifier = Modifier.padding(end = 8.dp)
                 )
-                Text("Удалить контакт")
+                Text(stringResource(R.string.delete_contact))
             }
         }
     }
@@ -816,13 +772,13 @@ private fun NotesTab(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Нет заметок",
+                text = stringResource(R.string.no_notes),
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = onAddNoteClick) {
-                Text("Добавить заметку")
+                Text(stringResource(R.string.add_note_button))
             }
         }
     } else {
@@ -838,13 +794,13 @@ private fun NotesTab(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Заметки о $contactName",
+                    text = stringResource(R.string.notes_about, contactName),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
 
                 TextButton(onClick = onToggleEditMode) {
-                    Text(if (isEditMode) "Готово" else "Удалить")
+                    Text(if (isEditMode) stringResource(R.string.done) else stringResource(R.string.action_delete))
                 }
             }
 
@@ -868,7 +824,7 @@ private fun NotesTab(
                 onClick = onAddNoteClick,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Добавить заметку")
+                Text(stringResource(R.string.add_note_button))
             }
         }
     }
@@ -899,32 +855,23 @@ private fun BirthdayField(
     OutlinedTextField(
         value = displayText,
         onValueChange = { },
-        label = { Text("Дата рождения") },
+        label = { Text(stringResource(R.string.profile_birthday_label)) },
         placeholder = { Text("") },
         modifier = modifier.fillMaxWidth(),
-        enabled = isEditMode,
         readOnly = true,
         singleLine = true,
         interactionSource = interactionSource,
         trailingIcon = {
             Icon(
                 imageVector = Icons.Default.CalendarToday,
-                contentDescription = "Выбрать дату",
+                contentDescription = stringResource(R.string.pick_date),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = modifier.clickable(enabled = isEditMode) {
                     showDatePicker = true
                 }
             )
         },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color(0xFF64B5F6),
-            unfocusedBorderColor = Color(0xFF90CAF9),
-            disabledBorderColor = Color(0xFF90CAF9),
-            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            focusedLabelColor = Color(0xFF64B5F6),
-            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        colors = appOutlinedTextFieldColors()
     )
 
     if (showDatePicker) {
@@ -985,28 +932,20 @@ private fun DescriptionField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text("Описание") },
+        label = { Text(stringResource(R.string.description_label)) },
         modifier = modifier.fillMaxWidth(),
-        enabled = isEditMode,
+        readOnly = !isEditMode,
         singleLine = false,
         minLines = 3,
         maxLines = 6,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color(0xFF64B5F6),
-            unfocusedBorderColor = Color(0xFF90CAF9),
-            disabledBorderColor = Color(0xFF90CAF9),
-            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            focusedLabelColor = Color(0xFF64B5F6),
-            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        colors = appOutlinedTextFieldColors()
     )
 }
 
 @Preview(showBackground = true)
 @Composable
 fun ContactViewScreenPreview() {
-    NetArchiveTheme {
+    NetArchiveTheme(darkTheme = false) {
         ContactViewScreen(onBackClick = {})
     }
 }

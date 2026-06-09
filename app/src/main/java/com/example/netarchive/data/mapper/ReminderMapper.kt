@@ -9,7 +9,8 @@ fun ReminderEntity.toDomain(): Reminder {
         contactId = contactId,
         text = text,
         date = date,
-        isCompleted = isCompleted
+        isCompleted = isCompleted,
+        googleCalendarEventId = googleCalendarEventId
     )
 }
 
@@ -19,6 +20,7 @@ fun Reminder.toEntity(): ReminderEntity {
         contactId = contactId,
         text = text,
         date = date,
-        isCompleted = isCompleted
+        isCompleted = isCompleted,
+        googleCalendarEventId = googleCalendarEventId
     )
 }

@@ -1,15 +1,14 @@
 package com.example.netarchive.di
 
 import android.content.Context
-import androidx.room.Room
 import com.example.netarchive.data.local.db.AppDatabase
+import com.example.netarchive.data.local.db.EncryptedDatabaseFactory
 import com.example.netarchive.data.local.db.dao.CategoryDao
 import com.example.netarchive.data.local.db.dao.ContactDao
 import com.example.netarchive.data.local.db.dao.NoteDao
 
 import com.example.netarchive.data.local.db.dao.ReminderDao
 import com.example.netarchive.data.local.db.dao.ProfileDao
-import com.example.netarchive.data.local.security.SecurityHelper
 import com.example.netarchive.data.repository.CategoryRepository
 import com.example.netarchive.data.repository.ReminderRepository
 import dagger.Module
@@ -27,24 +26,7 @@ object DatabaseModule {
     @Singleton
     fun provideAppDatabase(
         @ApplicationContext context: Context
-    ): AppDatabase {
-        val password = SecurityHelper.getDatabasePassword()
-        return Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "archive.db"
-        )
-            .openHelperFactory { config ->
-                net.zetetic.database.sqlcipher.SupportHelper(
-                    config,
-                    password,
-                    null,
-                    false
-                )
-            }
-            .fallbackToDestructiveMigration(false)
-            .build()
-    }
+    ): AppDatabase = EncryptedDatabaseFactory.create(context)
 
     @Provides
     @Singleton

@@ -28,69 +28,73 @@ import androidx.compose.runtime.remember
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.annotation.StringRes
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.netarchive.R
+import com.example.netarchive.ui.theme.AppTheme
 import com.example.netarchive.ui.theme.LightBlue
 
 
 enum class BottomNavItem(
     val icon: ImageVector,
     val route: Any,
-    val label: String,
+    @StringRes val labelRes: Int,
     val isPlusButton: Boolean = false
 ) {
     Contacts(
         icon = Icons.Outlined.People,
         route = Routes.Contacts,
-        label = "Контакты"
+        labelRes = R.string.nav_contacts
     ),
 
     Reminds(
         icon = Icons.Outlined.Notifications,
         route = Routes.RemindersList,
-        label = "Напоминания"
+        labelRes = R.string.nav_reminders
     ),
 
     Add(
         icon = Icons.Outlined.AddCircleOutline,
         route = Routes.AddButt,
-        label = "Добавить",
+        labelRes = R.string.nav_add,
         isPlusButton = true
     ),
 
     Analytics(
         icon = Icons.Outlined.BarChart,
         route = Routes.Analytics,
-        label = "Аналитика"
+        labelRes = R.string.nav_analytics
     ),
 
     Profile(
         icon = Icons.Outlined.Person,
         route = Routes.Profile,
-        label = "Профиль",
+        labelRes = R.string.nav_profile,
     ),
 }
 
 enum class AddMenuItem(
-    val label: String,
+    @StringRes val labelRes: Int,
     val route: Any
 ) {
     CreateContact(
-        label = "Контакт",
+        labelRes = R.string.add_menu_contact,
         route = Routes.CreateContact
     ),
     CreateNote(
-    label = "Заметка",
-    route = Routes.CreateConnection(type = Routes.CreateConnection.EntryType.NOTE)
+        labelRes = R.string.add_menu_note,
+        route = Routes.CreateConnection(type = Routes.CreateConnection.EntryType.NOTE)
     ),
     CreateReminder(
-    label = "Напоминание",
-    route = Routes.CreateConnection(type = Routes.CreateConnection.EntryType.REMINDER)
+        labelRes = R.string.add_menu_reminder,
+        route = Routes.CreateConnection(type = Routes.CreateConnection.EntryType.REMINDER)
     )
 }
 
@@ -101,23 +105,33 @@ fun BottomNavBar(
     selectedTab: BottomNavItem,
     onTabSelected: (BottomNavItem) -> Unit
 ) {
+    val navIconColor = AppTheme.colors.navIcon
+    val itemColors = NavigationBarItemDefaults.colors(
+        selectedIconColor = navIconColor,
+        unselectedIconColor = navIconColor,
+        selectedTextColor = navIconColor,
+        unselectedTextColor = navIconColor,
+        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+    )
+
     NavigationBar(
         modifier = modifier,
         windowInsets = NavigationBarDefaults.windowInsets,
-        containerColor = Color(0xFFECEBF4).copy(alpha = 0.95f),
+        containerColor = AppTheme.bottomBarBackground(),
     ) {
-        BottomNavItem.entries.forEachIndexed { index, tab ->
+        BottomNavItem.entries.forEach { tab ->
             NavigationBarItem(
                 selected = selectedTab == tab,
                 onClick = { onTabSelected(tab) },
+                colors = itemColors,
                 icon = {
                     Icon(
                         imageVector = tab.icon,
-                        contentDescription = tab.label,
-                        modifier = Modifier.size(32.dp)
+                        contentDescription = stringResource(tab.labelRes),
+                        modifier = Modifier.size(32.dp),
+                        tint = navIconColor,
                     )
-                }
-
+                },
             )
         }
     }
@@ -155,7 +169,7 @@ fun AddMenuOverlay(
                     onClick = { onActionSelected(action) },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = LightBlue.copy(alpha = 0.95f),
-                        contentColor = colorScheme.onPrimaryContainer
+                        contentColor = colorScheme.onPrimaryContainer,
                     ),
                     shape = RoundedCornerShape(50),
                     modifier = Modifier
@@ -166,7 +180,7 @@ fun AddMenuOverlay(
                     )
                 ) {
                     Text(
-                        text = action.label,
+                        text = stringResource(action.labelRes),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontSize = 20.sp
                         )

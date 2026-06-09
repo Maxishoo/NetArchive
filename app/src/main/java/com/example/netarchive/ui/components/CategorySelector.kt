@@ -10,7 +10,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.netarchive.R
 import com.example.netarchive.data.local.db.entity.CategoryEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +31,7 @@ fun CategorySelector(
 
     Column(modifier = modifier) {
         Text(
-            text = "Категории:",
+            text = stringResource(R.string.categories_label),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -56,7 +58,7 @@ fun CategorySelector(
                     trailingIcon = {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Удалить категорию",
+                            contentDescription = stringResource(R.string.delete_category_cd),
                             modifier = Modifier.size(16.dp)
                         )
                     },
@@ -83,8 +85,8 @@ fun CategorySelector(
                     searchQuery = it
                     expanded = it.isNotEmpty()
                 },
-                label = { Text("Добавить категорию") },
-                placeholder = { Text("Начните вводить...") },
+                label = { Text(stringResource(R.string.add_category)) },
+                placeholder = { Text(stringResource(R.string.category_search_placeholder)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .menuAnchor(),
@@ -94,7 +96,7 @@ fun CategorySelector(
                             searchQuery = ""
                             expanded = false
                         }) {
-                            Icon(Icons.Default.Clear, "Очистить")
+                            Icon(Icons.Default.Clear, stringResource(R.string.clear))
                         }
                     }
                 },
@@ -120,7 +122,7 @@ fun CategorySelector(
                                 Text(text = category.name)
                                 if (category.isDefault) {
                                     Text(
-                                        text = "Стандартная",
+                                        text = stringResource(R.string.category_default),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -150,21 +152,21 @@ fun CategorySelector(
                     }
 
                     DropdownMenuItem(
-                        text = { Text("Создать \"$searchQuery\"") },
+                        text = { Text(stringResource(R.string.create_category, searchQuery)) },
                         onClick = {
                             onCreateCategory(searchQuery)
                             searchQuery = ""
                             expanded = false
                         },
                         leadingIcon = {
-                            Icon(Icons.Default.Add, "Создать")
+                            Icon(Icons.Default.Add, stringResource(R.string.create))
                         }
                     )
                 }
 
                 if (filteredCategories.isEmpty() && searchQuery.isEmpty()) {
                     DropdownMenuItem(
-                        text = { Text("Начните вводить для поиска...") },
+                        text = { Text(stringResource(R.string.category_search_hint)) },
                         onClick = { },
                         enabled = false
                     )

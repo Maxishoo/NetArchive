@@ -1,6 +1,7 @@
 package com.example.netarchive
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -14,15 +15,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.example.netarchive.data.local.preferences.ThemeRepository
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.netarchive.data.remote.vk.VkAuthLauncherHolder
 import com.example.netarchive.data.repository.DatabaseInitializer
 import com.example.netarchive.data.repository.ReminderRepository
 import com.example.netarchive.ui.navigation.*
@@ -43,16 +49,39 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 
 
+data class WidgetNavRequest(
+    val target: String,
+    val contactId: Int? = null,
+)
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        const val EXTRA_NAV_TARGET = "widget_nav_target"
+        const val EXTRA_CONTACT_ID = "widget_contact_id"
+        const val NAV_CONTACT = "contact"
+        const val NAV_CONTACTS = "contacts"
+        const val NAV_REMINDERS = "reminders"
+        const val NAV_ANALYTICS = "analytics"
+        const val NAV_ADD_NOTE = "add_note"
+    }
+
+    private val widgetNavigation = mutableStateOf<WidgetNavRequest?>(null)
 
     @Inject
     lateinit var databaseInitializer: DatabaseInitializer
 
     @Inject
     lateinit var reminderRepository: ReminderRepository
+
+    @Inject
+    lateinit var themeRepository: ThemeRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        VkAuthLauncherHolder.register(this)
 
         databaseInitializer.initializeIfNeeded()
         databaseInitializer.cleanupUnusedCategories()
@@ -64,16 +93,31 @@ class MainActivity : ComponentActivity() {
 
         rescheduleAllReminders()
 
+        widgetNavigation.value = parseWidgetNav(intent)
+
         setContent {
-            NetArchiveTheme {
+            val isDarkTheme by themeRepository.isDarkTheme.collectAsState()
+            NetArchiveTheme(darkTheme = isDarkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Main()
+                    Main(widgetNavigation = widgetNavigation)
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        widgetNavigation.value = parseWidgetNav(intent)
+    }
+
+    private fun parseWidgetNav(intent: Intent?): WidgetNavRequest? {
+        val target = intent?.getStringExtra(EXTRA_NAV_TARGET) ?: return null
+        val contactId = intent.getIntExtra(EXTRA_CONTACT_ID, -1).takeIf { it > 0 }
+        return WidgetNavRequest(target = target, contactId = contactId)
     }
 
     private val requestPermissionLauncher = registerForActivityResult(
@@ -120,7 +164,7 @@ class MainActivity : ComponentActivity() {
                     ReminderScheduler.scheduleReminder(
                         context = this@MainActivity,
                         reminderId = reminder.id,
-                        title = "Напоминание",
+                        title = getString(R.string.reminder_title),
                         text = reminder.text,
                         timestamp = reminder.date
                     )
@@ -133,10 +177,51 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun Main() {
+fun Main(widgetNavigation: MutableState<WidgetNavRequest?>) {
     val navController = rememberNavController()
     var showAddMenu by remember { mutableStateOf(false) }
     var previousRoute by remember { mutableStateOf<String?>(null) }
+
+    val widgetNavRequest by widgetNavigation
+
+    LaunchedEffect(widgetNavRequest) {
+        val request = widgetNavRequest ?: return@LaunchedEffect
+        when (request.target) {
+            MainActivity.NAV_CONTACT -> {
+                request.contactId?.let { contactId ->
+                    navController.navigate(Routes.ContactDetail(contactId)) {
+                        launchSingleTop = true
+                    }
+                }
+            }
+            MainActivity.NAV_REMINDERS -> {
+                navController.navigate(Routes.RemindersList) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+            MainActivity.NAV_ANALYTICS -> {
+                navController.navigate(Routes.Analytics) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+            MainActivity.NAV_CONTACTS -> {
+                navController.navigate(Routes.Contacts) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+            MainActivity.NAV_ADD_NOTE -> {
+                navController.navigate(
+                    Routes.CreateConnection(type = Routes.CreateConnection.EntryType.NOTE)
+                ) {
+                    launchSingleTop = true
+                }
+            }
+        }
+        widgetNavigation.value = null
+    }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
