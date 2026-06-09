@@ -10,6 +10,7 @@ import com.example.netarchive.data.remote.calendar.GoogleCalendarSyncService
 import com.example.netarchive.data.repository.ReminderRepository
 import com.example.netarchive.domain.model.Reminder
 import com.example.netarchive.utils.ReminderScheduler
+import com.example.netarchive.widget.WidgetUpdater
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -239,6 +240,7 @@ class CreateReminderViewModel @Inject constructor(
                     text = reminder.text,
                     timestamp = reminder.date
                 )
+                WidgetUpdater.refresh(application)
                 _state.value = currentState.copy(
                     isLoading = false,
                     isSuccess = true,
@@ -296,6 +298,7 @@ class CreateReminderViewModel @Inject constructor(
                 calendarSync.syncAfterDelete(reminder)
                 repository.deleteReminder(reminder)
                 ReminderScheduler.cancelReminder(application, currentState.reminderId)
+                WidgetUpdater.refresh(application)
                 _state.value = currentState.copy(isLoading = false, isSuccess = true)
             } catch (e: Exception) {
                 _state.value = currentState.copy(

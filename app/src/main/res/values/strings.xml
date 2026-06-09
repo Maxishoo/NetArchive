@@ -69,6 +69,16 @@
     <string name="notification_channel_name">Дневные напоминания</string>
     <string name="notification_channel_description">Уведомления о событиях, запланированных на день</string>
 
+    <!-- Widget -->
+    <string name="widget_title">Напоминания</string>
+    <string name="widget_description">Напоминания, запись и с кем пообщаться</string>
+    <string name="widget_empty">Нет ближайших напоминаний</string>
+    <string name="widget_time_tomorrow">Завтра, %1$s</string>
+    <string name="widget_add_note">Добавить запись</string>
+    <string name="widget_chat_section">С кем пообщаться</string>
+    <string name="widget_chat_subtitle">Давно не общались</string>
+    <string name="widget_chat_icon">💬</string>
+
     <!-- Bottom navigation -->
     <string name="nav_contacts">Контакты</string>
     <string name="nav_reminders">Напоминания</string>
@@ -89,7 +99,7 @@
     <!-- Google Calendar -->
     <string name="google_calendar_title">Google Календарь</string>
     <string name="google_calendar_description">Новые и изменённые напоминания будут создавать события в вашем календаре. Локальные push-уведомления приложения продолжают работать отдельно.</string>
-    <string name="google_calendar_sync_toggle">Синхронизировать напоминания</string>
+    <string name="google_calendar_sync_toggle">Синхронизировать</string>
     <string name="google_calendar_account">Аккаунт: %s</string>
     <string name="google_calendar_sign_in">Войти в Google</string>
     <string name="google_calendar_sign_out">Выйти из аккаунта</string>
@@ -107,7 +117,16 @@
     <!-- Import contacts -->
     <string name="import_contacts_hint">Вы можете импортировать контакты из сторонних приложений</string>
     <string name="import_from_contacts_app">Из приложения Контакты</string>
+    <string name="import_from_vk_friends">Из друзей ВКонтакте</string>
     <string name="import_apps_expanding">Список приложений будет расширяться</string>
+    <string name="vk_app_id_not_configured">Укажите VK_APP_ID в gradle.properties (ID приложения VK) и SHA-1 в настройках приложения VK</string>
+    <string name="vk_auth_canceled">Вход в VK отменён</string>
+    <string name="vk_auth_failed">Не удалось войти в VK</string>
+    <string name="vk_auth_required">Сначала войдите в VK</string>
+    <string name="vk_friends_load_error">Не удалось загрузить друзей из VK</string>
+    <string name="vk_security_error">Ошибка безопасности VK. В настройках приложения (ID %1$d) на dev.vk.com укажите:\n• Package name: %3$s\n• Main Activity: %3$s.MainActivity\n• SHA-1 (без двоеточий): %2$s\nСохраните и подождите 5–15 минут, затем переустановите приложение.</string>
+    <string name="vk_fingerprint_unknown">не удалось определить (запустите signingReport в Gradle)</string>
+    <string name="vk_setup_fingerprint_hint">SHA-1 для VK (без двоеточий): %1$s</string>
     <string name="import_reading_contacts">Читаем контакты</string>
     <string name="import_saving_db">Сохранение в бд</string>
     <string name="import_no_contacts_found">Контакты не найдены</string>

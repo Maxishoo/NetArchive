@@ -15,6 +15,7 @@
         <intent>
             <action android:name="android.speech.RecognitionService" />
         </intent>
+        <package android:name="com.vkontakte.android" />
     </queries>
 
     <application
@@ -37,6 +38,14 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="${VK_AUTH_SCHEME}"
+                    android:host="authorize" />
+            </intent-filter>
 
         </activity>
         <receiver android:name=".receiver.ReminderActionReceiver"
@@ -44,6 +53,17 @@
             <intent-filter>
                 <action android:name="com.example.netarchive.ACTION_COMPLETE_REMINDER" />
             </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".widget.NetArchiveWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_title">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/netarchive_widget_info" />
         </receiver>
     </application>
 

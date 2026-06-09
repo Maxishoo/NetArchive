@@ -33,6 +33,8 @@
     <color name="nav_icon">#000000</color>
     <color name="nav_icon_selected">#FF0D47A1</color>
     <color name="card_background">#FFFFFF</color>
+    <color name="widget_item_fill">#FFF0F4FA</color>
+    <color name="widget_chat_chip_fill">#FFD0F5F0</color>
     <color name="light_blue">#D6EBFE</color>
     <color name="no_avatar_background">#D6E4F0</color>
     <color name="pink_let_card">#FFC1AB</color>

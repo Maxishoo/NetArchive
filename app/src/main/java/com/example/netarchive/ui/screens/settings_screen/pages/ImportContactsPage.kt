@@ -5,6 +5,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import com.example.netarchive.data.remote.vk.VkAuthLauncherHolder
+import com.vk.api.sdk.VK
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -130,14 +132,37 @@ fun ImportContactsPage(
             ) {
                 Text(stringResource(R.string.import_from_contacts_app), fontWeight = FontWeight.Medium)
             }
+            Button(
+                onClick = {
+                    if (!viewModel.isVkAppIdConfigured()) {
+                        viewModel.showVkAppIdError()
+                    } else if (VK.isLoggedIn()) {
+                        viewModel.startVkImport()
+                    } else {
+                        VkAuthLauncherHolder.launch { result -> viewModel.onVkAuthResult(result) }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                Text(stringResource(R.string.import_from_vk_friends), fontWeight = FontWeight.Medium)
+            }
             Text(
                 stringResource(R.string.import_apps_expanding),
                 style = MaterialTheme.typography.bodyMedium
             )
+            viewModel.vkCertificateFingerprint()?.let { fingerprint ->
+                Text(
+                    text = stringResource(R.string.vk_setup_fingerprint_hint, fingerprint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 
-    if (state.isImportFromContacts) {
+    if (state.isSelectionPage) {
         if (state.isContactsListLoading) {
             Column(
                 modifier = Modifier
@@ -350,6 +375,7 @@ fun PreviewContactCard(
                     Text(
                         text = contactPreviewItem.contact.phone
                             ?: contactPreviewItem.contact.email
+                            ?: contactPreviewItem.contact.telegram
                             ?: stringResource(R.string.import_no_phone),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

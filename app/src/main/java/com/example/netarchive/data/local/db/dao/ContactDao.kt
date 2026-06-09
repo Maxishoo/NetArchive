@@ -43,6 +43,9 @@ interface ContactDao{
     @Query("SELECT phone FROM contacts")
     suspend fun getContactsPhones() : List<String>
 
+    @Query("SELECT telegram FROM contacts WHERE telegram LIKE '%vk.com%'")
+    suspend fun getContactsVkProfileUrls(): List<String>
+
     @Query("SELECT * FROM contacts WHERE id = :contactId")
     fun getContactWithCategories(contactId: Int): Flow<ContactWithCategories?>
 
@@ -169,6 +172,22 @@ interface ContactDao{
         lastNoteDate ASC
 """)
     fun getContactsToWrite(): Flow<List<ContactWithStats>>
+
+    @Query("""
+    SELECT c.*,
+           COUNT(n.id) as noteCount,
+           MAX(n.date) as lastNoteDate
+    FROM contacts c
+    LEFT JOIN notes n ON c.id = n.contactId
+    GROUP BY c.id
+    HAVING lastNoteDate IS NULL
+        OR lastNoteDate < (strftime('%s', 'now') * 1000 - 14 * 24 * 60 * 60 * 1000)
+    ORDER BY
+        CASE WHEN lastNoteDate IS NULL THEN 0 ELSE 1 END,
+        lastNoteDate ASC
+    LIMIT :limit
+    """)
+    suspend fun getContactsToWriteForWidget(limit: Int): List<ContactWithStats>
 
     @Query("""
     SELECT c.*, COUNT(n.id) as noteCount, MAX(n.date) as lastNoteDate 

@@ -27,6 +27,10 @@ android {
         buildConfigField("String", "YANDEX_FOLDER_ID", "\"$yandexFolder\"")
         buildConfigField("String", "YANDEX_API_KEY", "\"$yandexApiKey\"")
 
+        val vkAppId = providers.gradleProperty("VK_APP_ID").orNull?.toIntOrNull() ?: 0
+        resValue("integer", "com_vk_sdk_AppId", vkAppId.toString())
+        manifestPlaceholders["VK_AUTH_SCHEME"] = if (vkAppId > 0) "vk$vkAppId" else "vk0"
+
     }
 
     buildTypes {
@@ -139,4 +143,7 @@ dependencies {
     implementation("com.google.api-client:google-api-client-android:2.7.2")
     implementation("com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+
+    implementation("com.vk:android-sdk-core:4.1.0")
+    implementation("com.vk:android-sdk-api:4.1.0")
 }

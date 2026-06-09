@@ -103,6 +103,7 @@ class CreateNoteViewModel @Inject constructor(
                 } else {
                     repository.addNote(note)
                 }
+                com.example.netarchive.widget.WidgetUpdater.refresh(appContext)
                 _state.value = currentState.copy(isSuccess = true)
             } catch (e: Exception) {
                 _state.value = currentState.copy(

@@ -7,6 +7,7 @@ import com.example.netarchive.data.remote.calendar.GoogleCalendarSyncService
 import com.example.netarchive.data.repository.ReminderRepository
 import com.example.netarchive.domain.model.ReminderContact
 import com.example.netarchive.utils.ReminderScheduler
+import com.example.netarchive.widget.WidgetUpdater
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -85,6 +86,7 @@ class ReminderListViewModel @Inject constructor(
                 ReminderScheduler.cancelReminder(application, id)
             }
             reminderRepository.deleteRemindersByIds(reminderIds)
+            WidgetUpdater.refresh(application)
             _refreshTrigger.tryEmit(Unit)
         }
     }
