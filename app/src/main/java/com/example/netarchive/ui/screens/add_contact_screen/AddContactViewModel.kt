@@ -15,7 +15,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import android.content.Context
+import com.example.netarchive.R
 import com.example.netarchive.data.local.FileManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.net.URLDecoder
 
 @Stable
@@ -38,6 +41,7 @@ data class ContactFormState(
 
 @HiltViewModel
 class AddContactViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val repository: ContactRepository,
     private val categoryRepository: CategoryRepository,
     private val fileManager: FileManager
@@ -96,7 +100,7 @@ class AddContactViewModel @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
             _formState.value = _formState.value.copy(
-                error = "Ошибка при разборе QR кода: ${e.message}"
+                error = context.getString(R.string.error_qr_parse, e.message ?: "")
             )
             closeQrImport()
         }
@@ -152,7 +156,7 @@ class AddContactViewModel @Inject constructor(
                 _formState.value = _formState.value.copy(avatar = localUri)
             } catch (e: Exception) {
                 _formState.value = _formState.value.copy(
-                    error = "Ошибка загрузки фото: ${e.message}"
+                    error = context.getString(R.string.error_photo_load, e.message ?: "")
                 )
             }
         }
@@ -169,7 +173,7 @@ class AddContactViewModel @Inject constructor(
         val state = _formState.value
 
         if (state.username.isBlank()) {
-            _formState.value = state.copy(error = "Имя обязательно для заполнения")
+            _formState.value = state.copy(error = context.getString(R.string.error_name_required_full))
             return
         }
 
@@ -199,7 +203,7 @@ class AddContactViewModel @Inject constructor(
             } catch (e: Exception) {
                 _formState.value = state.copy(
                     isLoading = false,
-                    error = "Ошибка при сохранении: ${e.message}"
+                    error = context.getString(R.string.error_save, e.message ?: "")
                 )
             }
         }

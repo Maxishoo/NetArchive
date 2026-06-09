@@ -1,8 +1,5 @@
 package com.example.netarchive.ui.screens.contacts_list_screen
 
-import android.content.Context
-import android.os.VibrationEffect
-import android.os.Vibrator
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -15,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -25,6 +21,8 @@ import com.example.netarchive.data.local.db.entity.ContactWithCategories
 import com.example.netarchive.data.mapper.toDomain
 import com.example.netarchive.domain.model.Contact
 import com.example.netarchive.ui.components.cards.ContactCard
+import com.example.netarchive.utils.rememberDefaultVibrator
+import com.example.netarchive.utils.vibrateOneShotShort
 
 @Composable
 fun ContactListScreen(
@@ -49,8 +47,7 @@ fun ContactListScreen(
 
 
     val listState = rememberLazyListState()
-    val context = LocalContext.current
-    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+    val vibrator = rememberDefaultVibrator()
 
     val showSearchFieldState = remember { mutableStateOf(false) }
 
@@ -127,12 +124,7 @@ fun ContactListScreen(
                             },
 
                             onVerticalDragStart = {
-                                vibrator.vibrate(
-                                    VibrationEffect.createOneShot(
-                                        10,
-                                        VibrationEffect.DEFAULT_AMPLITUDE
-                                    )
-                                )
+                                vibrator.vibrateOneShotShort()
                             },
 
                             onVerticalDragEnd = { isDragDown ->
@@ -198,14 +190,7 @@ fun ContactListScreen(
                             },
 
                             onDragSwipeThreshold = {
-                                if (vibrator.hasVibrator()) {
-                                    vibrator.vibrate(
-                                        VibrationEffect.createOneShot(
-                                            10,
-                                            VibrationEffect.DEFAULT_AMPLITUDE
-                                        )
-                                    )
-                                }
+                                vibrator.vibrateOneShotShort()
                             },
 
                             onDragEnd = {

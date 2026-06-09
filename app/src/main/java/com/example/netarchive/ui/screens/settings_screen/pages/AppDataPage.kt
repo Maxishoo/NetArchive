@@ -30,16 +30,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.netarchive.R
+import com.example.netarchive.ui.theme.AppTheme
 import com.example.netarchive.ui.theme.CardBackground
 
 @Composable
 fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     var showContactsDialog by remember { mutableStateOf(false) }
     var showProfileDialog by remember { mutableStateOf(false) }
@@ -50,7 +54,7 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
             viewModel.resetMessages()
         }
         state.error?.let { err ->
-            snackbarHostState.showSnackbar("Ошибка: $err")
+            snackbarHostState.showSnackbar(context.getString(R.string.app_data_error, err))
             viewModel.resetMessages()
         }
     }
@@ -80,7 +84,7 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
                     modifier = Modifier.size(50.dp)
                 )
                 Column {
-                    Text("Размер базы данных", style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.app_data_db_size), style = MaterialTheme.typography.bodyMedium)
                     Text(
                         state.dbSize,
                         style = MaterialTheme.typography.headlineMedium,
@@ -99,10 +103,10 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
         ) {
             if (state.isLoading) CircularProgressIndicator(
                 modifier = Modifier.size(24.dp),
-                color = Color.White,
+                color = AppTheme.colors.cardBackground,
                 strokeWidth = 2.dp
             )
-            else Text("Очистить контакты", fontWeight = FontWeight.Medium)
+            else Text(stringResource(R.string.app_data_clear_contacts), fontWeight = FontWeight.Medium)
         }
 
         Button(
@@ -114,28 +118,28 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
         ) {
             if (state.isLoading) CircularProgressIndicator(
                 modifier = Modifier.size(24.dp),
-                color = Color.White,
+                color = AppTheme.colors.cardBackground,
                 strokeWidth = 2.dp
             )
-            else Text("Очистить профиль", fontWeight = FontWeight.Medium)
+            else Text(stringResource(R.string.app_data_clear_profile), fontWeight = FontWeight.Medium)
         }
     }
     if (showContactsDialog) {
         AlertDialog(
             onDismissRequest = { showContactsDialog = false },
-            title = { Text("Удалить все контакты?") },
-            text = { Text("Все сохранённые контакты и связанные заметки будут удалены безвозвратно.") },
+            title = { Text(stringResource(R.string.app_data_delete_contacts_title)) },
+            text = { Text(stringResource(R.string.app_data_delete_contacts_message)) },
             confirmButton = {
                 TextButton(onClick = {
                     showContactsDialog = false; viewModel.clearTable("contacts")
                 }) {
-                    Text("Удалить", color = Color(0xFF1976D2))
+                    Text(stringResource(R.string.action_delete), color = AppTheme.colors.confirmAction)
                 }
             },
             dismissButton = {
                 TextButton(onClick = {
                     showContactsDialog = false
-                }) { Text("Отмена") }
+                }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -143,19 +147,19 @@ fun AppDataPage(viewModel: DataSettingsViewModel = hiltViewModel()) {
     if (showProfileDialog) {
         AlertDialog(
             onDismissRequest = { showProfileDialog = false },
-            title = { Text("Сбросить профиль?") },
-            text = { Text("Данные профиля будут удалены.") },
+            title = { Text(stringResource(R.string.app_data_reset_profile_title)) },
+            text = { Text(stringResource(R.string.app_data_reset_profile_message)) },
             confirmButton = {
                 TextButton(onClick = {
                     showProfileDialog = false; viewModel.clearTable("profile")
                 }) {
-                    Text("Сбросить", color = Color(0xFFE85653))
+                    Text(stringResource(R.string.app_data_reset), color = AppTheme.colors.destructiveAction)
                 }
             },
             dismissButton = {
                 TextButton(onClick = {
                     showProfileDialog = false
-                }) { Text("Отмена") }
+                }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }

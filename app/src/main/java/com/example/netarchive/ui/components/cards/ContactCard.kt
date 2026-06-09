@@ -20,7 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.netarchive.R
 import com.example.netarchive.domain.model.Contact
 import com.example.netarchive.ui.theme.*
 import androidx.compose.material.icons.Icons
@@ -48,7 +50,6 @@ import com.example.netarchive.data.local.db.entity.CategoryEntity
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import kotlin.math.abs
-import com.example.netarchive.R
 
 @Composable
 fun ContactCard(
@@ -129,7 +130,7 @@ fun ContactCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (contact.pinnedOrder > 0) "ОТКРЕПИТЬ" else "ЗАКРЕПИТЬ",
+                text = if (contact.pinnedOrder > 0) stringResource(R.string.unpin) else stringResource(R.string.pin),
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(end = 8.dp)
             )
@@ -212,7 +213,7 @@ fun ContactCard(
                         modifier = Modifier
                             .size(56.dp)
                             .clip(CircleShape)
-                            .background(color = Color(0xFFDBE0F7)),
+                            .background(color = AppTheme.colors.noAvatar),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(

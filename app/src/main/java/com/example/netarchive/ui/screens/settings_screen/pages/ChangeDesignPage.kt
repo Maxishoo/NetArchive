@@ -23,22 +23,26 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.netarchive.R
+import com.example.netarchive.ui.screens.settings_screen.ThemeViewModel
+import com.example.netarchive.ui.theme.AppTheme
 
 @Composable
 fun ChangeDesignPage(
+    viewModel: ThemeViewModel = hiltViewModel(),
 ) {
-    var isDarkTheme by remember { mutableStateOf(false) }
+    val isDarkTheme by viewModel.isDarkTheme.collectAsState()
+    val colors = AppTheme.colors
     val circleOffset by animateDpAsState(
         targetValue = if (isDarkTheme) 24.dp else 0.dp,
         animationSpec = spring(
@@ -72,11 +76,15 @@ fun ChangeDesignPage(
                 Icon(
                     imageVector = if (isDarkTheme) Icons.Default.NightsStay else Icons.Default.WbSunny,
                     contentDescription = null,
-                    tint = if (isDarkTheme) Color(0xFFFCD139) else Color(0xFFFF9800),
+                    tint = if (isDarkTheme) colors.themeIconDarkMode else colors.themeIconLightMode,
                     modifier = Modifier.size(28.dp)
                 )
                 Text(
-                    text = if (isDarkTheme) "Темная тема" else "Светлая тема",
+                    text = if (isDarkTheme) {
+                        stringResource(R.string.design_dark_theme)
+                    } else {
+                        stringResource(R.string.design_light_theme)
+                    },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium
                 )
@@ -87,9 +95,9 @@ fun ChangeDesignPage(
                     .size(width = 56.dp, height = 32.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(
-                        if (isDarkTheme) Color(0xFF6E6E6E) else Color(0xFFE0E0E0)
+                        if (isDarkTheme) colors.themeSwitchTrackDark else colors.themeSwitchTrackLight
                     )
-                    .clickable { isDarkTheme = !isDarkTheme }
+                    .clickable { viewModel.toggleTheme() }
                     .padding(4.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
@@ -98,7 +106,7 @@ fun ChangeDesignPage(
                         .size(24.dp)
                         .offset(x = circleOffset)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(colors.themeSwitchThumb)
                         .shadow(2.dp, CircleShape)
                 )
             }

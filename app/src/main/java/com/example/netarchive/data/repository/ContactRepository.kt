@@ -54,6 +54,10 @@ class ContactRepository @Inject constructor(
         return contactDao.getContactsPhones()
     }
 
+    suspend fun getContactsVkProfileUrls(): List<String> {
+        return contactDao.getContactsVkProfileUrls()
+    }
+
     suspend fun addCategoryToContact(contactId: Int, categoryId: Int) {
         contactDao.insertContactCategoryCrossRef(
             ContactCategoryCrossRef(contactId, categoryId)

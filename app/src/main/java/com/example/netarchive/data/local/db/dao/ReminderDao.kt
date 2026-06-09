@@ -57,5 +57,35 @@ interface ReminderDao {
     @Query("DELETE FROM reminders WHERE id IN (:ids)")
     suspend fun deleteRemindersByIds(ids: List<Int>): Int
 
+    @Query("SELECT * FROM reminders WHERE id IN (:ids)")
+    suspend fun getRemindersByIds(ids: List<Int>): List<ReminderEntity>
+
+    @Query("UPDATE reminders SET googleCalendarEventId = :eventId WHERE id = :reminderId")
+    suspend fun updateGoogleCalendarEventId(reminderId: Int, eventId: String?)
+
+    @Query("""
+        SELECT reminders.id AS reminderId,
+               reminders.text AS reminderText,
+               reminders.date AS reminderDate,
+               reminders.contactId AS contactId,
+               contacts.username AS contactName
+        FROM reminders
+        INNER JOIN contacts ON reminders.contactId = contacts.id
+        WHERE reminders.date >= :fromMillis
+        ORDER BY reminders.date ASC
+        LIMIT :limit
+    """)
+    suspend fun getUpcomingRemindersForWidget(
+        fromMillis: Long,
+        limit: Int,
+    ): List<WidgetReminderRow>
 
 }
+
+data class WidgetReminderRow(
+    val reminderId: Int,
+    val reminderText: String,
+    val reminderDate: Long,
+    val contactId: Int,
+    val contactName: String,
+)

@@ -15,13 +15,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.netarchive.ui.components.CategorySelector
 import com.example.netarchive.ui.components.QrScannerDialog
+import com.example.netarchive.ui.theme.AppTheme
 import com.example.netarchive.ui.theme.NetArchiveTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import android.app.DatePickerDialog
@@ -29,6 +29,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.example.netarchive.R
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -190,11 +192,11 @@ fun AddContactScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(color = Color(0xFFECEBF4).copy(alpha = 0.95f))
+                .background(color = AppTheme.topBarBackground())
                 .padding(top = 30.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
         ) {
             ContactHeader(
-                title = "Добавить контакт",
+                title = stringResource(R.string.add_contact_title),
                 onBackClick = onBackClick
             )
         }
@@ -209,9 +211,9 @@ private fun ContactHeader(
     modifier: Modifier = Modifier
 ) {
     Text(
-        text = "Добавить контакт",
+        text = stringResource(R.string.add_contact_title),
         style = MaterialTheme.typography.headlineLarge,
-        color = Color.Black
+        color = AppTheme.colors.onSurface
     )
 }
 
@@ -248,7 +250,7 @@ private fun ContactActions(
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = "По QR коду",
+            text = stringResource(R.string.add_by_qr),
             style = MaterialTheme.typography.labelLarge
         )
     }
@@ -266,7 +268,7 @@ private fun ContactActions(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
         ) {
-            Text("Отмена")
+            Text(stringResource(R.string.cancel))
         }
 
         Button(
@@ -280,7 +282,7 @@ private fun ContactActions(
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text("Сохранить")
+                Text(stringResource(R.string.save))
             }
         }
     }
@@ -294,12 +296,12 @@ private fun UsernameField(
     isError: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val supportingText = if (isError) "Обязательное поле" else null
+    val supportingText = if (isError) stringResource(R.string.required_field) else null
 
     FormTextField(
         value = value,
         onValueChange = onValueChange,
-        label = "Имя *",
+        label = stringResource(R.string.profile_name_label),
         isError = isError,
         supportingText = supportingText,
         modifier = modifier
@@ -315,7 +317,7 @@ private fun PhoneField(
     FormTextField(
         value = value,
         onValueChange = onValueChange,
-        label = "Телефон",
+        label = stringResource(R.string.profile_phone_label),
         modifier = modifier
     )
 }
@@ -371,7 +373,7 @@ private fun JobField(
     FormTextField(
         value = value,
         onValueChange = onValueChange,
-        label = "Место работы",
+        label = stringResource(R.string.job_place_label),
         modifier = modifier
     )
 }
@@ -383,16 +385,17 @@ private fun FormTextField(
     label: String,
     modifier: Modifier = Modifier,
     isError: Boolean = false,
-    supportingText: String? = null
+    supportingText: String? = null,
+    multiline: Boolean = false,
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         modifier = modifier.fillMaxWidth(),
-        singleLine = label != "Описание",
-        minLines = if (label == "Описание") 3 else 1,
-        maxLines = if (label == "Описание") 5 else 1,
+        singleLine = !multiline,
+        minLines = if (multiline) 3 else 1,
+        maxLines = if (multiline) 5 else 1,
         isError = isError,
         supportingText = supportingText?.let { { Text(it) } },
         colors = OutlinedTextFieldDefaults.colors(
@@ -431,7 +434,7 @@ private fun BirthdayField(
     OutlinedTextField(
         value = displayText,
         onValueChange = { },
-        label = { Text("Дата рождения") },
+        label = { Text(stringResource(R.string.profile_birthday_label)) },
         placeholder = { Text("") },
         modifier = modifier.fillMaxWidth(),
         enabled = isEditMode,
@@ -441,7 +444,7 @@ private fun BirthdayField(
         trailingIcon = {
             Icon(
                 imageVector = Icons.Default.CalendarToday,
-                contentDescription = "Выбрать дату",
+                contentDescription = stringResource(R.string.pick_date),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = modifier.clickable(enabled = isEditMode) {
                     showDatePicker = true
@@ -480,9 +483,10 @@ private fun DescriptionField(
     FormTextField(
         value = value,
         onValueChange = onValueChange,
-        label = "Описание",
+        label = stringResource(R.string.description_label),
         modifier = modifier,
-        isError = false
+        isError = false,
+        multiline = true,
     )
 }
 
@@ -490,7 +494,7 @@ private fun DescriptionField(
 @Preview(showBackground = true)
 @Composable
 fun AddContactScreenPreview() {
-    NetArchiveTheme {
+    NetArchiveTheme(darkTheme = false) {
         AddContactScreen(
             onContactCreated = {},
             onBackClick = {}

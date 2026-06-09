@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.example.netarchive.R
 import java.util.Locale
 import javax.inject.Inject
 
@@ -49,12 +50,22 @@ class DataSettingsViewModel @Inject constructor(
                 when (tableName) {
                     "contacts" -> contactRepository.deleteAllContacts()
                     "profile" -> profileRepository.deleteProfile()
-                    else -> throw IllegalArgumentException("Неизвестная таблица")
+                    else -> throw IllegalArgumentException(context.getString(R.string.app_data_unknown_table))
                 }
                 loadDatabaseSize()
-                _state.update { it.copy(isLoading = false, successMessage = "Таблица '$tableName' очищена") }
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        successMessage = context.getString(R.string.app_data_table_cleared, tableName)
+                    )
+                }
             } catch (e: Exception) {
-                _state.update { it.copy(isLoading = false, error = e.message ?: "Ошибка очистки") }
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        error = e.message ?: context.getString(R.string.app_data_clear_error)
+                    )
+                }
             }
         }
     }
@@ -64,7 +75,7 @@ class DataSettingsViewModel @Inject constructor(
     }
 
     private fun getDatabaseSize(context: Context): Long {
-        val dbFile = context.getDatabasePath("archive.db")
+        val dbFile = context.getDatabasePath(com.example.netarchive.data.local.db.EncryptedDatabaseFactory.DATABASE_NAME)
         return if (dbFile.exists()) dbFile.length() else 0L
     }
     private fun formatBytes(bytes: Long): String = when {

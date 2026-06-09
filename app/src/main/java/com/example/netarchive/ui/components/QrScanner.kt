@@ -38,13 +38,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.example.netarchive.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.netarchive.ui.theme.AppTheme
 import qrscanner.CameraLens
 import qrscanner.QrScanner
 
@@ -57,6 +59,7 @@ fun QrScannerDialog(
     var openImagePicker by remember { mutableStateOf(false) }
     var isScanning by remember { mutableStateOf(true) }
     val context = LocalContext.current
+    val colors = AppTheme.colors
 
     Dialog(
         onDismissRequest = onCloseClick,
@@ -68,22 +71,22 @@ fun QrScannerDialog(
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
-                    .background(color = Color.White)
+                    .background(color = colors.cardBackground)
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Column(
                     modifier = Modifier
-                        .background(color = Color.Black)
+                        .background(color = colors.onSurface)
                         .fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Сканирование QR кода",
+                        text = stringResource(R.string.qr_scan_title),
                         style = MaterialTheme.typography.titleLarge.copy(
-                            color = Color.White,
+                            color = colors.cardBackground,
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp
                         ),
@@ -96,8 +99,8 @@ fun QrScannerDialog(
                             .background(
                                 brush = Brush.linearGradient(
                                     colors = listOf(
-                                        Color(0xFF1A1A1A),
-                                        Color(0xFF0A0A0A)
+                                        colors.qrOverlayDarkStart,
+                                        colors.qrOverlayDarkEnd
                                     )
                                 )
                             )
@@ -105,8 +108,8 @@ fun QrScannerDialog(
                                 width = 2.dp,
                                 brush = Brush.linearGradient(
                                     colors = listOf(
-                                        Color(0xFF4CAF50),
-                                        Color(0xFF2196F3)
+                                        colors.qrOverlaySuccessStart,
+                                        colors.qrOverlaySuccessEnd
                                     )
                                 ),
                                 shape = RoundedCornerShape(24.dp)
@@ -140,9 +143,9 @@ fun QrScannerDialog(
 
                     }
                     Text(
-                        text = "Наведите камеру на QR код",
+                        text = stringResource(R.string.qr_scan_hint),
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color.White.copy(alpha = 0.8f),
+                            color = colors.cardBackground.copy(alpha = 0.8f),
                             fontSize = 14.sp
                         ),
                         modifier = Modifier.padding(top = 24.dp, bottom = 16.dp)
@@ -151,7 +154,7 @@ fun QrScannerDialog(
                         modifier = Modifier
                             .padding(horizontal = 20.dp, vertical = 8.dp)
                             .background(
-                                color = Color(0xFF1C1C1E),
+                                color = colors.qrButtonBackground,
                                 shape = RoundedCornerShape(50.dp)
                             )
                             .height(56.dp)
@@ -171,12 +174,12 @@ fun QrScannerDialog(
                                 imageVector = if (flashlightOn) Icons.Filled.FlashOn else Icons.Filled.FlashOff,
                                 contentDescription = "flash",
                                 modifier = Modifier.size(24.dp),
-                                tint = if (flashlightOn) Color(0xFF4CAF50) else Color.White
+                                tint = if (flashlightOn) colors.qrFlashlightActive else colors.cardBackground
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = if (flashlightOn) "Выкл." else "Вкл.",
-                                color = if (flashlightOn) Color(0xFF4CAF50) else Color.White,
+                                text = if (flashlightOn) stringResource(R.string.flash_off) else stringResource(R.string.flash_on),
+                                color = if (flashlightOn) colors.qrFlashlightActive else colors.cardBackground,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -186,7 +189,7 @@ fun QrScannerDialog(
                                 .height(32.dp)
                                 .width(1.dp),
                             thickness = 1.dp,
-                            color = Color(0xFF38383A)
+                            color = colors.qrDivider
                         )
                         Row(
                             modifier = Modifier
@@ -200,12 +203,12 @@ fun QrScannerDialog(
                                 imageVector = Icons.Filled.Image,
                                 contentDescription = "gallery",
                                 modifier = Modifier.size(24.dp),
-                                tint = Color.White
+                                tint = colors.cardBackground
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Галерея",
-                                color = Color.White,
+                                text = stringResource(R.string.gallery),
+                                color = colors.cardBackground,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -219,7 +222,7 @@ fun QrScannerDialog(
                     .padding(top = 40.dp, end = 12.dp)
                     .size(44.dp)
                     .background(
-                        color = Color.White.copy(alpha = 0.2f),
+                        color = colors.cardBackground.copy(alpha = 0.2f),
                         shape = CircleShape
                     )
                     .align(Alignment.TopEnd)
@@ -227,7 +230,7 @@ fun QrScannerDialog(
                 Icon(
                     imageVector = Icons.Filled.Close,
                     contentDescription = "Close",
-                    tint = Color.White,
+                    tint = colors.cardBackground,
                     modifier = Modifier.size(24.dp)
                 )
             }

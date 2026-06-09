@@ -2,8 +2,12 @@ package com.example.netarchive.ui.screens.reminder_list_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.app.Application
+import com.example.netarchive.data.remote.calendar.GoogleCalendarSyncService
 import com.example.netarchive.data.repository.ReminderRepository
 import com.example.netarchive.domain.model.ReminderContact
+import com.example.netarchive.utils.ReminderScheduler
+import com.example.netarchive.widget.WidgetUpdater
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -26,7 +30,9 @@ enum class SortingMode {
 
 @HiltViewModel
 class ReminderListViewModel @Inject constructor(
-    private val reminderRepository: ReminderRepository
+    private val application: Application,
+    private val reminderRepository: ReminderRepository,
+    private val calendarSync: GoogleCalendarSyncService,
 ) : ViewModel() {
 
     private val _sortingMode = MutableStateFlow(SortingMode.BY_DATE)
@@ -74,7 +80,13 @@ class ReminderListViewModel @Inject constructor(
 
     fun deleteReminders(reminderIds: List<Int>) {
         viewModelScope.launch {
+            val reminders = reminderRepository.getRemindersByIds(reminderIds)
+            calendarSync.syncAfterDelete(reminders)
+            reminderIds.forEach { id ->
+                ReminderScheduler.cancelReminder(application, id)
+            }
             reminderRepository.deleteRemindersByIds(reminderIds)
+            WidgetUpdater.refresh(application)
             _refreshTrigger.tryEmit(Unit)
         }
     }

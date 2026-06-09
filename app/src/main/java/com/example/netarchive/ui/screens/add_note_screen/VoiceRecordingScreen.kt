@@ -3,8 +3,6 @@ package com.example.netarchive.ui.screens.add_note_screen
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.os.VibrationEffect
-import android.os.Vibrator
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -48,15 +46,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.example.netarchive.R
+import com.example.netarchive.ui.theme.AppTheme
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.netarchive.utils.rememberDefaultVibrator
+import com.example.netarchive.utils.vibrateOneShotShort
 
 @Composable
 fun VoiceRecordingScreen(
@@ -64,7 +66,7 @@ fun VoiceRecordingScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
-    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+    val vibrator = rememberDefaultVibrator()
 
     fun hasMicrophonePermission(): Boolean {
         val hasPermission = ContextCompat.checkSelfPermission(
@@ -80,7 +82,7 @@ fun VoiceRecordingScreen(
         if (isGranted) {
             viewModel.initialize(context)
         } else {
-            Toast.makeText(context, "Для записи голоса нужно разрешение", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.voice_permission_required), Toast.LENGTH_LONG).show()
             viewModel.closeRecordingPage()
         }
     }
@@ -104,7 +106,7 @@ fun VoiceRecordingScreen(
             modifier = Modifier
                 .width(350.dp)
                 .height(530.dp)
-                .background(Color.White, shape = RoundedCornerShape(16.dp))
+                .background(AppTheme.colors.cardBackground, shape = RoundedCornerShape(16.dp))
                 .clickable(onClick = {})
         ) {
             Column(
@@ -114,9 +116,9 @@ fun VoiceRecordingScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = if (state.isVoiceRecording) "Запись голоса..."
-                    else if (state.isVoiceProcessing) "Обработка..."
-                    else "Голосовая заметка",
+                    text = if (state.isVoiceRecording) stringResource(R.string.voice_recording)
+                    else if (state.isVoiceProcessing) stringResource(R.string.voice_processing)
+                    else stringResource(R.string.voice_note),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -138,9 +140,7 @@ fun VoiceRecordingScreen(
                 if (!state.isVoiceRecordDone && !state.isVoiceProcessing) {
                     IconButton(
                         onClick = {
-                            if (vibrator.hasVibrator()) {
-                                vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
-                            }
+                            vibrator.vibrateOneShotShort()
                             if (state.isVoiceRecording) {
                                 viewModel.stopListening()
                             } else {
@@ -154,15 +154,15 @@ fun VoiceRecordingScreen(
                                 Icons.Outlined.Pause
                             else
                                 Icons.Outlined.Mic,
-                            contentDescription = if (state.isVoiceRecording) "Остановить" else "Запись",
+                            contentDescription = if (state.isVoiceRecording) stringResource(R.string.stop) else stringResource(R.string.record),
                             modifier = Modifier.size(110.dp),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
 
                     Text(
-                        text = if (state.isVoiceRecording) "Нажмите, чтобы остановить"
-                        else "Нажмите, чтобы начать запись",
+                        text = if (state.isVoiceRecording) stringResource(R.string.voice_tap_to_stop)
+                        else stringResource(R.string.voice_tap_to_start),
                         fontSize = 12.sp
                     )
                 } else if (state.isVoiceProcessing) {
@@ -172,7 +172,7 @@ fun VoiceRecordingScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Обработка голоса...",
+                        text = stringResource(R.string.voice_processing_detail),
                         fontSize = 14.sp
                     )
                 }
@@ -193,7 +193,7 @@ fun VoiceRecordingScreen(
                         ) {
                             Column {
                                 Text(
-                                    text = "Распознанный текст:",
+                                    text = stringResource(R.string.recognized_text_label),
                                     fontSize = 12.sp,
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -221,10 +221,11 @@ fun VoiceRecordingScreen(
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
-                                Text("Отмена")
+                                Text(stringResource(R.string.cancel))
                             }
 
-                            if(state.recognizedText.isNotBlank() && !state.recognizedText.startsWith("Речь не распознана")){
+                            val speechNotRecognized = stringResource(R.string.speech_not_recognized)
+                            if(state.recognizedText.isNotBlank() && !state.recognizedText.startsWith(speechNotRecognized)){
                                 Button(
                                     onClick = {
                                         viewModel.applyRecognizedText()
@@ -233,7 +234,7 @@ fun VoiceRecordingScreen(
                                     modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(12.dp)
                                 ) {
-                                    Text("Применить")
+                                    Text(stringResource(R.string.apply))
                                 }
                             }else{
                                 Button(
@@ -243,7 +244,7 @@ fun VoiceRecordingScreen(
                                     modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(12.dp)
                                 ) {
-                                    Text("Ещё раз")
+                                    Text(stringResource(R.string.try_again))
                                 }
                             }
                         }
@@ -255,7 +256,7 @@ fun VoiceRecordingScreen(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text("Закрыть")
+                            Text(stringResource(R.string.close))
                         }
                     }
                 }
@@ -309,7 +310,7 @@ fun Waveform(
                         .width(4.dp)
                         .height((20 + value * 60).dp)
                         .clip(RoundedCornerShape(2.dp))
-                        .background(Color(0xFF4D5D8A))
+                        .background(AppTheme.colors.primaryAction)
                 )
 
                 Spacer(modifier = Modifier.width(3.dp))
@@ -337,7 +338,7 @@ fun AnimatedText() {
     }
 
     Text(
-        text = "Говорите$dotsText",
+        text = stringResource(R.string.speak) + dotsText,
         fontSize = 16.sp,
         fontWeight = FontWeight.Medium
     )

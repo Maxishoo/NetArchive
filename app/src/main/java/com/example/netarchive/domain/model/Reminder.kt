@@ -5,5 +5,6 @@ data class Reminder(
     val contactId: Int,
     val text: String,
     val date: Long,
-    val isCompleted: Boolean = false
+    val isCompleted: Boolean = false,
+    val googleCalendarEventId: String? = null
 )
