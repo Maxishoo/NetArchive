@@ -51,6 +51,7 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
+//почитайте про аннотации @Stable и @Immutable. Лямбды не стабильные, могут быть лишние рекомпозиции
 @Composable
 fun ContactCard(
     contact: Contact,
